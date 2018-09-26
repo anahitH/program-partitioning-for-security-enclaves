@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# swp files
+.*.swp
+include/.*.swp
+lib/.*.swp
+
+# Build files
+build/

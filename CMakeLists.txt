@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.12)
+project(program_partitioning VERSION 0.1.0 LANGUAGES CXX)
+
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
+find_package(LLVM 6.0 REQUIRED CONFIG)
+
+add_library(program_partitioning MODULE
+        lib/ModuleAnnotationParser.cpp
+        lib/Logger.cpp
+)
+
+target_include_directories(program_partitioning PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LLVM_INCLUDE_DIRS}
+)
+
+if ($ENV{CLION_IDE})
+    include_directories("/usr/local/include/llvm/")
+    include_directories("/usr/local/include/llvm-c/")
+endif ()
+
+target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type)
+target_compile_options(program_partitioning PRIVATE -fno-rtti)
+
+
