@@ -3,10 +3,22 @@ project(program_partitioning VERSION 0.1.0 LANGUAGES CXX)
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 find_package(LLVM 6.0 REQUIRED CONFIG)
+find_package (Threads)
+
+# TODO: modernize cmakefiles for SVF and find include dir from package
+set (SVF_INCLUDE_DIR "/usr/local/include/SVF")
+set (SVF_LIB_DIR "/usr/local/lib")
 
 add_library(program_partitioning MODULE
         lib/ModuleAnnotationParser.cpp
         lib/Logger.cpp
+        lib/PDG/PDGBuilder.cpp
+        lib/PDG/PDGPointerAnalysis.cpp
+)
+
+add_library(debug-program_partitioning MODULE
+        lib/Debug/PDGPass.cpp
+        lib/Debug/ModuleAnnotationsTest.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
@@ -15,7 +27,19 @@ target_include_directories(program_partitioning PUBLIC
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
+        ${SVF_INCLUDE_DIR}
 )
+
+target_include_directories(debug-program_partitioning PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LLVM_INCLUDE_DIRS}
+        ${SVF_INCLUDE_DIR}
+)
+target_link_libraries(program_partitioning PRIVATE ${SVF_LIB_DIR} Threads::Threads)
+target_link_libraries(debug-program_partitioning PRIVATE ${SVF_LIB_DIR} Threads::Threads)
 
 if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm/")
@@ -23,6 +47,8 @@ if ($ENV{CLION_IDE})
 endif ()
 
 target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type)
-target_compile_options(program_partitioning PRIVATE -fno-rtti)
+target_compile_options(program_partitioning PRIVATE -fno-rtti -g)
 
+target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type)
+target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 

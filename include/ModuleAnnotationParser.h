@@ -27,8 +27,10 @@ public:
     ModuleAnnotationParser& operator = (ModuleAnnotationParser&& ) = delete;
 
 public:
-    void parseFunctionAnnotations();
     const FunctionSet& getAnnotatedFunctions(const std::string& annotation);
+
+private:
+    void parseFunctionAnnotations();
 
 private:
     llvm::Module* m_module;

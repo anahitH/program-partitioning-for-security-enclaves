@@ -17,6 +17,15 @@ ModuleAnnotationParser::ModuleAnnotationParser(llvm::Module* module,
 {
 }
 
+const ModuleAnnotationParser::FunctionSet&
+ModuleAnnotationParser::getAnnotatedFunctions(const std::string& annotation)
+{
+    if (!m_parsed) {
+        parseFunctionAnnotations();
+    }
+    return m_annotatedFunctions[annotation];
+}
+
 void ModuleAnnotationParser::parseFunctionAnnotations()
 {
     m_parsed = true;
@@ -39,15 +48,6 @@ void ModuleAnnotationParser::parseFunctionAnnotations()
             m_annotatedFunctions[annotation].insert(fn);
         }
     }
-}
-
-const ModuleAnnotationParser::FunctionSet&
-ModuleAnnotationParser::getAnnotatedFunctions(const std::string& annotation)
-{
-    if (!m_parsed) {
-        parseFunctionAnnotations();
-    }
-    return m_annotatedFunctions[annotation];
 }
 
 } // namespace vazgen
