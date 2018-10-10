@@ -13,20 +13,10 @@ ModuleAnnotationParser::ModuleAnnotationParser(llvm::Module* module,
                                                Logger& logger)
     : m_module(module)
     , m_logger(logger)
-    , m_parsed(false)
 {
 }
 
-const ModuleAnnotationParser::FunctionSet&
-ModuleAnnotationParser::getAnnotatedFunctions(const std::string& annotation)
-{
-    if (!m_parsed) {
-        parseFunctionAnnotations();
-    }
-    return m_annotatedFunctions[annotation];
-}
-
-void ModuleAnnotationParser::parseFunctionAnnotations()
+void ModuleAnnotationParser::parseAnnotations()
 {
     m_parsed = true;
     auto global_annos = m_module->getNamedGlobal("llvm.global.annotations");
@@ -45,7 +35,7 @@ void ModuleAnnotationParser::parseFunctionAnnotations()
                 continue;
             }
             const std::string annotation = str_annotation->getAsCString();
-            m_annotatedFunctions[annotation].insert(fn);
+            m_annotations[annotation].insert(Annotation(annotation, fn));
         }
     }
 }

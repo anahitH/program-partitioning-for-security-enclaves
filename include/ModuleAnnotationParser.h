@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AnnotationParser.h"
+
 #include <unordered_set>
 #include <unordered_map>
 
@@ -12,12 +14,8 @@ namespace vazgen {
 
 class Logger;
 
-class ModuleAnnotationParser
+class ModuleAnnotationParser : public AnnotationParser
 {
-public:
-    using FunctionSet = std::unordered_set<llvm::Function*>;
-    using AnnotatedFunctions = std::unordered_map<std::string, FunctionSet>;
-
 public:
     ModuleAnnotationParser(llvm::Module* module, Logger& logger);
 
@@ -26,17 +24,12 @@ public:
     ModuleAnnotationParser& operator = (const ModuleAnnotationParser&) = delete;
     ModuleAnnotationParser& operator = (ModuleAnnotationParser&& ) = delete;
 
-public:
-    const FunctionSet& getAnnotatedFunctions(const std::string& annotation);
-
 private:
-    void parseFunctionAnnotations();
+    virtual void parseAnnotations() override;
 
 private:
     llvm::Module* m_module;
-    bool m_parsed;
     Logger& m_logger;
-    AnnotatedFunctions m_annotatedFunctions;
 }; // class ModuleAnnotationParser
 
 } // namespace vazgen

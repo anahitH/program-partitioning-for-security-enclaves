@@ -49,7 +49,7 @@ public:
         }
         const auto& expectedAnnotations = parseExpectedAnnotations(ExpectedAnnotations, logger);
         vazgen::ModuleAnnotationParser annotations_parser(&M, logger);
-        const auto& annotatedObjects = annotations_parser.getAnnotatedFunctions(Annot);
+        const auto& annotatedObjects = annotations_parser.getAnnotations(Annot);
         checkAnnotations(expectedAnnotations, annotatedObjects, logger);
         return false;
     }
@@ -73,13 +73,13 @@ private:
     }
 
     void checkAnnotations(const std::unordered_set<std::string>& expectedAnnotations,
-                          const std::unordered_set<llvm::Function*>& annotations,
+                          const vazgen::AnnotationParser::Annotations& annotations,
                           vazgen::Logger& logger)
     {
         assert((annotations.size() == expectedAnnotations.size())
                 && "Mismatch between expectedAnnotations and parsed annotations");
-        for (auto& F : annotations) {
-            assert((expectedAnnotations.find(F->getName()) != expectedAnnotations.end())
+        for (auto& item : annotations) {
+            assert((expectedAnnotations.find(item.getFunction()->getName()) != expectedAnnotations.end())
                     && "Mismatch between expectedAnnotations and parsed annotations");
         }
     }
