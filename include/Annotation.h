@@ -14,6 +14,7 @@ public:
     Annotation(const std::string& annotation, llvm::Function* F)
         : m_annotation(annotation)
         , m_F(F)
+        , m_return(false)
     {
     }
 
@@ -38,9 +39,19 @@ public:
         return m_arguments;
     }
 
+    bool isReturnAnnotated() const
+    {
+        return m_return;
+    }
+
     void addAnnotatedArgument(int arg)
     {
         m_arguments.push_back(arg);
+    }
+
+    void setReturnAnnotation(bool annot)
+    {
+        m_return = annot;
     }
 
     bool operator ==(const Annotation& annot) const
@@ -52,6 +63,7 @@ private:
     const std::string m_annotation;
     llvm::Function* m_F;
     std::vector<unsigned> m_arguments;
+    bool m_return;
 }; // class Annotation
 
 } // namespace vazgen

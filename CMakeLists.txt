@@ -4,6 +4,7 @@ project(program_partitioning VERSION 0.1.0 LANGUAGES CXX)
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 find_package(LLVM 6.0 REQUIRED CONFIG)
 find_package (Threads)
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 # TODO: modernize cmakefiles for SVF and find include dir from package
 set (SVF_INCLUDE_DIR "/usr/local/include/SVF")
@@ -11,6 +12,7 @@ set (SVF_LIB_DIR "/usr/local/lib")
 
 add_library(program_partitioning MODULE
         lib/ModuleAnnotationParser.cpp
+        lib/JsonAnnotationParser.cpp
         lib/Logger.cpp
         lib/PDG/PDGBuilder.cpp
         lib/PDG/PDGPointerAnalysis.cpp
@@ -18,7 +20,9 @@ add_library(program_partitioning MODULE
 
 add_library(debug-program_partitioning MODULE
         lib/Debug/PDGPass.cpp
+        lib/Debug/AnnotationsTest.cpp
         lib/Debug/ModuleAnnotationsTest.cpp
+        lib/Debug/JsonAnnotationsTest.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
@@ -40,6 +44,7 @@ target_include_directories(debug-program_partitioning PUBLIC
 )
 target_link_libraries(program_partitioning PRIVATE ${SVF_LIB_DIR} Threads::Threads)
 target_link_libraries(debug-program_partitioning PRIVATE ${SVF_LIB_DIR} Threads::Threads)
+target_link_libraries(program_partitioning PRIVATE nlohmann_json::nlohmann_json)
 
 if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm/")
