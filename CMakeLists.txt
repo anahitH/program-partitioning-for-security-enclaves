@@ -7,6 +7,13 @@ find_package (Threads)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_package(svf REQUIRED COMPONENTS Svf)
 
+# Ideally would use find_package
+set (DG_INCLUDE_DIR "/usr/local/include/dg")
+# Needed to use dg
+add_definitions(-DHAVE_LLVM)
+add_definitions(-DENABLE_CFG)
+find_package(Boost REQUIRED)
+
 add_library(program_partitioning MODULE
         lib/ModuleAnnotationParser.cpp
         lib/JsonAnnotationParser.cpp
@@ -18,6 +25,7 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/AnnotationsTest.cpp
         lib/Debug/ModuleAnnotationsTest.cpp
         lib/Debug/JsonAnnotationsTest.cpp
+        lib/Debug/DgPDGCompare.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
@@ -34,13 +42,18 @@ target_include_directories(debug-program_partitioning PUBLIC
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
+        ${DG_INCLUDE_DIR}
 )
 target_link_libraries(program_partitioning PRIVATE
                       Threads::Threads
                       svf::Svf
                       nlohmann_json::nlohmann_json
 )
-target_link_libraries(debug-program_partitioning PRIVATE Threads::Threads svf::Svf)
+target_link_libraries(debug-program_partitioning PRIVATE
+                      Threads::Threads
+                      svf::Svf
+                      ${Boost_LIBRARIES})
 
 if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm/")
