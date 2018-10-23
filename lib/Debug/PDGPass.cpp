@@ -25,7 +25,7 @@ public:
     bool runOnModule(llvm::Module& M) override
     {
         SVFModule svfModule(M);
-        AndersenWaveDiff* ander = new pdg::PDGAndersenWaveDiff();
+        AndersenWaveDiff* ander = new svfg::PDGAndersenWaveDiff();
         ander->disablePrintStat();
         ander->analyze(svfModule);
         SVFGBuilder memSSA(true);
