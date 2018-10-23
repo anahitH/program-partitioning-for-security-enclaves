@@ -13,6 +13,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/IR/Metadata.h"
 
 #include "dg/llvm/LLVMDependenceGraphBuilder.h"
 #include "dg/llvm/LLVMDependenceGraph.h"
@@ -41,8 +42,13 @@ void add_edge(directed_graph& graph, llvm::Value* src,
     if (src == dst) {
         return;
     }
+    if (!dst || !src) {
+        return;
+    }
     if (llvm::isa<llvm::Constant>(src)
             || llvm::isa<llvm::Constant>(dst)
+            || llvm::isa<llvm::MetadataAsValue>(src)
+            || llvm::isa<llvm::MetadataAsValue>(dst)
             || llvm::isa<llvm::BasicBlock>(src)
             || llvm::isa<llvm::BasicBlock>(dst)) {
         return;
@@ -103,8 +109,13 @@ directed_graph create_graph_from_dg(dg::LLVMDependenceGraph* dg, llvm::Function*
     return graph;
 }
 
-void get_destination_values_from_mssa_def(MSSADEF* def, std::unordered_set<llvm::Value*>& dstInstructions)
+void get_destination_values_from_mssa_def(MSSADEF* def,
+                                          std::unordered_set<llvm::Value*>& dstInstructions,
+                                          std::unordered_set<MSSADEF*>& processed_defs)
 {
+    if (!processed_defs.insert(def).second) {
+        return;
+    }
     if (def->getType() == MSSADEF::CallMSSACHI) {
         auto* callChi = llvm::dyn_cast<SVFG::CALLCHI>(def);
         dstInstructions.insert(callChi->getCallSite().getInstruction());
@@ -115,7 +126,7 @@ void get_destination_values_from_mssa_def(MSSADEF* def, std::unordered_set<llvm:
     } else if (def->getType() == MSSADEF::SSAPHI) {
         auto* phi = llvm::dyn_cast<MemSSA::PHI>(def);
         for (auto it = phi->opVerBegin(); it != phi->opVerEnd(); ++it) {
-            get_destination_values_from_mssa_def(it->second->getDef(), dstInstructions);
+            get_destination_values_from_mssa_def(it->second->getDef(), dstInstructions, processed_defs);
         }
     }
 }
@@ -129,7 +140,8 @@ std::unordered_set<llvm::Value*> get_destination_values(SVFG* svfg, SVFGNode* no
     } else if (auto* intraMssaPhiNode = llvm::dyn_cast<IntraMSSAPHISVFGNode>(node)) {
         for (auto it = intraMssaPhiNode->opVerBegin(); it != intraMssaPhiNode->opVerEnd(); ++it) {
             auto* def = it->second->getDef();
-            get_destination_values_from_mssa_def(def, dstInstructions);
+            std::unordered_set<MSSADEF*> defs;
+            get_destination_values_from_mssa_def(def, dstInstructions, defs);
         }
     } else if (auto* interMssaPhiNode = llvm::dyn_cast<InterMSSAPHISVFGNode>(node)) {
         // skip inter for now
@@ -221,7 +233,7 @@ public:
             if (F.isDeclaration()) {
                 continue;
             }
-            llvm::dbgs() << "Compare function " << F.getName() << "\n";
+            llvm::dbgs() << "******* Compare function " << F.getName() << "*********** \n";
             logger.info("Compare function " + F.getName().str() + "\n");
             auto F_dg = CFs.find(&F);
             if (F_dg == CFs.end()) {
@@ -235,7 +247,9 @@ public:
             llvm::dbgs() << "PDG Vertices number " << boost::num_vertices(pdg_graph) << "\n";
             llvm::dbgs() << "PDG Edge number " << boost::num_edges(pdg_graph) << "\n";
             if (!boost::isomorphism(dg_graph, pdg_graph)) {
-                llvm::dbgs() << "NOT ISOMORPHIC\n";
+                llvm::dbgs() << "NOT ISOMORPHIC\n\n\n";
+            } else {
+                llvm::dbgs() << "ISOMORPHIC\n\n\n";
             }
 
         }

@@ -16,6 +16,8 @@
 #include "SVF/MemoryModel/PointerAnalysis.h"
 #include "SVF/WPA/Andersen.h"
 
+#include <unordered_set>
+
 namespace debug {
 
 bool hasIncomingEdges(PAGNode* pagNode)
@@ -166,6 +168,9 @@ public:
 
     void processPAGNode(PAGNode* node, SVFG* svfg)
     {
+        if (!svfg->hasDef(node)) {
+            return;
+        }
         auto* svfgNode = svfg->getDefSVFGNode(node);
         llvm::dbgs() << "   SVFG node " << *svfgNode << "\n";
         processSVFGNode(const_cast<SVFGNode*>(svfgNode), svfg);
@@ -250,7 +255,9 @@ public:
 
     void processStmtNode(StmtSVFGNode* stmtNode, SVFG* svfg)
     {
-        llvm::dbgs() << "       Stmt Node " << *stmtNode->getInst() << "\n";
+        if (stmtNode->getInst()) {
+            llvm::dbgs() << "       Stmt Node " << *stmtNode->getInst() << "\n";
+        }
         SVFGNode* defNode = nullptr;
         if (auto* addrNode = llvm::dyn_cast<AddrSVFGNode>(stmtNode)) {
             if (svfg->hasDef(addrNode->getPAGSrcNode())) {
@@ -364,20 +371,29 @@ public:
 
     void processIntraMssaPhiNode(IntraMSSAPHISVFGNode* intraMssaPhiNode, SVFG* svfg)
     {
+        std::unordered_set<MSSADEF*> defs;
+        auto* res_def = const_cast< MSSADEF*>(intraMssaPhiNode->getRes());
+        if (!defs.insert(res_def).second) {
+            return;
+        }
         llvm::dbgs() << "       Intra MSSA phi node\n";
         llvm::dbgs() << "       Res \n";
-        const_cast< MSSADEF*>(intraMssaPhiNode->getRes())->dump();
+        res_def->dump();
+        llvm::dbgs() << intraMssaPhiNode->getOpVerNum() << "\n";
         for (auto it = intraMssaPhiNode->opVerBegin(); it != intraMssaPhiNode->opVerEnd(); ++it) {
             auto* def = it->second->getDef();
             llvm::dbgs() << "       op ver def \n";
-            processMSSADef(def);
+            processMSSADef(def, defs);
             //const_cast< MSSADEF*>(def)->dump();
             //llvm::dbgs() << "       Op Ver mem region " << def->getMR()->dumpStr() << "\n";
         }
     }
 
-    void processMSSADef(MSSADEF* def)
+    void processMSSADef(MSSADEF* def, std::unordered_set<MSSADEF*>& defs)
     {
+        if (!defs.insert(def).second) {
+            return;
+        }
         if (def->getType() == MSSADEF::CallMSSACHI) {
             auto* callChi = llvm::dyn_cast<SVFG::CALLCHI>(def);
             llvm::dbgs() << "           Call CHI ";
@@ -391,7 +407,7 @@ public:
             auto* phi = llvm::dyn_cast<MemSSA::PHI>(def);
             llvm::dbgs() << "           Phi\n";
             for (auto it = phi->opVerBegin(); it != phi->opVerEnd(); ++it) {
-                processMSSADef(it->second->getDef());
+                processMSSADef(it->second->getDef(), defs);
             }
         }
     }
