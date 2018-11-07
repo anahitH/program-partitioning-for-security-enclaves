@@ -26,7 +26,7 @@ public:
     JsonAnnotationParser& operator = (const JsonAnnotationParser&) = delete;
     JsonAnnotationParser& operator = (JsonAnnotationParser&& ) = delete;
 
-private:
+public:
     virtual void parseAnnotations() override;
 
 private:

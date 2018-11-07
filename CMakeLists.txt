@@ -6,6 +6,9 @@ find_package(LLVM 6.0 REQUIRED CONFIG)
 find_package (Threads)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_package(svf REQUIRED COMPONENTS Svf)
+find_package(pdg REQUIRED)
+
+#TODO: both svf_INCLUDE_DIRS and pdg_INCLUDE_DIRS are empty
 
 # Ideally would use find_package
 set (DG_INCLUDE_DIR "/usr/local/include/dg")
@@ -14,10 +17,19 @@ add_definitions(-DHAVE_LLVM)
 add_definitions(-DENABLE_CFG)
 find_package(Boost REQUIRED)
 
+#message("Boost" ${Boost_INCLUDE_DIRS})
+#message("aaa" ${pdg_FOUND})
+#message(STATUS "pdg_INCLUDE_DIR:= ${pdg_INCLUDE_DIRS}")
+#message(STATUS "pdg_LIBRARY:= ${pdg_LIBRARY}")
+#message(STATUS "pdg_LIBRARIES:= ${pdg_LIBRARIES}")
+
 add_library(program_partitioning MODULE
+        lib/Annotation.cpp
         lib/ModuleAnnotationParser.cpp
         lib/JsonAnnotationParser.cpp
         lib/Logger.cpp
+        lib/Analysis/ProgramPartitionAnalysis.cpp
+        lib/Analysis/Partitioner.cpp
 )
 
 add_library(debug-program_partitioning MODULE
@@ -35,6 +47,7 @@ target_include_directories(program_partitioning PUBLIC
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
+        ${pdg_INCLUDE_DIR}
 )
 
 target_include_directories(debug-program_partitioning PUBLIC
@@ -45,6 +58,7 @@ target_include_directories(debug-program_partitioning PUBLIC
         ${LLVM_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${DG_INCLUDE_DIR}
+        ${pdg_INCLUDE_DIR}
 )
 target_link_libraries(program_partitioning PRIVATE
                       Threads::Threads
@@ -61,9 +75,9 @@ if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm-c/")
 endif ()
 
-target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type)
+target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_14)
 target_compile_options(program_partitioning PRIVATE -fno-rtti -g)
 
-target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type)
+target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_14)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 

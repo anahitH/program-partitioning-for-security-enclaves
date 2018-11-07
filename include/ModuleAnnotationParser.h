@@ -24,7 +24,7 @@ public:
     ModuleAnnotationParser& operator = (const ModuleAnnotationParser&) = delete;
     ModuleAnnotationParser& operator = (ModuleAnnotationParser&& ) = delete;
 
-private:
+public:
     virtual void parseAnnotations() override;
 
 private:

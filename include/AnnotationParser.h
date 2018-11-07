@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Annotation.h"
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace vazgen {
 
@@ -37,8 +39,20 @@ public:
         }
         return m_annotations.find(annotation)->second;
     }
+
+    std::vector<Annotation> getAllAnnotations()
+    {
+        if (!m_parsed) {
+            parseAnnotations();
+        }
+        std::vector<Annotation> allAnnotations;
+        for (auto& pair : m_annotations) {
+            allAnnotations.insert(allAnnotations.begin(), pair.second.begin(), pair.second.end());
+        }
+        return allAnnotations;
+    }
     
-protected:
+public:
     virtual void parseAnnotations() = 0;
 
 protected:

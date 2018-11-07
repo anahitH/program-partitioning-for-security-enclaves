@@ -11,6 +11,7 @@ namespace vazgen {
 class Annotation
 {
 public:
+    Annotation() = default;
     Annotation(const std::string& annotation, llvm::Function* F)
         : m_annotation(annotation)
         , m_F(F)
@@ -56,11 +57,14 @@ public:
 
     bool operator ==(const Annotation& annot) const
     {
-        return m_F == annot.getFunction();
+        return m_F == annot.getFunction() && m_annotation == annot.getAnnotation();
     }
 
+public:
+    void dump() const;
+
 private:
-    const std::string m_annotation;
+    std::string m_annotation;
     llvm::Function* m_F;
     std::vector<unsigned> m_arguments;
     bool m_return;
