@@ -44,7 +44,7 @@ void ProgramPartition::dump() const
 }
 
 llvm::cl::opt<std::string> JsonAnnotations(
-    "annotations",
+    "json-annotations",
     llvm::cl::desc("Json file containing annotations"),
     llvm::cl::value_desc("annotation"));
 

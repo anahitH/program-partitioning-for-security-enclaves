@@ -38,7 +38,8 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/ModuleAnnotationsTest.cpp
         lib/Debug/JsonAnnotationsTest.cpp
         lib/Debug/DgPDGCompare.cpp
-        lib/Debug/SVFGTraversal.cpp
+        #lib/Debug/SVFGTraversal.cpp
+        lib/Debug/FunctionExtractor.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
