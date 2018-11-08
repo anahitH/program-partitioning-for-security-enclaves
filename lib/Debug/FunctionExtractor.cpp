@@ -1,13 +1,20 @@
 #include "Logger.h"
 
-#include "llvm/Pass.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Instructions.h"
+#include "llvm/IR/ValueMap.h"
+#include "llvm/Pass.h"
 #include "llvm/PassRegistry.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/Transforms/Utils/ValueMapper.h"
+
+#include "llvm/Bitcode/BitcodeWriter.h"
 
 namespace debug {
 
@@ -48,19 +55,41 @@ public:
             return false;
         }
         auto* functionType = F->getFunctionType();
-        const std::string clone_name = F->getName().str() + "_clone";
+        const std::string function_name = F->getName();
+        const std::string clone_name = function_name + "_clone";
         auto* F_decl = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction(clone_name, functionType));
 
         bool modified = false;
         for (auto it = F->user_begin(); it != F->user_end(); ++it) {
             modified |= change_use(*it, F, F_decl);
         }
-        if (modified) {
-            F->dropAllReferences();
-            F->eraseFromParent();
-        } else {
+        if (!modified) {
             F_decl->eraseFromParent();
+            return false;
         }
+        llvm::ValueToValueMapTy value_to_value_map;
+        auto new_M = llvm::CloneModule(&M, value_to_value_map,
+                [&function_name] (const llvm::GlobalValue* glob) {
+                    return glob->getName() == function_name;
+                }
+                );
+        new_M->setModuleIdentifier("lib");
+        for (auto it = new_M->begin(); it != new_M->end(); ++it) {
+            if (it->isDeclaration() && it->user_empty()) {
+                auto* new_F = &*it;
+                ++it;
+                new_F->dropAllReferences();
+                new_F->eraseFromParent();
+            }
+        }
+        F->dropAllReferences();
+        F->eraseFromParent();
+        F_decl->setName(function_name);
+
+        std::error_code EC;
+        llvm::raw_fd_ostream OS("lib.bc", EC, llvm::sys::fs::OpenFlags::F_None);
+        llvm::WriteBitcodeToFile(new_M.get(), OS);
+        OS.flush();
 
         return modified;
     }
@@ -74,8 +103,8 @@ public:
         } else {
             user->replaceUsesOfWith(orig_F, clone_F);
         }
+        return true;
     }
-
 }; // class FunctionExtractorPass
 
 char FunctionExtractorPass::ID = 0;
