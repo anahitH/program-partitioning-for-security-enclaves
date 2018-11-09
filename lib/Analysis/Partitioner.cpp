@@ -160,7 +160,6 @@ PartitionForAnnotation::Partition PartitionForAnnotation::partition()
 
 bool PartitionForArguments::canPartition() const
 {
-    // TODO:
     if (!m_annotation.hasAnnotatedArguments()) {
         return false;
     }
@@ -220,6 +219,9 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
             continue;
         }
         auto* nodeValue = llvmNode->getNodeValue();
+        if (!nodeValue) {
+            continue;
+        }
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -263,6 +265,9 @@ void PartitionForArguments::traverseBackward(Container& workingList)
             continue;
         }
         auto* nodeValue = llvmNode->getNodeValue();
+        if (!nodeValue) {
+            continue;
+        }
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -271,7 +276,9 @@ void PartitionForArguments::traverseBackward(Container& workingList)
         }
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            m_partition.insert(FNode->getFunction());
+            if (!FNode->getFunction()->isDeclaration()) {
+                m_partition.insert(FNode->getFunction());
+            }
             // Stop traversal here
             continue;
         }
@@ -356,7 +363,9 @@ void PartitionForReturnValue::traverse()
         }
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            m_partition.insert(FNode->getFunction());
+            if (!FNode->getFunction()->isDeclaration()) {
+                m_partition.insert(FNode->getFunction());
+            }
             // Stop traversal here
             continue;
         }

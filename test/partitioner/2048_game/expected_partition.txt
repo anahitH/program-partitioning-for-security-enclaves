@@ -1,0 +1,7 @@
+combine_left
+deflate_left
+move_down
+move_left
+move_right
+move_up
+rotate_clockwise

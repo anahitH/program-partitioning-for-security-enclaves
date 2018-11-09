@@ -20,6 +20,8 @@
 #include "llvm/PassRegistry.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
+#include <fstream>
+
 namespace vazgen {
 
 ProgramPartition::ProgramPartition(llvm::Module& M,
@@ -48,6 +50,12 @@ llvm::cl::opt<std::string> JsonAnnotations(
     llvm::cl::desc("Json file containing annotations"),
     llvm::cl::value_desc("annotation"));
 
+llvm::cl::opt<std::string> Outfile(
+    "outfile",
+    llvm::cl::desc("Out file to write partitioning information"),
+    llvm::cl::value_desc("outfile name"));
+
+
 char ProgramPartitionAnalysis::ID = 0;
 
 void ProgramPartitionAnalysis::getAnalysisUsage(llvm::AnalysisUsage& AU) const
@@ -73,7 +81,15 @@ bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     m_partition.reset(new ProgramPartition(M, pdg));
     m_partition->partition(annotations);
-    m_partition->dump();
+    if (!Outfile.empty()) {
+        std::ofstream ostr(Outfile);
+        for (auto& partitionF : m_partition->getPartition()) {
+            ostr << partitionF->getName().str() << "\n";
+        }
+        ostr.close();
+    } else {
+        m_partition->dump();
+    }
 
     return false;
 }

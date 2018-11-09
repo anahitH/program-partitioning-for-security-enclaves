@@ -1,0 +1,36 @@
+[
+{
+    "annotation" : "sensitive",
+        "functions" : [
+        {
+            "function" : "combine_left",
+            "arguments" : [0],
+            "return" : "True"
+        },
+        {
+            "function" : "deflate_left",
+            "return" : "True"
+        },
+        {
+            "function" : "rotate_clockwise",
+            "arguments" : [0]
+        },
+        {
+            "function" : "move_left",
+            "arguments" : [0]
+        },
+        {
+            "function" : "move_right",
+            "arguments" : [0]
+        },
+        {
+            "function" : "move_up",
+            "arguments" : [0]
+        },
+        {
+            "function" : "move_down",
+            "arguments" : [0]
+        }
+        ]
+}
+]
