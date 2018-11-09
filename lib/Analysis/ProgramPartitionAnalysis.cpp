@@ -2,6 +2,7 @@
 
 #include "Analysis/Partitioner.h"
 #include "Logger.h"
+#include "Statistics.h"
 #include "AnnotationParser.h"
 #include "JsonAnnotationParser.h"
 #include "ModuleAnnotationParser.h"
@@ -20,9 +21,45 @@
 #include "llvm/PassRegistry.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
+#include <algorithm>
 #include <fstream>
 
 namespace vazgen {
+
+class ProgramPartition::PartitionStatistics : public Statistics
+{
+public:
+    PartitionStatistics(std::ofstream& strm,
+                        const ProgramPartition::Partition& partition,
+                        llvm::Module& M);
+
+    void report() final;
+
+private:
+    const ProgramPartition::Partition& m_partition;
+    llvm::Module& m_module;
+}; // class PartitionStatistics
+
+ProgramPartition::PartitionStatistics::PartitionStatistics(std::ofstream& strm,
+                                                           const ProgramPartition::Partition& partition,
+                                                           llvm::Module& M)
+    : Statistics(strm, Statistics::JSON)
+    , m_partition(partition)
+    , m_module(M)
+{
+}
+
+void ProgramPartition::PartitionStatistics::report()
+{
+    std::vector<std::string> partitionFs;
+    std::transform(m_partition.begin(), m_partition.end(), partitionFs.begin(),
+            [] (llvm::Function* F) { return F->getName().str();});
+    write_entry({"program_partition", "partitioned_functions"}, partitionFs);
+    write_entry({"program_partition", "partition_size"}, (unsigned) partitionFs.size());
+
+    double partition_portion = (m_partition.size() * 100.0) / m_module.size();
+    write_entry({"program_partition", "partition%"}, partition_portion);
+}
 
 ProgramPartition::ProgramPartition(llvm::Module& M,
                                    PDGType pdg)
@@ -37,12 +74,32 @@ void ProgramPartition::partition(const Annotations& annotations)
     m_partition = partitioner.partition(annotations);
 }
 
-void ProgramPartition::dump() const
+void ProgramPartition::dump(const std::string& outFile) const
 {
+    if (!outFile.empty()) {
+        std::ofstream ostr(outFile);
+        for (auto& partitionF : m_partition) {
+            ostr << partitionF->getName().str() << "\n";
+        }
+        ostr.close();
+        return;
+    }
     llvm::dbgs() << "Partition of Module " << m_module.getName() << "\n";
     for (auto F : m_partition) {
         llvm::dbgs() << "   " << F->getName() << "\n";
     }
+}
+
+void ProgramPartition::dumpStats(const std::string& statsFile) const
+{
+    std::ofstream strm;
+    if (statsFile.empty()) {
+        strm.open("partition_stats.json");
+    } else {
+        strm.open(statsFile);
+    }
+    PartitionStatistics stats(strm, m_partition, m_module);
+    stats.report();
 }
 
 llvm::cl::opt<std::string> JsonAnnotations(
@@ -55,6 +112,10 @@ llvm::cl::opt<std::string> Outfile(
     llvm::cl::desc("Out file to write partitioning information"),
     llvm::cl::value_desc("outfile name"));
 
+llvm::cl::opt<bool> Stats(
+    "partition-stats",
+    llvm::cl::desc("Dump partition stats"),
+    llvm::cl::value_desc("flag to dump stats"));
 
 char ProgramPartitionAnalysis::ID = 0;
 
@@ -81,14 +142,9 @@ bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     m_partition.reset(new ProgramPartition(M, pdg));
     m_partition->partition(annotations);
-    if (!Outfile.empty()) {
-        std::ofstream ostr(Outfile);
-        for (auto& partitionF : m_partition->getPartition()) {
-            ostr << partitionF->getName().str() << "\n";
-        }
-        ostr.close();
-    } else {
-        m_partition->dump();
+    m_partition->dump(Outfile);
+    if (Stats) {
+        m_partition->dumpStats();
     }
 
     return false;

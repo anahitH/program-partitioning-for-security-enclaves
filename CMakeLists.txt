@@ -28,6 +28,7 @@ add_library(program_partitioning MODULE
         lib/ModuleAnnotationParser.cpp
         lib/JsonAnnotationParser.cpp
         lib/Logger.cpp
+        lib/Statistics.cpp
         lib/Analysis/ProgramPartitionAnalysis.cpp
         lib/Analysis/Partitioner.cpp
 )

@@ -22,6 +22,9 @@ class Annotation;
 class ProgramPartition
 {
 public:
+    class PartitionStatistics;
+
+public:
     // TODO: what is partition does not only include functions but for example also global variables?
     using Partition = std::unordered_set<llvm::Function*>;
     using Annotations = std::vector<Annotation>;
@@ -50,7 +53,8 @@ public:
     }
 
 public:
-    void dump() const;
+    void dump(const std::string& outFile = std::string()) const;
+    void dumpStats(const std::string& statsFile = std::string()) const;
 
 private:
     llvm::Module& m_module;
