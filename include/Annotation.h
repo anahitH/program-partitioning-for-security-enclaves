@@ -40,6 +40,11 @@ public:
         return m_arguments;
     }
 
+    bool hasAnnotatedArguments() const
+    {
+        return !m_arguments.empty();
+    }
+
     bool isReturnAnnotated() const
     {
         return m_return;
