@@ -127,7 +127,7 @@ void ProgramPartitionAnalysis::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 
 bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
 {
-    Logger logger("test");
+    Logger logger("program-partitioning");
     logger.setLevel(vazgen::Logger::ERR);
 
     AnnotationParser* annotationParser;
