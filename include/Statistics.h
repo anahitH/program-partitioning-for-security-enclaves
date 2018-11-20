@@ -26,6 +26,7 @@ public:
         {}
 
     public:
+        virtual void flush() = 0;
         virtual void write_entry(const Statistics::key& k, double value) = 0;
         virtual void write_entry(const Statistics::key& k, unsigned value) = 0;
         virtual void write_entry(const Statistics::key& k, const std::string& value) = 0;
@@ -43,6 +44,11 @@ public:
     {}
 
     virtual void report() = 0;
+
+    void flush()
+    {
+        m_writer->flush();
+    }
 
 protected:
     void write_entry(const key& key, double value);

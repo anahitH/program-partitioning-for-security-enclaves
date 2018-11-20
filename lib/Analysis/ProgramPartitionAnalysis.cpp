@@ -52,13 +52,16 @@ ProgramPartition::PartitionStatistics::PartitionStatistics(std::ofstream& strm,
 void ProgramPartition::PartitionStatistics::report()
 {
     std::vector<std::string> partitionFs;
-    std::transform(m_partition.begin(), m_partition.end(), partitionFs.begin(),
+    partitionFs.reserve(m_partition.size());
+    std::transform(m_partition.begin(), m_partition.end(), std::back_inserter(partitionFs),
             [] (llvm::Function* F) { return F->getName().str();});
     write_entry({"program_partition", "partitioned_functions"}, partitionFs);
     write_entry({"program_partition", "partition_size"}, (unsigned) partitionFs.size());
 
     double partition_portion = (m_partition.size() * 100.0) / m_module.size();
     write_entry({"program_partition", "partition%"}, partition_portion);
+
+    flush();
 }
 
 ProgramPartition::ProgramPartition(llvm::Module& M,

@@ -1,6 +1,8 @@
 #include "Statistics.h"
 
 #include "nlohmann/json.hpp"
+#include <iostream>
+#include <iomanip>
 
 namespace vazgen {
 
@@ -13,6 +15,12 @@ public:
     }
 
 public:
+    void flush() final
+    {
+        m_strm << std::setw(4) << m_root;
+        m_root.clear();
+    }
+
     void write_entry(const Statistics::key& k, double value) final
     {
         write(k, value);
@@ -52,11 +60,19 @@ void JsonWriter::write(const Statistics::key& k, const ValueTy& value)
     if (k.empty()) {
         return;
     }
-    nlohmann::json::reference ref = m_root;
-    for (auto str : k) {
-        ref = ref.at(str);
-    }
-    ref = value;
+    // TODO: fix this for any size of k
+    m_root[k[0]][k[1]] = value;
+
+    //nlohmann::json obj;
+    //obj[k.back()] = value;
+
+    //for (int i = k.size() - 2; i > 0; ++i) {
+    //    nlohmann::json subObj;
+    //    subObj[k[i]] = obj;
+    //    obj = subObj;
+    //}
+
+    //m_root[k.front()] = obj;
 }
 
 Statistics::Statistics(std::ofstream& strm, Format format)

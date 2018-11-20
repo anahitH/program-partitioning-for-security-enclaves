@@ -228,7 +228,7 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
                 continue;
             }
         }
-        //llvm::dbgs() << "Node value " << *nodeValue << "\n";
+        //llvm::dbgs() << "   Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
             m_partition.insert(FNode->getFunction());
             // Stop traversal here
@@ -298,25 +298,17 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
     if (!arg->getType()->isPointerTy()) {
         return;
     }
-    auto callSiteNode = (*actualArgNode.outEdgesBegin())->getDestination();
-    assert(callSiteNode);
-    for (auto it = callSiteNode->inEdgesBegin(); it != callSiteNode->inEdgesEnd(); ++it) {
-        auto inNode = (*it)->getSource();
-        if (auto* functionNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(inNode.get())) {
-            auto* F = functionNode->getFunction();
+    const int argIdx = actualArgNode.getArgIndex();
+
+    for (auto it = actualArgNode.outEdgesBegin(); it != actualArgNode.outEdgesEnd(); ++it) {
+        auto destNode = (*it)->getDestination();
+        if (auto* formalArgNode = llvm::dyn_cast<pdg::PDGLLVMFormalArgumentNode>(destNode.get())) {
+            llvm::Function* F = formalArgNode->getFunction();
             if (!m_pdg->hasFunctionPDG(F)) {
                 continue;
             }
-            // TODO: varargs?
-            if (F->arg_size() <= actualArgNode.getArgIndex()) {
-                continue;
-            }
-            auto F_pdg = m_pdg->getFunctionPDG(F);
-            auto formalArg = F->arg_begin() + actualArgNode.getArgIndex();
-            if (!F_pdg->hasFormalArgNode(formalArg)) {
-                continue;
-            }
-            forwardWorkingList.push_front(F_pdg->getFormalArgNode(formalArg));
+            m_partition.insert(F);
+            forwardWorkingList.push_front(destNode);
         }
     }
 }

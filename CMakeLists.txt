@@ -32,6 +32,7 @@ add_library(program_partitioning MODULE
         lib/Analysis/ProgramPartitionAnalysis.cpp
         lib/Analysis/Partitioner.cpp
         lib/Transforms/ProgramSlicer.cpp
+        lib/Utils/Utils.cpp
 )
 
 add_library(debug-program_partitioning MODULE
