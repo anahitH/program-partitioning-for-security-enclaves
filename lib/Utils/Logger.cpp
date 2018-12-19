@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 namespace vazgen {
 

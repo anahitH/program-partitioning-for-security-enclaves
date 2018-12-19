@@ -1,5 +1,5 @@
-#include "JsonAnnotationParser.h"
-#include "Logger.h"
+#include "Utils/JsonAnnotationParser.h"
+#include "Utils/Logger.h"
 
 #include "nlohmann/json.hpp"
 

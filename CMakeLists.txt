@@ -24,16 +24,16 @@ find_package(Boost REQUIRED)
 #message(STATUS "pdg_LIBRARIES:= ${pdg_LIBRARIES}")
 
 add_library(program_partitioning MODULE
-        lib/Annotation.cpp
-        lib/ModuleAnnotationParser.cpp
-        lib/JsonAnnotationParser.cpp
-        lib/Logger.cpp
-        lib/Statistics.cpp
+        lib/Utils/Annotation.cpp
+        lib/Utils/ModuleAnnotationParser.cpp
+        lib/Utils/JsonAnnotationParser.cpp
+        lib/Utils/Logger.cpp
+        lib/Utils/Statistics.cpp
+        lib/Utils/Utils.cpp
         lib/Analysis/ProgramPartitionAnalysis.cpp
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp
         lib/Transforms/ProgramSlicer.cpp
-        lib/Utils/Utils.cpp
 )
 
 add_library(debug-program_partitioning MODULE
