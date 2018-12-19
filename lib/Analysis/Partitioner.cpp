@@ -79,6 +79,7 @@ protected:
 protected:
     void computInInterface();
     void computeOutInterface();
+    void computeGlobals();
 
 protected:
     llvm::Module& m_module;
@@ -160,6 +161,7 @@ Partition PartitionForAnnotation::partition()
     traverse();
     computInInterface();
     computeOutInterface();
+    computeGlobals();
     return m_partition;
 }
 
@@ -213,6 +215,38 @@ void PartitionForAnnotation::computeOutInterface()
         }
     }
     m_partition.setOutInterface(outInterface);
+}
+
+void PartitionForAnnotation::computeGlobals()
+{
+    Partition::GlobalsSet referencedGlobals;
+    Partition::GlobalsSet modifiedGlobals;
+    for (auto glob_it = m_module.global_begin();
+         glob_it != m_module.global_end();
+         ++glob_it) {
+         assert(m_pdg->hasGlobalVariableNode(&*glob_it));
+         const auto& globalNode = m_pdg->getGlobalVariableNode(&*glob_it);
+         for (auto in_it = globalNode->inEdgesBegin();
+              in_it != globalNode->inEdgesEnd();
+              ++in_it) {
+             referencedGlobals.insert(&*glob_it);
+             auto* sourceNode = (*in_it)->getSource().get();
+             if (llvm::isa<pdg::PDGPhiNode>(sourceNode)) {
+                 modifiedGlobals.insert(&*glob_it);
+             } else if (auto* pdgNode = llvm::dyn_cast<pdg::PDGLLVMInstructionNode>(sourceNode)) {
+                if (llvm::isa<llvm::StoreInst>(pdgNode->getNodeValue())) {
+                    modifiedGlobals.insert(&*glob_it);
+                }
+             }
+         }
+         for (auto out_it = globalNode->outEdgesBegin();
+              out_it != globalNode->outEdgesEnd();
+              ++out_it) {
+             referencedGlobals.insert(&*glob_it);
+         }
+    }
+    m_partition.addReferencedGlobals(referencedGlobals);
+    m_partition.addModifiedGlobals(modifiedGlobals);
 }
 
 bool PartitionForArguments::canPartition() const
