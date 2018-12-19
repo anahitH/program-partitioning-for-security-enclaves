@@ -57,9 +57,26 @@ void ProgramPartition::PartitionStatistics::report()
             [] (llvm::Function* F) { return F->getName().str();});
     write_entry({"program_partition", "partitioned_functions"}, partitionFs);
     write_entry({"program_partition", "partition_size"}, (unsigned) partitionFs.size());
-
     double partition_portion = (m_partition.getPartition().size() * 100.0) / m_module.size();
     write_entry({"program_partition", "partition%"}, partition_portion);
+
+    std::vector<std::string> inInterface;
+    inInterface.reserve(m_partition.getInInterface().size());
+    std::transform(m_partition.getInInterface().begin(), m_partition.getInInterface().end(), std::back_inserter(inInterface),
+            [] (llvm::Function* F) { return F->getName().str();});
+    write_entry({"program_partition", "in_interface"}, inInterface);
+    write_entry({"program_partition", "in_interface_size"}, (unsigned) inInterface.size());
+    double inInterface_portion = (m_partition.getInInterface().size() * 100.0) / m_module.size();
+    write_entry({"program_partition", "in_interface%"}, inInterface_portion);
+
+    std::vector<std::string> outInterface;
+    inInterface.reserve(m_partition.getOutInterface().size());
+    std::transform(m_partition.getOutInterface().begin(), m_partition.getOutInterface().end(), std::back_inserter(outInterface),
+            [] (llvm::Function* F) { return F->getName().str();});
+    write_entry({"program_partition", "out_interface"}, outInterface);
+    write_entry({"program_partition", "out_interface_size"}, (unsigned) outInterface.size());
+    double outInterface_portion = (m_partition.getOutInterface().size() * 100.0) / m_module.size();
+    write_entry({"program_partition", "out_interface%"}, outInterface_portion);
 
     flush();
 }
