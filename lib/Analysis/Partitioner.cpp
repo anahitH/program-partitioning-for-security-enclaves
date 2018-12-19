@@ -1,7 +1,7 @@
 #include "Analysis/Partitioner.h"
 
-#include "Logger.h"
-#include "Annotation.h"
+#include "Utils/Logger.h"
+#include "Utils/Annotation.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
@@ -59,7 +59,6 @@ void collectFunctionReturnNodes(const pdg::PDGLLVMFunctionNode& Fnode, Collectio
 class PartitionForAnnotation
 {
 public:
-    using Partition = Partitioner::Partition;
     using PDGType = std::shared_ptr<pdg::PDG>;
 
 public:
@@ -101,7 +100,7 @@ private:
 
     virtual void traverse() final
     {
-        m_partition.insert(m_annotation.getFunction());
+        m_partition.addToPartition(m_annotation.getFunction());
     }
 
 }; // class PartitionForFunction
@@ -149,7 +148,7 @@ private:
     virtual void traverse() final;
 }; // class PartitionForArguments
 
-PartitionForAnnotation::Partition PartitionForAnnotation::partition()
+Partition PartitionForAnnotation::partition()
 {
     if (!canPartition()) {
         return m_partition;
@@ -180,7 +179,7 @@ bool PartitionForArguments::canPartition() const
 void PartitionForArguments::traverse()
 {
     llvm::Function* F = m_annotation.getFunction();
-    m_partition.insert(F);
+    m_partition.addToPartition(F);
     const auto& annotatedArgs = m_annotation.getAnnotatedArguments();
     for (auto arg_idx : annotatedArgs) {
         auto* f_arg = F->arg_begin() + arg_idx;
@@ -230,7 +229,7 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
         }
         //llvm::dbgs() << "   Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            m_partition.insert(FNode->getFunction());
+            m_partition.addToPartition(FNode->getFunction());
             // Stop traversal here
             // TODO: should we stop here or continue for other function calls?
             // i.e. find the formal argument for this call site and continue traversal for it.
@@ -277,7 +276,7 @@ void PartitionForArguments::traverseBackward(Container& workingList)
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
             if (!FNode->getFunction()->isDeclaration()) {
-                m_partition.insert(FNode->getFunction());
+                m_partition.addToPartition(FNode->getFunction());
             }
             // Stop traversal here
             continue;
@@ -307,7 +306,7 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
             if (!m_pdg->hasFunctionPDG(F)) {
                 continue;
             }
-            m_partition.insert(F);
+            m_partition.addToPartition(F);
             forwardWorkingList.push_front(destNode);
         }
     }
@@ -333,7 +332,7 @@ void PartitionForReturnValue::traverse()
     // TODO: do we need to include new functions in the curse of backward traversal?
     llvm::Function* F = m_annotation.getFunction();
     auto Fpdg = m_pdg->getFunctionPDG(F);
-    m_partition.insert(F);
+    m_partition.addToPartition(F);
 
     std::list<pdg::FunctionPDG::PDGNodeTy> workingList;
     collectFunctionReturnNodes(F, *Fpdg, workingList);
@@ -356,7 +355,7 @@ void PartitionForReturnValue::traverse()
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
             if (!FNode->getFunction()->isDeclaration()) {
-                m_partition.insert(FNode->getFunction());
+                m_partition.addToPartition(FNode->getFunction());
             }
             // Stop traversal here
             continue;
@@ -369,21 +368,21 @@ void PartitionForReturnValue::traverse()
     }
 }
 
-Partitioner::Partition Partitioner::partition(const Annotations& annotations)
+Partition Partitioner::partition(const Annotations& annotations)
 {
     Partition partition;
     for (const auto& annot : annotations) {
         PartitionForFunction f_partitioner(m_module, annot);
         const auto& f_partition = f_partitioner.partition();
-        partition.insert(f_partition.begin(), f_partition.end());
+        partition.addToPartition(f_partition);
 
         PartitionForArguments arg_partitioner(m_module, annot, m_pdg);
         const auto& arg_partition = arg_partitioner.partition();
-        partition.insert(arg_partition.begin(), arg_partition.end());
+        partition.addToPartition(arg_partition);
 
         PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg);
         const auto& ret_partition = ret_partitioner.partition();
-        partition.insert(ret_partition.begin(), ret_partition.end());
+        partition.addToPartition(ret_partition);
     }
     return partition;
 }

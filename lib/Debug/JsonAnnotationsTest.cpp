@@ -1,7 +1,7 @@
-#include "JsonAnnotationParser.h"
+#include "Utils/JsonAnnotationParser.h"
 #include "Debug/AnnotationsTest.h"
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 #include "llvm/Pass.h"
 #include "llvm/IR/LegacyPassManager.h"

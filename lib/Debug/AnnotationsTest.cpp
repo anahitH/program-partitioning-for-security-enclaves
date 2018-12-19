@@ -1,9 +1,10 @@
 #include "Debug/AnnotationsTest.h"
-#include "Annotation.h"
-#include "Logger.h"
+#include "Utils/Annotation.h"
+#include "Utils/Logger.h"
 
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 namespace debug {
 

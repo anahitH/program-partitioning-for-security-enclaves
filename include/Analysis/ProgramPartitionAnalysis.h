@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Partition.h"
+
 #include "llvm/Pass.h"
 #include "PDG/PDG/PDG.h"
 
@@ -26,7 +28,6 @@ public:
 
 public:
     // TODO: what is partition does not only include functions but for example also global variables?
-    using Partition = std::unordered_set<llvm::Function*>;
     using Annotations = std::vector<Annotation>;
     using PDGType = std::shared_ptr<pdg::PDG>;
 

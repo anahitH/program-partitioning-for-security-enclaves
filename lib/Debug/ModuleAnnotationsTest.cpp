@@ -1,6 +1,6 @@
-#include "ModuleAnnotationParser.h"
+#include "Utils/ModuleAnnotationParser.h"
 #include "Debug/AnnotationsTest.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 #include "llvm/Pass.h"
 #include "llvm/IR/LegacyPassManager.h"

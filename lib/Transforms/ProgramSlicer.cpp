@@ -3,8 +3,8 @@
 #include "Analysis/Partitioner.h"
 #include "Analysis/ProgramPartitionAnalysis.h"
 #include "Utils/Utils.h"
-#include "Logger.h"
-#include "Statistics.h"
+#include "Utils/Logger.h"
+#include "Utils/Statistics.h"
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -132,7 +132,7 @@ bool ProgramSlicerPass::runOnModule(llvm::Module& M)
     Logger logger("program-partitioning");
     logger.setLevel(vazgen::Logger::ERR);
 
-    auto partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getPartition();
+    auto partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getPartition().getPartition();
     ProgramSlicer::Slice slice(partition.size());
     std::copy(partition.begin(), partition.end(), std::back_inserter(slice));
     m_slicer.reset(new ProgramSlicer(&M, slice, logger));

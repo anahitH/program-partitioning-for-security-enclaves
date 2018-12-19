@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Annotation.h"
+#include "Partition.h"
 
 #include <memory>
 #include <vector>
@@ -20,7 +21,6 @@ namespace vazgen {
 class Partitioner
 {
 public:
-    using Partition = std::unordered_set<llvm::Function*>;
     using Annotations = std::vector<Annotation>;
     // can we have unique?
     using PDGType = std::shared_ptr<pdg::PDG>;
