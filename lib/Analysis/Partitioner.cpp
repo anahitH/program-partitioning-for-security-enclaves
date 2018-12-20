@@ -80,7 +80,6 @@ protected:
 protected:
     void computInInterface();
     void computeOutInterface();
-    void computeGlobals();
 
 protected:
     llvm::Module& m_module;
@@ -154,6 +153,38 @@ private:
     virtual void traverse() final;
 }; // class PartitionForArguments
 
+class PartitionGlobals
+{
+public:
+    using PDGType = std::shared_ptr<pdg::PDG>;
+
+    PartitionGlobals(llvm::Module& module, PDGType pdg, const Partition& partition)
+        : m_module(module)
+        , m_pdg(pdg)
+        , m_partition(partition)
+    {
+    }
+
+public:
+    void partition();
+
+    const Partition::GlobalsSet& getReferencedGlobals() const
+    {
+        return m_referencedGlobals;
+    }
+
+    const Partition::GlobalsSet& getModifiedGlobals() const
+    {
+        return m_modifiedGlobals;
+    }
+private:
+    llvm::Module& m_module;
+    PDGType m_pdg;
+    const Partition& m_partition;
+    Partition::GlobalsSet m_referencedGlobals;
+    Partition::GlobalsSet m_modifiedGlobals;
+}; // class PartitionGlobals
+
 Partition PartitionForAnnotation::partition()
 {
     if (!canPartition()) {
@@ -163,7 +194,6 @@ Partition PartitionForAnnotation::partition()
     computInInterface();
     computeOutInterface();
     // Consider calling this when all functions are computed
-    computeGlobals();
     return m_partition;
 }
 
@@ -217,44 +247,6 @@ void PartitionForAnnotation::computeOutInterface()
         }
     }
     m_partition.setOutInterface(outInterface);
-}
-
-void PartitionForAnnotation::computeGlobals()
-{
-    Partition::GlobalsSet referencedGlobals;
-    Partition::GlobalsSet modifiedGlobals;
-    for (auto glob_it = m_module.global_begin();
-         glob_it != m_module.global_end();
-         ++glob_it) {
-         assert(m_pdg->hasGlobalVariableNode(&*glob_it));
-         const auto& globalNode = m_pdg->getGlobalVariableNode(&*glob_it);
-         for (auto in_it = globalNode->inEdgesBegin();
-              in_it != globalNode->inEdgesEnd();
-              ++in_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
-                 continue;
-             }
-             referencedGlobals.insert(&*glob_it);
-             auto* sourceNode = (*in_it)->getSource().get();
-             if (llvm::isa<pdg::PDGPhiNode>(sourceNode)) {
-                 modifiedGlobals.insert(&*glob_it);
-             } else if (auto* pdgNode = llvm::dyn_cast<pdg::PDGLLVMInstructionNode>(sourceNode)) {
-                if (llvm::isa<llvm::StoreInst>(pdgNode->getNodeValue())) {
-                    modifiedGlobals.insert(&*glob_it);
-                }
-             }
-         }
-         for (auto out_it = globalNode->outEdgesBegin();
-              out_it != globalNode->outEdgesEnd();
-              ++out_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
-                 continue;
-             }
-             referencedGlobals.insert(&*glob_it);
-         }
-    }
-    m_partition.addReferencedGlobals(referencedGlobals);
-    m_partition.addModifiedGlobals(modifiedGlobals);
 }
 
 bool PartitionForArguments::canPartition() const
@@ -468,6 +460,40 @@ void PartitionForReturnValue::traverse()
     }
 }
 
+void PartitionGlobals::partition()
+{
+    for (auto glob_it = m_module.global_begin();
+         glob_it != m_module.global_end();
+         ++glob_it) {
+         assert(m_pdg->hasGlobalVariableNode(&*glob_it));
+         const auto& globalNode = m_pdg->getGlobalVariableNode(&*glob_it);
+         for (auto in_it = globalNode->inEdgesBegin();
+              in_it != globalNode->inEdgesEnd();
+              ++in_it) {
+             if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
+                 continue;
+             }
+             m_referencedGlobals.insert(&*glob_it);
+             auto* sourceNode = (*in_it)->getSource().get();
+             if (llvm::isa<pdg::PDGPhiNode>(sourceNode)) {
+                 m_modifiedGlobals.insert(&*glob_it);
+             } else if (auto* pdgNode = llvm::dyn_cast<pdg::PDGLLVMInstructionNode>(sourceNode)) {
+                if (llvm::isa<llvm::StoreInst>(pdgNode->getNodeValue())) {
+                    m_modifiedGlobals.insert(&*glob_it);
+                }
+             }
+         }
+         for (auto out_it = globalNode->outEdgesBegin();
+              out_it != globalNode->outEdgesEnd();
+              ++out_it) {
+             if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
+                 continue;
+             }
+             m_referencedGlobals.insert(&*glob_it);
+         }
+    }
+}
+
 Partition Partitioner::partition(const Annotations& annotations)
 {
     Partition partition;
@@ -483,6 +509,11 @@ Partition Partitioner::partition(const Annotations& annotations)
         PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg);
         const auto& ret_partition = ret_partitioner.partition();
         partition.addToPartition(ret_partition);
+
+        PartitionGlobals globals_partitioner(m_module, m_pdg, partition);
+        globals_partitioner.partition();
+        partition.addReferencedGlobals(globals_partitioner.getReferencedGlobals());
+        partition.addModifiedGlobals(globals_partitioner.getModifiedGlobals());
     }
     return partition;
 }
