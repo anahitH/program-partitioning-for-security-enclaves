@@ -1,7 +1,8 @@
 #include "Analysis/Partitioner.h"
 
-#include "Utils/Logger.h"
 #include "Utils/Annotation.h"
+#include "Utils/Logger.h"
+#include "Utils/Utils.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
@@ -161,6 +162,7 @@ Partition PartitionForAnnotation::partition()
     traverse();
     computInInterface();
     computeOutInterface();
+    // Consider calling this when all functions are computed
     computeGlobals();
     return m_partition;
 }
@@ -229,6 +231,9 @@ void PartitionForAnnotation::computeGlobals()
          for (auto in_it = globalNode->inEdgesBegin();
               in_it != globalNode->inEdgesEnd();
               ++in_it) {
+             if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
+                 continue;
+             }
              referencedGlobals.insert(&*glob_it);
              auto* sourceNode = (*in_it)->getSource().get();
              if (llvm::isa<pdg::PDGPhiNode>(sourceNode)) {
@@ -242,6 +247,9 @@ void PartitionForAnnotation::computeGlobals()
          for (auto out_it = globalNode->outEdgesBegin();
               out_it != globalNode->outEdgesEnd();
               ++out_it) {
+             if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
+                 continue;
+             }
              referencedGlobals.insert(&*glob_it);
          }
     }

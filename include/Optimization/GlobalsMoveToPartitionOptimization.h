@@ -17,6 +17,11 @@ public:
 public:
     void run() override;
 
+private:
+    bool hasUseOutsidePartition(llvm::GlobalVariable* global) const;
+
+private:
+    Partition::GlobalsSet m_movedGlobals;
 }; // class GlobalsMoveToPartitionOptimization
 
 } // namespace vazgen

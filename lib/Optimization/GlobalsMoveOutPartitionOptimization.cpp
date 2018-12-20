@@ -12,7 +12,6 @@ GlobalsMoveOutPartitionOptimization(Partition& partition, PDGType pdg)
 
 void GlobalsMoveOutPartitionOptimization::run()
 {
-    // TODO:
 }
 
 } // namespace vazgen
