@@ -4,20 +4,36 @@
 
 #include <memory>
 #include <vector>
+#include <functional>
+
+namespace pdg {
+class PDG;
+}
+
+namespace llvm {
+class LoopInfo;
+}
 
 namespace vazgen {
 
+class PartitionOptimization;
+
+// TODO: think about different strategies for optimization, e.g. smaller TCB, fewer function calls across partitions, etc
 class PartitionOptimizer
 {
 public:
+    // Apply optimization in the given order
     enum Optimization {
-        GLOBALS_MOVE_IN,
-        GLOBALS_MOVE_OUT,
-        FUNCTIONS_MOVE_IN,
-        FUNCTIONS_MOVE_OUT
+        FUNCTIONS_MOVE_TO,
+        FUNCTIONS_MOVE_OUT,
+        GLOBALS_MOVE_TO,
+        GLOBALS_MOVE_OUT
+        // DUPLICATE_FUNCTIONS
     };
 
-    using OptimizerTy = std::shared_ptr<PartitionOptimizer>;
+    using OptimizationTy = std::shared_ptr<PartitionOptimization>;
+    using PDGType = std::shared_ptr<pdg::PDG>;
+    using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
     explicit PartitionOptimizer(Partition& partition);
@@ -27,17 +43,22 @@ public:
     PartitionOptimizer& operator= (const PartitionOptimizer& ) = delete;
     PartitionOptimizer& operator= (PartitionOptimizer&& ) = delete;
 
-    virtual ~PartitionOptimizer() = default;
+public:
+    void setPDG(PDGType pdg);
+    void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
 
 public:
     virtual void run();
 
 private:
+    OptimizationTy getOptimizerFor(Optimization opt);
     void collectAvailableOptimizations();
 
 protected:
     Partition& m_partition;
-    std::vector<OptimizerTy> m_optimizations;
+    PDGType m_pdg;
+    LoopInfoGetter m_loopInfoGetter;
+    std::vector<OptimizationTy> m_optimizations;
 }; // class PartitionOptimizer
 
 } // namespace vazgen

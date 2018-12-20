@@ -45,6 +45,8 @@ public:
     const GlobalsSet& getReferencedGolbals() const;
     const GlobalsSet& getModifiedGlobals() const;
 
+    bool contains(llvm::Function* F) const;
+
 private:
     FunctionSet m_partition;
     FunctionSet m_inInterface;

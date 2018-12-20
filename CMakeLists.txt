@@ -34,6 +34,11 @@ add_library(program_partitioning MODULE
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp
         lib/Optimization/PartitionOptimizer.cpp
+        lib/Optimization/PartitionOptimization.cpp
+        lib/Optimization/GlobalsMoveToPartitionOptimization.cpp
+        lib/Optimization/GlobalsMoveOutPartitionOptimization.cpp
+        lib/Optimization/FunctionsMoveToPartitionOptimization.cpp
+        lib/Optimization/FunctionsMoveOutPartitionOptimization.cpp
         lib/Transforms/ProgramSlicer.cpp
 )
 

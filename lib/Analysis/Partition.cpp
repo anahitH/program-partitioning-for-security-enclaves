@@ -119,5 +119,10 @@ const Partition::GlobalsSet& Partition::getModifiedGlobals() const
     return m_modifiedGlobals;
 }
 
+bool Partition::contains(llvm::Function* F) const
+{
+    return m_partition.find(F) != m_partition.end();
+}
+
 } // namespace vazgen
 
