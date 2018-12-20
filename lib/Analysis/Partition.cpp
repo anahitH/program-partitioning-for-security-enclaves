@@ -1,6 +1,7 @@
 #include "Analysis/Partition.h"
 
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
 
 namespace vazgen {
 
