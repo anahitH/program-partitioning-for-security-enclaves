@@ -7,7 +7,7 @@ namespace vazgen {
 class GlobalsMoveToPartitionOptimization : public PartitionOptimization
 {
 public:
-    explicit GlobalsMoveToPartitionOptimization(Partition& partition, PDGType pdg);
+    GlobalsMoveToPartitionOptimization(Partition& partition, PDGType pdg);
 
     GlobalsMoveToPartitionOptimization(const GlobalsMoveToPartitionOptimization& ) = delete;
     GlobalsMoveToPartitionOptimization(GlobalsMoveToPartitionOptimization&& ) = delete;

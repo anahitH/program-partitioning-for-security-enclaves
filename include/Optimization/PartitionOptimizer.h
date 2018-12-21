@@ -27,8 +27,9 @@ public:
         FUNCTIONS_MOVE_TO = 0,
         FUNCTIONS_MOVE_OUT,
         GLOBALS_MOVE_TO,
-        GLOBALS_MOVE_OUT
-        // DUPLICATE_FUNCTIONS
+        GLOBALS_MOVE_OUT,
+        DUPLICATE_FUNCTIONS,
+        OPT_NUM
     };
 
     using OptimizationTy = std::shared_ptr<PartitionOptimization>;
@@ -53,6 +54,7 @@ public:
 private:
     OptimizationTy getOptimizerFor(Optimization opt);
     void collectAvailableOptimizations();
+    void apply();
 
 protected:
     Partition& m_partition;
