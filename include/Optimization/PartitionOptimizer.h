@@ -24,7 +24,7 @@ class PartitionOptimizer
 public:
     // Apply optimization in the given order
     enum Optimization {
-        FUNCTIONS_MOVE_TO,
+        FUNCTIONS_MOVE_TO = 0,
         FUNCTIONS_MOVE_OUT,
         GLOBALS_MOVE_TO,
         GLOBALS_MOVE_OUT

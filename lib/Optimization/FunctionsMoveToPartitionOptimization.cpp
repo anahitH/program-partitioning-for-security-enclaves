@@ -14,7 +14,6 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-
 namespace vazgen {
 
 FunctionsMoveToPartitionOptimization::
@@ -68,7 +67,6 @@ FunctionsMoveToPartitionOptimization::computeFunctionsCalledFromPartitionLoops()
         if (hasCallSiteInLoop(callSites)) {
             functionsToMove.insert(F);
         }
-
     }
     return functionsToMove;
 }

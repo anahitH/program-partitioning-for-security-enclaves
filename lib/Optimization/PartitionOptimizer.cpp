@@ -49,7 +49,7 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt)
     case PartitionOptimizer::FUNCTIONS_MOVE_TO:
         return std::make_shared<FunctionsMoveToPartitionOptimization>(m_partition, m_pdg, m_loopInfoGetter);
     case PartitionOptimizer::FUNCTIONS_MOVE_OUT:
-        return std::make_shared<FunctionsMoveOutPartitionOptimization>(m_partition, m_pdg);
+        return std::make_shared<FunctionsMoveOutPartitionOptimization>(m_partition, m_pdg, m_loopInfoGetter);
     case PartitionOptimizer::GLOBALS_MOVE_TO:
         return std::make_shared<GlobalsMoveToPartitionOptimization>(m_partition, m_pdg);
     case PartitionOptimizer::GLOBALS_MOVE_OUT:
