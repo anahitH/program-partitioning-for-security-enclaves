@@ -20,6 +20,11 @@ public:
 private:
     bool hasUseOutsidePartition(llvm::GlobalVariable* global) const;
 
+    static bool classof(const PartitionOptimization* opt)
+    {
+        return opt->getOptimizationType() == PartitionOptimizer::GLOBALS_MOVE_TO;
+    }
+
 private:
     Partition::GlobalsSet m_movedGlobals;
 }; // class GlobalsMoveToPartitionOptimization

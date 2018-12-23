@@ -8,26 +8,25 @@
 namespace vazgen {
 
 DuplicateFunctionsOptimization::DuplicateFunctionsOptimization(Partition& partition)
-    : PartitionOptimization(partition, nullptr)
+    : PartitionOptimization(partition, nullptr, PartitionOptimizer::DUPLICATE_FUNCTIONS)
 {
 }
 
 void DuplicateFunctionsOptimization::
-setMovedInFunctions(const Partition::FunctionSet& partitionMovedInFunctions)
+setPartitionsFunctions(const Partition::FunctionSet& partition1Fs,
+                       const Partition::FunctionSet& partition2Fs)
 {
-    m_movedInFs = partitionMovedInFunctions;
-}
-
-void DuplicateFunctionsOptimization::
-setMovedOutFunctions(const Partition::FunctionSet& partitionMovedOutFunctions)
-{
-    m_movedOutFs = partitionMovedOutFunctions;
+    m_securePartFs = partition1Fs;
+    m_insecurePartFs = partition2Fs;
 }
 
 void DuplicateFunctionsOptimization::run()
 {
-    // TODO: duplicate function if it exists in both sets and does not have out arguments and is not modifying any global.
-    // OR? can it have out args and modify globals?
+    for (auto F : m_securePartFs) {
+        if (m_insecurePartFs.find(F) != m_insecurePartFs.end()) {
+            m_duplicatedFunctions.insert(F);
+        }
+    }
 }
 
 } // namespace vazgen

@@ -4,9 +4,12 @@
 
 namespace vazgen {
 
-PartitionOptimization::PartitionOptimization(Partition& partition, PDGType pdg)
+PartitionOptimization::PartitionOptimization(Partition& partition,
+                                             PDGType pdg,
+                                             PartitionOptimizer::Optimization optimizationType)
     : m_partition(partition)
     , m_pdg(pdg)
+    , m_optimizationType(optimizationType)
 {
 }
 

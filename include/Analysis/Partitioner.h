@@ -33,11 +33,27 @@ public:
     }
 
 public:
-    Partition partition(const Annotations& annotations);
+    Partition getSecurePartition() const
+    {
+        return m_securePartition;
+    }
+
+    Partition getInsecurePartition() const
+    {
+        return m_insecurePartition;
+    }
+
+public:
+    void partition(const Annotations& annotations);
+
+private:
+    void computeInsecurePartition();
 
 protected:
     llvm::Module& m_module;
     PDGType m_pdg;
+    Partition m_securePartition;
+    Partition m_insecurePartition;
 }; // class Partitioner
 
 } // namespace vazgen

@@ -436,30 +436,45 @@ void PartitionGlobals::partition()
     }
 }
 
-Partition Partitioner::partition(const Annotations& annotations)
+void Partitioner::computeInsecurePartition()
 {
-    Partition partition;
+    for (auto& F : m_module) {
+        if (!m_securePartition.contains(&F)) {
+            m_insecurePartition.addToPartition(&F);
+        }
+    }
+    PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition);
+    globals_partitioner.partition();
+    m_insecurePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
+    m_insecurePartition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
+
+    m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
+    m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
+}
+
+void Partitioner::partition(const Annotations& annotations)
+{
     for (const auto& annot : annotations) {
         PartitionForFunction f_partitioner(m_module, annot);
         const auto& f_partition = f_partitioner.partition();
-        partition.addToPartition(f_partition);
+        m_securePartition.addToPartition(f_partition);
 
         PartitionForArguments arg_partitioner(m_module, annot, m_pdg);
         const auto& arg_partition = arg_partitioner.partition();
-        partition.addToPartition(arg_partition);
+        m_securePartition.addToPartition(arg_partition);
 
         PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg);
         const auto& ret_partition = ret_partitioner.partition();
-        partition.addToPartition(ret_partition);
+        m_securePartition.addToPartition(ret_partition);
     }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, partition);
+    PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition);
     globals_partitioner.partition();
-    partition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
-    partition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
+    m_securePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
+    m_securePartition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
 
-    partition.setInInterface(PartitionUtils::computeInInterface(partition.getPartition(), *m_pdg));
-    partition.setOutInterface(PartitionUtils::computeOutInterface(partition.getPartition(), *m_pdg));
-    return partition;
+    m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
+    m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
+    computeInsecurePartition();
 }
 
 } // namespace vazgen

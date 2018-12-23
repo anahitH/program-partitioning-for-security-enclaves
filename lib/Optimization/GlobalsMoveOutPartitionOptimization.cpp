@@ -6,7 +6,7 @@ namespace vazgen {
 
 GlobalsMoveOutPartitionOptimization::
 GlobalsMoveOutPartitionOptimization(Partition& partition, PDGType pdg)
-    : PartitionOptimization(partition, pdg)
+    : PartitionOptimization(partition, pdg, PartitionOptimizer::GLOBALS_MOVE_OUT)
 {
 }
 

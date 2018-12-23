@@ -15,14 +15,20 @@ public:
     DuplicateFunctionsOptimization& operator= (DuplicateFunctionsOptimization&& ) = delete;
 
 public:
-    void setMovedInFunctions(const Partition::FunctionSet& partitionMovedInFunctions);
-    void setMovedOutFunctions(const Partition::FunctionSet& partitionMovedOutFunctions);
+    void setPartitionsFunctions(const Partition::FunctionSet& partition1Fs,
+                                const Partition::FunctionSet& partition2Fs);
 
     void run() override;
 
+public:
+    static bool classof(const PartitionOptimization* opt)
+    {
+        return opt->getOptimizationType() == PartitionOptimizer::DUPLICATE_FUNCTIONS;
+    }
+
 private:
-    Partition::FunctionSet m_movedInFs;
-    Partition::FunctionSet m_movedOutFs;
+    Partition::FunctionSet m_securePartFs;
+    Partition::FunctionSet m_insecurePartFs;
     Partition::FunctionSet m_duplicatedFunctions;
 }; // class DuplicateFunctionsOptimization
 

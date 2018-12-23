@@ -37,7 +37,8 @@ public:
     using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
-    explicit PartitionOptimizer(Partition& partition);
+    explicit PartitionOptimizer(Partition& securePartition,
+                                Partition& insecurePartition);
 
     PartitionOptimizer(const PartitionOptimizer& ) = delete;
     PartitionOptimizer(PartitionOptimizer&& ) = delete;
@@ -52,12 +53,14 @@ public:
     virtual void run();
 
 private:
-    OptimizationTy getOptimizerFor(Optimization opt);
+    OptimizationTy getOptimizerFor(Optimization opt, Partition& partition);
     void collectAvailableOptimizations();
+    void runDuplicateFunctionsOptimization(OptimizationTy opt);
     void apply();
 
 protected:
-    Partition& m_partition;
+    Partition& m_securePartition;
+    Partition& m_insecurePartition;
     PDGType m_pdg;
     LoopInfoGetter m_loopInfoGetter;
     std::vector<OptimizationTy> m_optimizations;

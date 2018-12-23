@@ -20,7 +20,7 @@ FunctionsMoveToPartitionOptimization::
 FunctionsMoveToPartitionOptimization(Partition& partition,
                                      PDGType pdg,
                                      const LoopInfoGetter& loopInfoGetter)
-    : PartitionOptimization(partition, pdg)
+    : PartitionOptimization(partition, pdg, PartitionOptimizer::FUNCTIONS_MOVE_TO)
     , m_loopInfoGetter(loopInfoGetter)
 {
 }

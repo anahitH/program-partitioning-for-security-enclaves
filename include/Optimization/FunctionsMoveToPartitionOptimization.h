@@ -31,6 +31,16 @@ public:
 public:
     void run() override;
 
+    const Partition::FunctionSet& getMovedFunctions() const
+    {
+        return m_movedFunctions;
+    }
+
+    static bool classof(const PartitionOptimization* opt)
+    {
+        return opt->getOptimizationType() == PartitionOptimizer::FUNCTIONS_MOVE_TO;
+    }
+
 private:
     Partition::FunctionSet computeFunctionsCalledFromPartitionOnly();
     Partition::FunctionSet computeFunctionsCalledFromPartitionLoops();

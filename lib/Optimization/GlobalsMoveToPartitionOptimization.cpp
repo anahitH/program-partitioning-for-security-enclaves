@@ -11,7 +11,7 @@ namespace vazgen {
 
 GlobalsMoveToPartitionOptimization::
 GlobalsMoveToPartitionOptimization(Partition& partition, PDGType pdg)
-    : PartitionOptimization(partition, pdg)
+    : PartitionOptimization(partition, pdg, PartitionOptimizer::GLOBALS_MOVE_TO)
 {
 }
 

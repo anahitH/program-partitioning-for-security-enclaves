@@ -91,7 +91,8 @@ ProgramPartition::ProgramPartition(llvm::Module& M,
 void ProgramPartition::partition(const Annotations& annotations)
 {
     Partitioner partitioner(m_module, m_pdg);
-    m_partition = partitioner.partition(annotations);
+    partitioner.partition(annotations);
+    m_partition = partitioner.getSecurePartition();
 }
 
 void ProgramPartition::dump(const std::string& outFile) const
