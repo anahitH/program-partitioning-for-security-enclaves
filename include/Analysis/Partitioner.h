@@ -17,6 +17,8 @@ class PDG;
 
 namespace vazgen {
 
+class Logger;
+
 /// For internal uses only
 class Partitioner
 {
@@ -26,9 +28,10 @@ public:
     using PDGType = std::shared_ptr<pdg::PDG>;
 
 public:
-    Partitioner(llvm::Module& M, PDGType pdg)
+    Partitioner(llvm::Module& M, PDGType pdg, Logger& logger)
         : m_module(M)
         , m_pdg(pdg)
+        , m_logger(logger)
     {
     }
 
@@ -52,6 +55,7 @@ private:
 protected:
     llvm::Module& m_module;
     PDGType m_pdg;
+    Logger& m_logger;
     Partition m_securePartition;
     Partition m_insecurePartition;
 }; // class Partitioner

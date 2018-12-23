@@ -25,9 +25,9 @@ void Partition::setReferencedGlobals(const GlobalsSet& globals)
     m_referencedGlobals = globals;
 }
 
-void Partition::setModifiedGlobals(const GlobalsSet& globals)
+void Partition::setGlobals(const GlobalsSet& globals)
 {
-    m_modifiedGlobals = globals;
+    m_partitionGlobals = globals;
 }
 
 void Partition::setPartition(FunctionSet&& functions)
@@ -50,9 +50,9 @@ void Partition::setReferencedGlobals(GlobalsSet&& globals)
     m_referencedGlobals = std::move(globals);
 }
 
-void Partition::setModifiedGlobals(GlobalsSet&& globals)
+void Partition::setGlobals(GlobalsSet&& globals)
 {
-    m_modifiedGlobals = std::move(globals);
+    m_partitionGlobals = std::move(globals);
 }
 
 void Partition::addToPartition(llvm::Function* F)
@@ -71,7 +71,6 @@ void Partition::addToPartition(const Partition& partition)
     m_inInterface.insert(partition.m_inInterface.begin(), partition.m_inInterface.end());
     m_outInterface.insert(partition.m_outInterface.begin(), partition.m_outInterface.end());
     m_referencedGlobals.insert(partition.m_referencedGlobals.begin(), partition.m_referencedGlobals.end());
-    m_referencedGlobals.insert(partition.m_modifiedGlobals.begin(), partition.m_modifiedGlobals.end());
 }
 
 void Partition::addReferencedGlobal(llvm::GlobalVariable* global)
@@ -79,19 +78,9 @@ void Partition::addReferencedGlobal(llvm::GlobalVariable* global)
     m_referencedGlobals.insert(global);
 }
 
-void Partition::addModifiedGlobal(llvm::GlobalVariable* global)
-{
-    m_modifiedGlobals.insert(global);
-}
-
 void Partition::addReferencedGlobals(const GlobalsSet& globals)
 {
     m_referencedGlobals.insert(globals.begin(), globals.end());
-}
-
-void Partition::addModifiedGlobals(const GlobalsSet& globals)
-{
-    m_modifiedGlobals.insert(globals.begin(), globals.end());
 }
 
 const Partition::FunctionSet& Partition::getPartition() const
@@ -114,14 +103,19 @@ const Partition::GlobalsSet& Partition::getReferencedGolbals() const
     return m_referencedGlobals;
 }
 
-const Partition::GlobalsSet& Partition::getModifiedGlobals() const
+const Partition::GlobalsSet& Partition::getGlobals() const
 {
-    return m_modifiedGlobals;
+    return m_partitionGlobals;
 }
 
 bool Partition::contains(llvm::Function* F) const
 {
     return m_partition.find(F) != m_partition.end();
+}
+
+bool Partition::references(llvm::GlobalVariable* global) const
+{
+    return m_referencedGlobals.find(global) != m_referencedGlobals.end();
 }
 
 } // namespace vazgen

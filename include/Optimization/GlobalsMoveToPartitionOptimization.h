@@ -4,10 +4,15 @@
 
 namespace vazgen {
 
+class Logger;
+
 class GlobalsMoveToPartitionOptimization : public PartitionOptimization
 {
 public:
-    GlobalsMoveToPartitionOptimization(Partition& partition, PDGType pdg);
+    GlobalsMoveToPartitionOptimization(Partition& moveToPartition,
+                                       const Partition::GlobalsSet& outsideUses,
+                                       PDGType pdg,
+                                       Logger& logger);
 
     GlobalsMoveToPartitionOptimization(const GlobalsMoveToPartitionOptimization& ) = delete;
     GlobalsMoveToPartitionOptimization(GlobalsMoveToPartitionOptimization&& ) = delete;
@@ -16,16 +21,16 @@ public:
 
 public:
     void run() override;
+    void apply() override;
 
 private:
-    bool hasUseOutsidePartition(llvm::GlobalVariable* global) const;
-
     static bool classof(const PartitionOptimization* opt)
     {
         return opt->getOptimizationType() == PartitionOptimizer::GLOBALS_MOVE_TO;
     }
 
 private:
+    const Partition::GlobalsSet& m_globals;
     Partition::GlobalsSet m_movedGlobals;
 }; // class GlobalsMoveToPartitionOptimization
 

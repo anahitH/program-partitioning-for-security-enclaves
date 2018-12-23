@@ -1,4 +1,5 @@
 #include "Optimization/FunctionsMoveToPartitionOptimization.h"
+#include "Utils/Logger.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
@@ -19,19 +20,26 @@ namespace vazgen {
 FunctionsMoveToPartitionOptimization::
 FunctionsMoveToPartitionOptimization(Partition& partition,
                                      PDGType pdg,
+                                     Logger& logger,
                                      const LoopInfoGetter& loopInfoGetter)
-    : PartitionOptimization(partition, pdg, PartitionOptimizer::FUNCTIONS_MOVE_TO)
+    : PartitionOptimization(partition, pdg, logger, PartitionOptimizer::FUNCTIONS_MOVE_TO)
     , m_loopInfoGetter(loopInfoGetter)
 {
 }
 
 void FunctionsMoveToPartitionOptimization::run()
 {
+    m_logger.info("Running FunctionsMoveToPartition optimizer");
     // TODO: needs to re-compute partition's in and out interfaces
     auto functions = computeFunctionsCalledFromPartitionOnly();
     m_movedFunctions.insert(functions.begin(), functions.end());
     functions = computeFunctionsCalledFromPartitionLoops();
     m_movedFunctions.insert(functions.begin(), functions.end());
+}
+
+void FunctionsMoveToPartitionOptimization::apply()
+{
+    m_partition.addToPartition(std::move(m_movedFunctions));
 }
 
 Partition::FunctionSet

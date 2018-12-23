@@ -4,10 +4,12 @@
 
 namespace vazgen {
 
+class Logger;
+
 class DuplicateFunctionsOptimization : public PartitionOptimization
 {
 public:
-    DuplicateFunctionsOptimization(Partition& partition);
+    DuplicateFunctionsOptimization(Partition& partition, Logger& logger);
 
     DuplicateFunctionsOptimization(const DuplicateFunctionsOptimization& ) = delete;
     DuplicateFunctionsOptimization(DuplicateFunctionsOptimization&& ) = delete;

@@ -13,6 +13,8 @@ class PDG;
 
 namespace vazgen {
 
+class Logger;
+
 class PartitionOptimization
 {
 public:
@@ -21,6 +23,7 @@ public:
 public:
     PartitionOptimization(Partition& partition,
                           PDGType pdg,
+                          Logger& logger,
                           PartitionOptimizer::Optimization optimizationType);
 
     PartitionOptimization(const PartitionOptimization& ) = delete;
@@ -33,6 +36,10 @@ public:
 public:
     virtual void run() = 0;
 
+    virtual void apply()
+    {
+    }
+
     PartitionOptimizer::Optimization getOptimizationType() const
     {
         return m_optimizationType;
@@ -41,6 +48,7 @@ public:
 protected:
     Partition& m_partition;
     PDGType m_pdg;
+    Logger& m_logger;
     PartitionOptimizer::Optimization m_optimizationType;
 }; // class PartitionOptimization
 

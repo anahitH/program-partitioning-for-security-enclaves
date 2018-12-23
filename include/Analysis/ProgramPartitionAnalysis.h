@@ -17,6 +17,8 @@ class Function;
 namespace vazgen {
 
 class Annotation;
+class Logger;
+
 /**
  * \class ProgramPartition
  * \brief Partitions given Module based on user annotations
@@ -32,7 +34,7 @@ public:
     using PDGType = std::shared_ptr<pdg::PDG>;
 
 public:
-    ProgramPartition(llvm::Module& M, PDGType pdg);
+    ProgramPartition(llvm::Module& M, PDGType pdg, Logger& logger);
 
     ProgramPartition(const ProgramPartition& ) = delete;
     ProgramPartition(ProgramPartition&& ) = delete;
@@ -42,15 +44,16 @@ public:
 
 public:
     void partition(const Annotations& annotations);
+    void optimize();
 
     const Partition& getPartition() const
     {
-        return m_partition;
+        return m_securePartition;
     }
 
     Partition& getPartition()
     {
-        return m_partition;
+        return m_securePartition;
     }
 
 public:
@@ -60,7 +63,9 @@ public:
 private:
     llvm::Module& m_module;
     PDGType m_pdg;
-    Partition m_partition;
+    Logger& m_logger;
+    Partition m_securePartition;
+    Partition m_insecurePartition;
 }; // class ProgramPartition
 
 class ProgramPartitionAnalysis : public llvm::ModulePass

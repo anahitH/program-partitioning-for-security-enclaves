@@ -1,6 +1,7 @@
 #include "Optimization/GlobalsMoveToPartitionOptimization.h"
 
 #include "Utils/Utils.h"
+#include "Utils/Logger.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGEdge.h"
@@ -10,43 +11,28 @@
 namespace vazgen {
 
 GlobalsMoveToPartitionOptimization::
-GlobalsMoveToPartitionOptimization(Partition& partition, PDGType pdg)
-    : PartitionOptimization(partition, pdg, PartitionOptimizer::GLOBALS_MOVE_TO)
+GlobalsMoveToPartitionOptimization(Partition& moveToPartition,
+                                   const Partition::GlobalsSet& outsideUses,
+                                   PDGType pdg,
+                                   Logger& logger)
+    : PartitionOptimization(moveToPartition, pdg, logger, PartitionOptimizer::GLOBALS_MOVE_TO)
+    , m_globals(outsideUses)
 {
 }
 
 void GlobalsMoveToPartitionOptimization::run()
 {
+    m_logger.info("Running GlobalsMoveToPartition optimization");
     for (auto* global : m_partition.getReferencedGolbals()) {
-        if (!hasUseOutsidePartition(global)) {
+        if (m_globals.find(global) == m_globals.end()) {
             m_movedGlobals.insert(global);
         }
     }
 }
 
-bool GlobalsMoveToPartitionOptimization::hasUseOutsidePartition(llvm::GlobalVariable* global) const
+void GlobalsMoveToPartitionOptimization::apply()
 {
-    auto globalNode = m_pdg->getGlobalVariableNode(global);
-    assert(globalNode);
-    for (auto in_it = globalNode->inEdgesBegin();
-         in_it != globalNode->inEdgesEnd();
-         ++in_it) {
-        auto sourceNode = (*in_it)->getSource();
-        llvm::Function* parent = Utils::getNodeParent(sourceNode.get());
-        if (!m_partition.contains(parent)) {
-            return true;
-        }
-    }
-    for (auto out_it = globalNode->outEdgesBegin();
-         out_it != globalNode->outEdgesEnd();
-         ++out_it) {
-        auto destNode = (*out_it)->getDestination();
-        llvm::Function* parent = Utils::getNodeParent(destNode.get());
-        if (!m_partition.contains(parent)) {
-            return true;
-        }
-    }
-    return false;
+    m_partition.setGlobals(std::move(m_movedGlobals));
 }
 
 } // namespace vazgen

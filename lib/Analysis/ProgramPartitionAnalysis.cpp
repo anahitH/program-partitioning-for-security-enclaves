@@ -6,6 +6,7 @@
 #include "Utils/AnnotationParser.h"
 #include "Utils/JsonAnnotationParser.h"
 #include "Utils/ModuleAnnotationParser.h"
+#include "Optimization/PartitionOptimizer.h"
 
 #include "PDG/Passes/PDGBuildPasses.h"
 
@@ -82,22 +83,31 @@ void ProgramPartition::PartitionStatistics::report()
 }
 
 ProgramPartition::ProgramPartition(llvm::Module& M,
-                                   PDGType pdg)
+                                   PDGType pdg,
+                                   Logger& logger)
     : m_module(M)
     , m_pdg(pdg)
+    , m_logger(logger)
 {
 }
 
 void ProgramPartition::partition(const Annotations& annotations)
 {
-    Partitioner partitioner(m_module, m_pdg);
+    Partitioner partitioner(m_module, m_pdg, m_logger);
     partitioner.partition(annotations);
-    m_partition = partitioner.getSecurePartition();
+    m_securePartition = partitioner.getSecurePartition();
+    m_insecurePartition = partitioner.getInsecurePartition();
+}
+
+void ProgramPartition::optimize()
+{
+    PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_logger);
+    optimizer.run();
 }
 
 void ProgramPartition::dump(const std::string& outFile) const
 {
-    const auto& partitionFs = m_partition.getPartition();
+    const auto& partitionFs = m_securePartition.getPartition();
     if (!outFile.empty()) {
         std::ofstream ostr(outFile);
         for (auto& partitionF : partitionFs) {
@@ -120,7 +130,7 @@ void ProgramPartition::dumpStats(const std::string& statsFile) const
     } else {
         strm.open(statsFile);
     }
-    PartitionStatistics stats(strm, m_partition, m_module);
+    PartitionStatistics stats(strm, m_securePartition, m_module);
     stats.report();
 }
 
@@ -138,6 +148,12 @@ llvm::cl::opt<bool> Stats(
     "partition-stats",
     llvm::cl::desc("Dump partition stats"),
     llvm::cl::value_desc("flag to dump stats"));
+
+// This is running the simplest optimization passes
+llvm::cl::opt<bool> Opt(
+    "optimize",
+    llvm::cl::desc("Optimize partition"),
+    llvm::cl::value_desc("boolean flag"));
 
 char ProgramPartitionAnalysis::ID = 0;
 
@@ -162,8 +178,11 @@ bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
     const auto& annotations = annotationParser->getAllAnnotations();
 
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
-    m_partition.reset(new ProgramPartition(M, pdg));
+    m_partition.reset(new ProgramPartition(M, pdg, logger));
     m_partition->partition(annotations);
+    if (Opt) {
+        m_partition->optimize();
+    }
     m_partition->dump(Outfile);
     if (Stats) {
         m_partition->dumpStats();

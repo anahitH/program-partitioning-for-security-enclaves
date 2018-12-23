@@ -1,4 +1,5 @@
 #include "Optimization/DuplicateFunctionsOptimization.h"
+#include "Utils/Logger.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
@@ -7,8 +8,8 @@
 
 namespace vazgen {
 
-DuplicateFunctionsOptimization::DuplicateFunctionsOptimization(Partition& partition)
-    : PartitionOptimization(partition, nullptr, PartitionOptimizer::DUPLICATE_FUNCTIONS)
+DuplicateFunctionsOptimization::DuplicateFunctionsOptimization(Partition& partition, Logger& logger)
+    : PartitionOptimization(partition, nullptr, logger, PartitionOptimizer::DUPLICATE_FUNCTIONS)
 {
 }
 
@@ -22,6 +23,7 @@ setPartitionsFunctions(const Partition::FunctionSet& partition1Fs,
 
 void DuplicateFunctionsOptimization::run()
 {
+    m_logger.info("Running DuplicateFunctions optimization");
     for (auto F : m_securePartFs) {
         if (m_insecurePartFs.find(F) != m_insecurePartFs.end()) {
             m_duplicatedFunctions.insert(F);

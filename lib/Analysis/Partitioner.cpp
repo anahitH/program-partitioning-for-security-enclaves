@@ -64,10 +64,14 @@ public:
     using PDGType = std::shared_ptr<pdg::PDG>;
 
 public:
-    PartitionForAnnotation(llvm::Module& M, PDGType pdg, const Annotation& annotation)
+    PartitionForAnnotation(llvm::Module& M,
+                           PDGType pdg,
+                           const Annotation& annotation,
+                           Logger& logger)
         : m_module(M)
         , m_annotation(annotation)
         , m_pdg(pdg)
+        , m_logger(logger)
     {
     }
 
@@ -83,14 +87,15 @@ protected:
     const Annotation& m_annotation;
     PDGType m_pdg;
     Partition m_partition;
+    Logger& m_logger;
 }; // PartitionForAnnotation
 
 /// Implementation of ProgramPartition for annotated function
 class PartitionForFunction : public PartitionForAnnotation
 {
 public:
-    PartitionForFunction(llvm::Module& M, const Annotation& annotation)
-        : PartitionForAnnotation(M, PDGType(), annotation)
+    PartitionForFunction(llvm::Module& M, const Annotation& annotation, Logger& logger)
+        : PartitionForAnnotation(M, PDGType(), annotation, logger)
     {
     }
 
@@ -102,6 +107,7 @@ private:
 
     virtual void traverse() final
     {
+        m_logger.info("Partitioning for sensitive functions");
         m_partition.addToPartition(m_annotation.getFunction());
     }
 
@@ -113,8 +119,9 @@ class PartitionForArguments : public PartitionForAnnotation
 public:
     PartitionForArguments(llvm::Module& M,
                           const Annotation& annotation,
-                          PDGType pdg)
-        : PartitionForAnnotation(M, pdg, annotation)
+                          PDGType pdg,
+                          Logger& logger)
+        : PartitionForAnnotation(M, pdg, annotation, logger)
     {
     }
 
@@ -140,8 +147,9 @@ class PartitionForReturnValue : public PartitionForAnnotation
 public:
     PartitionForReturnValue(llvm::Module& M,
                             const Annotation& annotation,
-                            PDGType pdg)
-        : PartitionForAnnotation(M, pdg, annotation)
+                            PDGType pdg,
+                            Logger& logger)
+        : PartitionForAnnotation(M, pdg, annotation, logger)
     {
     }
 
@@ -155,10 +163,14 @@ class PartitionGlobals
 public:
     using PDGType = std::shared_ptr<pdg::PDG>;
 
-    PartitionGlobals(llvm::Module& module, PDGType pdg, const Partition& partition)
+    PartitionGlobals(llvm::Module& module,
+                     PDGType pdg,
+                     const Partition& partition,
+                     Logger& logger)
         : m_module(module)
         , m_pdg(pdg)
         , m_partition(partition)
+        , m_logger(logger)
     {
     }
 
@@ -170,16 +182,12 @@ public:
         return m_referencedGlobals;
     }
 
-    const Partition::GlobalsSet& getModifiedGlobals() const
-    {
-        return m_modifiedGlobals;
-    }
 private:
     llvm::Module& m_module;
     PDGType m_pdg;
     const Partition& m_partition;
+    Logger& m_logger;
     Partition::GlobalsSet m_referencedGlobals;
-    Partition::GlobalsSet m_modifiedGlobals;
 }; // class PartitionGlobals
 
 Partition PartitionForAnnotation::partition()
@@ -212,6 +220,7 @@ bool PartitionForArguments::canPartition() const
 
 void PartitionForArguments::traverse()
 {
+    m_logger.info("Partitioning for sensitive arguments");
     llvm::Function* F = m_annotation.getFunction();
     m_partition.addToPartition(F);
     const auto& annotatedArgs = m_annotation.getAnnotatedArguments();
@@ -363,6 +372,7 @@ bool PartitionForReturnValue::canPartition() const
 
 void PartitionForReturnValue::traverse()
 {
+    m_logger.info("Partitioning for sensitive return values");
     // TODO: do we need to include new functions in the curse of backward traversal?
     llvm::Function* F = m_annotation.getFunction();
     auto Fpdg = m_pdg->getFunctionPDG(F);
@@ -404,6 +414,8 @@ void PartitionForReturnValue::traverse()
 
 void PartitionGlobals::partition()
 {
+    // TODO: this probably is not an accurate message.
+    m_logger.info("Partitioning globals");
     for (auto glob_it = m_module.global_begin();
          glob_it != m_module.global_end();
          ++glob_it) {
@@ -416,14 +428,6 @@ void PartitionGlobals::partition()
                  continue;
              }
              m_referencedGlobals.insert(&*glob_it);
-             auto* sourceNode = (*in_it)->getSource().get();
-             if (llvm::isa<pdg::PDGPhiNode>(sourceNode)) {
-                 m_modifiedGlobals.insert(&*glob_it);
-             } else if (auto* pdgNode = llvm::dyn_cast<pdg::PDGLLVMInstructionNode>(sourceNode)) {
-                if (llvm::isa<llvm::StoreInst>(pdgNode->getNodeValue())) {
-                    m_modifiedGlobals.insert(&*glob_it);
-                }
-             }
          }
          for (auto out_it = globalNode->outEdgesBegin();
               out_it != globalNode->outEdgesEnd();
@@ -443,10 +447,9 @@ void Partitioner::computeInsecurePartition()
             m_insecurePartition.addToPartition(&F);
         }
     }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition);
+    PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition, m_logger);
     globals_partitioner.partition();
     m_insecurePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
-    m_insecurePartition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
 
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
@@ -455,22 +458,21 @@ void Partitioner::computeInsecurePartition()
 void Partitioner::partition(const Annotations& annotations)
 {
     for (const auto& annot : annotations) {
-        PartitionForFunction f_partitioner(m_module, annot);
+        PartitionForFunction f_partitioner(m_module, annot, m_logger);
         const auto& f_partition = f_partitioner.partition();
         m_securePartition.addToPartition(f_partition);
 
-        PartitionForArguments arg_partitioner(m_module, annot, m_pdg);
+        PartitionForArguments arg_partitioner(m_module, annot, m_pdg, m_logger);
         const auto& arg_partition = arg_partitioner.partition();
         m_securePartition.addToPartition(arg_partition);
 
-        PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg);
+        PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg, m_logger);
         const auto& ret_partition = ret_partitioner.partition();
         m_securePartition.addToPartition(ret_partition);
     }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition);
+    PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition, m_logger);
     globals_partitioner.partition();
     m_securePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
-    m_securePartition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
 
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));

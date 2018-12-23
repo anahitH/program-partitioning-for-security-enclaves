@@ -12,6 +12,8 @@ class LoopInfo;
 
 namespace vazgen {
 
+class Logger;
+
 class FunctionsMoveToPartitionOptimization : public PartitionOptimization
 {
 public:
@@ -21,6 +23,7 @@ public:
 public:
     FunctionsMoveToPartitionOptimization(Partition& partition,
                                          PDGType pdg,
+                                         Logger& logger,
                                          const LoopInfoGetter& loopInfoGetter);
 
     FunctionsMoveToPartitionOptimization(const FunctionsMoveToPartitionOptimization& ) = delete;
@@ -30,6 +33,7 @@ public:
 
 public:
     void run() override;
+    void apply() override;
 
     const Partition::FunctionSet& getMovedFunctions() const
     {

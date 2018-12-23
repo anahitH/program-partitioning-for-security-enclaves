@@ -17,6 +17,7 @@ class LoopInfo;
 namespace vazgen {
 
 class PartitionOptimization;
+class Logger;
 
 // TODO: think about different strategies for optimization, e.g. smaller TCB, fewer function calls across partitions, etc
 class PartitionOptimizer
@@ -37,8 +38,9 @@ public:
     using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
-    explicit PartitionOptimizer(Partition& securePartition,
-                                Partition& insecurePartition);
+    PartitionOptimizer(Partition& securePartition,
+                       Partition& insecurePartition,
+                       Logger& logger);
 
     PartitionOptimizer(const PartitionOptimizer& ) = delete;
     PartitionOptimizer(PartitionOptimizer&& ) = delete;
@@ -53,7 +55,9 @@ public:
     virtual void run();
 
 private:
-    OptimizationTy getOptimizerFor(Optimization opt, Partition& partition);
+    OptimizationTy getOptimizerFor(Optimization opt,
+                                   Partition& partition,
+                                   const Partition& complementPart);
     void collectAvailableOptimizations();
     void runDuplicateFunctionsOptimization(OptimizationTy opt);
     void apply();
@@ -61,6 +65,7 @@ private:
 protected:
     Partition& m_securePartition;
     Partition& m_insecurePartition;
+    Logger& m_logger;
     PDGType m_pdg;
     LoopInfoGetter m_loopInfoGetter;
     std::vector<OptimizationTy> m_optimizations;
