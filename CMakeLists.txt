@@ -30,6 +30,7 @@ add_library(program_partitioning MODULE
         lib/Utils/Logger.cpp
         lib/Utils/Statistics.cpp
         lib/Utils/Utils.cpp
+        lib/Utils/PartitionUtils.cpp
         lib/Analysis/ProgramPartitionAnalysis.cpp
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp

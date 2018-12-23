@@ -1,5 +1,6 @@
 #include "Analysis/Partitioner.h"
 
+#include "Utils/PartitionUtils.h"
 #include "Utils/Annotation.h"
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
@@ -76,10 +77,6 @@ public:
 protected:
     virtual bool canPartition() const = 0;
     virtual void traverse() = 0;
-
-protected:
-    void computInInterface();
-    void computeOutInterface();
 
 protected:
     llvm::Module& m_module;
@@ -191,62 +188,7 @@ Partition PartitionForAnnotation::partition()
         return m_partition;
     }
     traverse();
-    computInInterface();
-    computeOutInterface();
-    // Consider calling this when all functions are computed
     return m_partition;
-}
-
-void PartitionForAnnotation::computInInterface()
-{
-    const auto& partitionFs = m_partition.getPartition();
-    Partition::FunctionSet inInterface;
-    for (const auto& F : partitionFs) {
-        assert(m_pdg->hasFunctionPDG(F));
-        const auto& Fpdg = m_pdg->getFunctionPDG(F);
-        const auto& callSites = Fpdg->getCallSites();
-        for (const auto& callSite : callSites) {
-            auto* caller = callSite.getCaller();
-            if (partitionFs.find(caller) == partitionFs.end()) {
-                inInterface.insert(caller);
-                break;
-            }
-        }
-    }
-    m_partition.setInInterface(std::move(inInterface));
-}
-
-void PartitionForAnnotation::computeOutInterface()
-{
-    const auto& partitionFs = m_partition.getPartition();
-    Partition::FunctionSet outInterface;
-    for (const auto& F : partitionFs) {
-        assert(m_pdg->hasFunctionPDG(F));
-        const auto& Fpdg = m_pdg->getFunctionPDG(F);
-        // TODO: think about having call site information embedded in PDG directly.
-        for (auto it = Fpdg->llvmNodesBegin(); it != Fpdg->llvmNodesEnd(); ++it) {
-            llvm::Value* val = it->first;
-            if (!llvm::dyn_cast<llvm::CallInst>(val)
-                    && !llvm::dyn_cast<llvm::InvokeInst>(val)) {
-                continue;
-            }
-            for (auto edgeIt = it->second->outEdgesBegin();
-                 edgeIt != it->second->outEdgesEnd();
-                 ++edgeIt) {
-                 if (!(*edgeIt)->isControlEdge()) {
-                    continue;
-                 }
-                 if (auto* functionNode =
-                         llvm::dyn_cast<pdg::PDGLLVMFunctionNode>((*edgeIt)->getDestination().get())) {
-                    llvm::Function* outF = functionNode->getFunction();
-                    if (partitionFs.find(outF) == partitionFs.end()) {
-                        outInterface.insert(outF);
-                    }
-                 }
-            }
-        }
-    }
-    m_partition.setOutInterface(outInterface);
 }
 
 bool PartitionForArguments::canPartition() const
@@ -509,12 +451,14 @@ Partition Partitioner::partition(const Annotations& annotations)
         PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg);
         const auto& ret_partition = ret_partitioner.partition();
         partition.addToPartition(ret_partition);
-
-        PartitionGlobals globals_partitioner(m_module, m_pdg, partition);
-        globals_partitioner.partition();
-        partition.addReferencedGlobals(globals_partitioner.getReferencedGlobals());
-        partition.addModifiedGlobals(globals_partitioner.getModifiedGlobals());
     }
+    PartitionGlobals globals_partitioner(m_module, m_pdg, partition);
+    globals_partitioner.partition();
+    partition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
+    partition.setModifiedGlobals(globals_partitioner.getModifiedGlobals());
+
+    partition.setInInterface(PartitionUtils::computeInInterface(partition.getPartition(), *m_pdg));
+    partition.setOutInterface(PartitionUtils::computeOutInterface(partition.getPartition(), *m_pdg));
     return partition;
 }
 
