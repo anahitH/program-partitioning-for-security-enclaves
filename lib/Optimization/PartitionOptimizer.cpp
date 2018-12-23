@@ -14,17 +14,14 @@ namespace vazgen {
 
 PartitionOptimizer::PartitionOptimizer(Partition& securePartition,
                                        Partition& insecurePartition,
+                                       PDGType pdg,
                                        Logger& logger)
     : m_securePartition(securePartition)
     , m_insecurePartition(insecurePartition)
+    , m_pdg(pdg)
     , m_logger(logger)
 {
     collectAvailableOptimizations();
-}
-
-void PartitionOptimizer::setPDG(PDGType pdg)
-{
-    m_pdg = pdg;
 }
 
 void PartitionOptimizer::setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter)
@@ -34,10 +31,11 @@ void PartitionOptimizer::setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter)
 
 void PartitionOptimizer::run()
 {
-    for (int i = 0; i < OPT_NUM; ++i) {
-        m_optimizations[i]->run();
-        if (i == DUPLICATE_FUNCTIONS) {
-            runDuplicateFunctionsOptimization(m_optimizations[i]);
+    for (auto opt : m_optimizations) {
+        if (llvm::dyn_cast<DuplicateFunctionsOptimization>(opt.get())) {
+            runDuplicateFunctionsOptimization(opt);
+        } else {
+            opt->run();
         }
     }
     apply();
@@ -67,6 +65,7 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt,
     default:
         break;
     }
+    assert(false);
     return PartitionOptimizer::OptimizationTy();
 }
 

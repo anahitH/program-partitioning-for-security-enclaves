@@ -52,6 +52,10 @@ FunctionsMoveToPartitionOptimization::computeFunctionsCalledFromPartitionOnly()
         if (m_movedFunctions.find(F) != m_movedFunctions.end()) {
             continue;
         }
+        if (F->isDeclaration()) {
+            continue;
+        }
+        assert(m_pdg->hasFunctionPDG(F));
         const auto Fpdg = m_pdg->getFunctionPDG(F);
         const auto& callSites = Fpdg->getCallSites();
         if (!hasCallSiteOutsidePartition(callSites)) {
@@ -68,6 +72,9 @@ FunctionsMoveToPartitionOptimization::computeFunctionsCalledFromPartitionLoops()
     Partition::FunctionSet functionsToMove;
     for (auto* F : m_partition.getOutInterface()) {
         if (m_movedFunctions.find(F) != m_movedFunctions.end()) {
+            continue;
+        }
+        if (F->isDeclaration()) {
             continue;
         }
         const auto Fpdg = m_pdg->getFunctionPDG(F);

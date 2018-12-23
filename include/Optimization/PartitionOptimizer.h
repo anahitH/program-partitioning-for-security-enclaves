@@ -26,9 +26,7 @@ public:
     // Apply optimization in the given order
     enum Optimization {
         FUNCTIONS_MOVE_TO = 0,
-        FUNCTIONS_MOVE_OUT,
         GLOBALS_MOVE_TO,
-        GLOBALS_MOVE_OUT,
         DUPLICATE_FUNCTIONS,
         OPT_NUM
     };
@@ -40,6 +38,7 @@ public:
 public:
     PartitionOptimizer(Partition& securePartition,
                        Partition& insecurePartition,
+                       PDGType pdg,
                        Logger& logger);
 
     PartitionOptimizer(const PartitionOptimizer& ) = delete;
@@ -48,7 +47,6 @@ public:
     PartitionOptimizer& operator= (PartitionOptimizer&& ) = delete;
 
 public:
-    void setPDG(PDGType pdg);
     void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
 
 public:
@@ -65,8 +63,8 @@ private:
 protected:
     Partition& m_securePartition;
     Partition& m_insecurePartition;
-    Logger& m_logger;
     PDGType m_pdg;
+    Logger& m_logger;
     LoopInfoGetter m_loopInfoGetter;
     std::vector<OptimizationTy> m_optimizations;
 }; // class PartitionOptimizer

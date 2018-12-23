@@ -10,6 +10,7 @@
 
 #include "PDG/Passes/PDGBuildPasses.h"
 
+#include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Function.h"
@@ -91,6 +92,11 @@ ProgramPartition::ProgramPartition(llvm::Module& M,
 {
 }
 
+void ProgramPartition::setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter)
+{
+    m_loopInfoGetter = loopInfoGetter;
+}
+
 void ProgramPartition::partition(const Annotations& annotations)
 {
     Partitioner partitioner(m_module, m_pdg, m_logger);
@@ -101,7 +107,8 @@ void ProgramPartition::partition(const Annotations& annotations)
 
 void ProgramPartition::optimize()
 {
-    PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_logger);
+    PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_pdg, m_logger);
+    optimizer.setLoopInfoGetter(m_loopInfoGetter);
     optimizer.run();
 }
 
@@ -160,13 +167,14 @@ char ProgramPartitionAnalysis::ID = 0;
 void ProgramPartitionAnalysis::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 {
     AU.addRequired<pdg::SVFGPDGBuilder>();
+    AU.addRequired<llvm::LoopInfoWrapperPass>();
     AU.setPreservesAll();
 }
 
 bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
 {
     Logger logger("program-partitioning");
-    logger.setLevel(vazgen::Logger::ERR);
+    logger.setLevel(vazgen::Logger::INFO);
 
     AnnotationParser* annotationParser;
     if (!JsonAnnotations.empty()) {
@@ -179,6 +187,9 @@ bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
 
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     m_partition.reset(new ProgramPartition(M, pdg, logger));
+    const auto& loopGetter = [this] (llvm::Function* F)
+        {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
+    m_partition->setLoopInfoGetter(loopGetter);
     m_partition->partition(annotations);
     if (Opt) {
         m_partition->optimize();

@@ -12,6 +12,7 @@
 namespace llvm {
 class Module;
 class Function;
+class LoopInfo;
 }
 
 namespace vazgen {
@@ -32,6 +33,7 @@ public:
     // TODO: what is partition does not only include functions but for example also global variables?
     using Annotations = std::vector<Annotation>;
     using PDGType = std::shared_ptr<pdg::PDG>;
+    using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
     ProgramPartition(llvm::Module& M, PDGType pdg, Logger& logger);
@@ -46,6 +48,7 @@ public:
     void partition(const Annotations& annotations);
     void optimize();
 
+    void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
     const Partition& getPartition() const
     {
         return m_securePartition;
@@ -64,6 +67,7 @@ private:
     llvm::Module& m_module;
     PDGType m_pdg;
     Logger& m_logger;
+    LoopInfoGetter m_loopInfoGetter;
     Partition m_securePartition;
     Partition m_insecurePartition;
 }; // class ProgramPartition
