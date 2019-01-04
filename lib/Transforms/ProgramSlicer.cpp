@@ -26,7 +26,9 @@
 
 namespace vazgen {
 
-ProgramSlicer::ProgramSlicer(llvm::Module* M, Slice slice, Logger& logger)
+ProgramSlicer::ProgramSlicer(llvm::Module* M,
+                             Slice slice,
+                             Logger& logger)
     : m_module(M)
     , m_slice(slice)
     , m_slicedModule(nullptr)
@@ -132,14 +134,30 @@ bool ProgramSlicerPass::runOnModule(llvm::Module& M)
     Logger logger("program-partitioning");
     logger.setLevel(vazgen::Logger::ERR);
 
-    auto partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getPartition().getPartition();
-    ProgramSlicer::Slice slice(partition.size());
-    std::copy(partition.begin(), partition.end(), std::back_inserter(slice));
+    bool modified = sliceForPartition(logger, M, true);
+    modified |= sliceForPartition(logger, M, false);
+    return modified;
+}
+
+bool ProgramSlicerPass::sliceForPartition(Logger& logger, llvm::Module& M, bool enclave)
+{
+    Partition partition;
+    std::string sliceName;
+    if (enclave) {
+        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+        sliceName = "enclave_slice.bc";
+    } else {
+        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
+        sliceName = "app_slice.bc";
+    }
+    auto partitionFs = partition.getPartition();
+    ProgramSlicer::Slice slice(partitionFs.size());
+    std::copy(partitionFs.begin(), partitionFs.end(), std::back_inserter(slice));
     m_slicer.reset(new ProgramSlicer(&M, slice, logger));
     bool modified = m_slicer->slice();
     if (modified) {
         logger.info("Slice done\n");
-        Utils::saveModule(m_slicer->getSlicedModule(), "slice.bc");
+        Utils::saveModule(m_slicer->getSlicedModule(), sliceName);
     }
     return modified;
 }

@@ -49,12 +49,22 @@ public:
     void optimize();
 
     void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
-    const Partition& getPartition() const
+    const Partition& getSecurePartition() const
     {
         return m_securePartition;
     }
 
-    Partition& getPartition()
+    Partition& getSecurePartition()
+    {
+        return m_securePartition;
+    }
+
+    const Partition& getInsecurePartition() const
+    {
+        return m_securePartition;
+    }
+
+    Partition& getInsecurePartition()
     {
         return m_securePartition;
     }
