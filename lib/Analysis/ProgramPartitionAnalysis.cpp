@@ -72,13 +72,22 @@ void ProgramPartition::PartitionStatistics::report()
     write_entry({"program_partition", "in_interface%"}, inInterface_portion);
 
     std::vector<std::string> outInterface;
-    inInterface.reserve(m_partition.getOutInterface().size());
+    outInterface.reserve(m_partition.getOutInterface().size());
     std::transform(m_partition.getOutInterface().begin(), m_partition.getOutInterface().end(), std::back_inserter(outInterface),
             [] (llvm::Function* F) { return F->getName().str();});
     write_entry({"program_partition", "out_interface"}, outInterface);
     write_entry({"program_partition", "out_interface_size"}, (unsigned) outInterface.size());
     double outInterface_portion = (m_partition.getOutInterface().size() * 100.0) / m_module.size();
     write_entry({"program_partition", "out_interface%"}, outInterface_portion);
+
+    std::vector<std::string> globals;
+    globals.reserve(m_partition.getGlobals().size());
+    std::transform(m_partition.getGlobals().begin(), m_partition.getGlobals().end(), std::back_inserter(globals),
+            [] (llvm::GlobalVariable* global) { return global->getName().str();});
+    write_entry({"program_partition", "globals"}, globals);
+    write_entry({"program_partition", "globals_size"}, (unsigned) globals.size());
+    double globals_portion = (m_partition.getGlobals().size() * 100.0) / m_module.getGlobalList().size();
+    write_entry({"program_partition", "globals%"}, globals_portion);
 
     flush();
 }
