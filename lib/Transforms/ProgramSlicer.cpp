@@ -52,31 +52,13 @@ bool ProgramSlicer::slice()
             m_logger.warn("Function main in the partition. Can not slice main away");
             continue;
         }
-        llvm::Function* declF = createFunctionDeclaration(currentF);
-        if (!declF) {
-            continue;
-        }
-        if (!changeFunctionUses(currentF, declF)) {
-            declF->eraseFromParent();
-            m_logger.error("Failed to slice away function " + currentF->getName().str());
-            continue;
-        }
         modified = true;
         function_names.insert(currentF->getName());
-        function_mapping.push_back(std::make_pair(currentF, declF));
     }
     if (!modified) {
         return modified;
     }
     createSliceModule(function_names);
-    while (!function_mapping.empty()) {
-        auto currentItem = function_mapping.back();
-        const std::string function_name = currentItem.first->getName();
-        function_mapping.pop_back();
-        currentItem.first->dropAllReferences();
-        currentItem.first->eraseFromParent();
-        currentItem.second->setName(function_name);
-    }
     return modified;
 }
 
@@ -105,11 +87,11 @@ bool ProgramSlicer::changeFunctionUses(llvm::Function* originalF, llvm::Function
 void ProgramSlicer::createSliceModule(const std::unordered_set<std::string>& function_names)
 {
     llvm::ValueToValueMapTy value_to_value_map;
-    m_slicedModule = llvm::CloneModule(m_module, value_to_value_map,
+    m_slicedModule =  llvm::CloneModule(m_module, value_to_value_map,
                 [&function_names] (const llvm::GlobalValue* glob) {
                     return function_names.find(glob->getName()) != function_names.end();
                 }
-                ).get();
+                );
     m_slicedModule->setModuleIdentifier("slice");
     for (auto it = m_slicedModule->begin(); it != m_slicedModule->end(); ++it) {
         if (it->isDeclaration() && it->user_empty()) {
@@ -132,7 +114,7 @@ void ProgramSlicerPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 bool ProgramSlicerPass::runOnModule(llvm::Module& M)
 {
     Logger logger("program-partitioning");
-    logger.setLevel(vazgen::Logger::ERR);
+    logger.setLevel(vazgen::Logger::INFO);
 
     bool modified = sliceForPartition(logger, M, true);
     modified |= sliceForPartition(logger, M, false);
@@ -157,7 +139,9 @@ bool ProgramSlicerPass::sliceForPartition(Logger& logger, llvm::Module& M, bool 
     bool modified = m_slicer->slice();
     if (modified) {
         logger.info("Slice done\n");
-        Utils::saveModule(m_slicer->getSlicedModule(), sliceName);
+        Utils::saveModule(m_slicer->getSlicedModule().get(), sliceName);
+    } else {
+        logger.info("No slice\n");
     }
     return modified;
 }

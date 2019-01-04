@@ -25,7 +25,10 @@ spdlog::level::level_enum get_spdlog_level(Logger::Level level)
 
 Logger::Logger(const std::string& name)
 {
-    m_logger = spdlog::stdout_logger_mt(name);
+    m_logger = spdlog::get(name);
+    if (!m_logger) {
+        m_logger = spdlog::stdout_logger_mt(name);
+    }
 }
 
 void Logger::setLevel(Level level)

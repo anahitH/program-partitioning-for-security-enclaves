@@ -31,7 +31,7 @@ public:
 public:
     bool slice();
 
-    llvm::Module* getSlicedModule()
+    const std::unique_ptr<llvm::Module>& getSlicedModule()
     {
         return m_slicedModule;
     }
@@ -44,7 +44,7 @@ private:
 private:
     llvm::Module* m_module;
     Slice m_slice;
-    llvm::Module* m_slicedModule;
+    std::unique_ptr<llvm::Module> m_slicedModule;
     Logger& m_logger;
 }; //class ProgramSlicer
 
