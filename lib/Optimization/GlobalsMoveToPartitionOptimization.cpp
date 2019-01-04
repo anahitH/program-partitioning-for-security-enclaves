@@ -23,7 +23,7 @@ GlobalsMoveToPartitionOptimization(Partition& moveToPartition,
 void GlobalsMoveToPartitionOptimization::run()
 {
     m_logger.info("Running GlobalsMoveToPartition optimization");
-    for (auto* global : m_partition.getReferencedGolbals()) {
+    for (auto* global : m_partition.getGlobals()) {
         if (m_globals.find(global) == m_globals.end()) {
             m_movedGlobals.insert(global);
         }

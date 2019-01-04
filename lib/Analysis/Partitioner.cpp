@@ -449,7 +449,7 @@ void Partitioner::computeInsecurePartition()
     }
     PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition, m_logger);
     globals_partitioner.partition();
-    m_insecurePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
+    m_insecurePartition.setGlobals(globals_partitioner.getReferencedGlobals());
 
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
@@ -472,7 +472,7 @@ void Partitioner::partition(const Annotations& annotations)
     }
     PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition, m_logger);
     globals_partitioner.partition();
-    m_securePartition.setReferencedGlobals(globals_partitioner.getReferencedGlobals());
+    m_securePartition.setGlobals(globals_partitioner.getReferencedGlobals());
 
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));

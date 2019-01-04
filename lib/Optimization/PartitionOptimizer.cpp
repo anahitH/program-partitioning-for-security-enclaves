@@ -59,7 +59,7 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt,
     case PartitionOptimizer::FUNCTIONS_MOVE_TO:
         return std::make_shared<FunctionsMoveToPartitionOptimization>(partition, m_pdg, m_logger, m_loopInfoGetter);
     case PartitionOptimizer::GLOBALS_MOVE_TO:
-        return std::make_shared<GlobalsMoveToPartitionOptimization>(partition, complementPart.getReferencedGolbals(), m_pdg, m_logger);
+        return std::make_shared<GlobalsMoveToPartitionOptimization>(partition, complementPart.getGlobals(), m_pdg, m_logger);
     case PartitionOptimizer::DUPLICATE_FUNCTIONS:
         return std::make_shared<DuplicateFunctionsOptimization>(partition, m_logger);
     default:

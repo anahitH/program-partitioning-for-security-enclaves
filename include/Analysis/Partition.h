@@ -22,25 +22,20 @@ public:
     void setPartition(const FunctionSet& functions);
     void setInInterface(const FunctionSet& functions);
     void setOutInterface(const FunctionSet& functions);
-    void setReferencedGlobals(const GlobalsSet& globals);
     void setGlobals(const GlobalsSet& globals);
 
     void setPartition(FunctionSet&& functions);
     void setInInterface(FunctionSet&& functions);
     void setOutInterface(FunctionSet&& functions);
-    void setReferencedGlobals(GlobalsSet&& globals);
     void setGlobals(GlobalsSet&& globals);
 
     void addToPartition(llvm::Function* F);
     void addToPartition(const FunctionSet& functions);
     void addToPartition(const Partition& partition);
-    void addReferencedGlobal(llvm::GlobalVariable* global);
-    void addReferencedGlobals(const GlobalsSet& globals);
 
     const FunctionSet& getPartition() const;
     const FunctionSet& getInInterface() const;
     const FunctionSet& getOutInterface() const;
-    const GlobalsSet& getReferencedGolbals() const;
     const GlobalsSet& getGlobals() const;
 
     bool contains(llvm::Function* F) const;
@@ -50,7 +45,6 @@ private:
     FunctionSet m_partition;
     FunctionSet m_inInterface;
     FunctionSet m_outInterface;
-    GlobalsSet m_referencedGlobals;
     GlobalsSet m_partitionGlobals;
 }; // class Partition
 

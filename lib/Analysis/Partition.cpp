@@ -20,11 +20,6 @@ void Partition::setOutInterface(const FunctionSet& functions)
     m_outInterface = functions;
 }
 
-void Partition::setReferencedGlobals(const GlobalsSet& globals)
-{
-    m_referencedGlobals = globals;
-}
-
 void Partition::setGlobals(const GlobalsSet& globals)
 {
     m_partitionGlobals = globals;
@@ -43,11 +38,6 @@ void Partition::setInInterface(FunctionSet&& functions)
 void Partition::setOutInterface(FunctionSet&& functions)
 {
     m_outInterface = std::move(functions);
-}
-
-void Partition::setReferencedGlobals(GlobalsSet&& globals)
-{
-    m_referencedGlobals = std::move(globals);
 }
 
 void Partition::setGlobals(GlobalsSet&& globals)
@@ -70,17 +60,7 @@ void Partition::addToPartition(const Partition& partition)
     m_partition.insert(partition.m_partition.begin(), partition.m_partition.end());
     m_inInterface.insert(partition.m_inInterface.begin(), partition.m_inInterface.end());
     m_outInterface.insert(partition.m_outInterface.begin(), partition.m_outInterface.end());
-    m_referencedGlobals.insert(partition.m_referencedGlobals.begin(), partition.m_referencedGlobals.end());
-}
-
-void Partition::addReferencedGlobal(llvm::GlobalVariable* global)
-{
-    m_referencedGlobals.insert(global);
-}
-
-void Partition::addReferencedGlobals(const GlobalsSet& globals)
-{
-    m_referencedGlobals.insert(globals.begin(), globals.end());
+    m_partitionGlobals.insert(partition.m_partitionGlobals.begin(), partition.m_partitionGlobals.end());
 }
 
 const Partition::FunctionSet& Partition::getPartition() const
@@ -98,11 +78,6 @@ const Partition::FunctionSet& Partition::getOutInterface() const
     return m_outInterface;
 }
 
-const Partition::GlobalsSet& Partition::getReferencedGolbals() const
-{
-    return m_referencedGlobals;
-}
-
 const Partition::GlobalsSet& Partition::getGlobals() const
 {
     return m_partitionGlobals;
@@ -115,7 +90,7 @@ bool Partition::contains(llvm::Function* F) const
 
 bool Partition::references(llvm::GlobalVariable* global) const
 {
-    return m_referencedGlobals.find(global) != m_referencedGlobals.end();
+    return m_partitionGlobals.find(global) != m_partitionGlobals.end();
 }
 
 } // namespace vazgen
