@@ -51,7 +51,15 @@ llvm::Function* Utils::getNodeParent(pdg::PDGNode* node)
         return phiNode->getBlock(0)->getParent();
     }
     return nullptr;
+}
 
+int Utils::getFunctionSize(llvm::Function* F)
+{
+    int size = 0;
+    for (auto& B : *F) {
+        size += B.size();
+    }
+    return size;
 }
 
 } // namespace vazgen

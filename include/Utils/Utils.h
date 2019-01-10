@@ -20,6 +20,8 @@ public:
 
     // TODO: consider keeping node parent information in a node itself.
     static llvm::Function* getNodeParent(pdg::PDGNode* node);
+
+    static int getFunctionSize(llvm::Function* F);
 }; // class Utils
 
 } // namespace vazgen
