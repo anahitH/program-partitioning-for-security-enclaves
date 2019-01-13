@@ -51,6 +51,8 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/DgPDGCompare.cpp
         #lib/Debug/SVFGTraversal.cpp
         lib/Debug/FunctionExtractor.cpp
+        lib/Debug/OptimizationFactorsTable.cpp
+        lib/Debug/ILPOptimizationData.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
@@ -80,7 +82,8 @@ target_link_libraries(program_partitioning PRIVATE
 target_link_libraries(debug-program_partitioning PRIVATE
                       Threads::Threads
                       svf::Svf
-                      ${Boost_LIBRARIES})
+                      ${Boost_LIBRARIES}
+)
 
 if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm/")

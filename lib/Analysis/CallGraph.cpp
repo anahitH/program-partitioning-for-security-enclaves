@@ -15,6 +15,46 @@ namespace vazgen {
 
 namespace {
 
+using CallSiteInfo = std::unordered_map<llvm::Function*, bool>;
+// For each function functions it is calling with being in loop information
+using FunctionCallSiteInfo = std::unordered_map<llvm::Function*, CallSiteInfo>;
+
+FunctionCallSiteInfo
+getFunctionsCallSiteInfo(const pdg::PDG* pdg, const CallGraph::LoopInfoGetter& loopInfoGetter)
+{
+    FunctionCallSiteInfo functionsCallSiteInfo;
+    for (auto& node : pdg->getFunctionPDGs()) {
+        llvm::Function* callee = node.first;
+        for (auto& callSite : node.second->getCallSites()) {
+            llvm::Function* caller = callSite.getCaller();
+            auto* loopInfo = loopInfoGetter(caller);
+            auto* callerBlock = callSite.getParent();
+            const bool isCallSiteInLoop = (loopInfo->getLoopFor(callerBlock) != nullptr);
+            functionsCallSiteInfo[caller].insert(std::make_pair(callee, isCallSiteInLoop));
+        }
+    }
+    return functionsCallSiteInfo;
+}
+
+std::unordered_map<const llvm::CallSite*, bool>
+getCallSiteLoopInformation(const pdg::PDG* pdg,
+                           const CallGraph::LoopInfoGetter& loopInfoGetter)
+{
+    std::unordered_map<const llvm::CallSite*, bool> callSiteInLoop;
+    for (auto& node : pdg->getFunctionPDGs()) {
+        auto Fpdg = node.second;
+        const auto& callSites = Fpdg->getCallSites();
+        for (auto& callSite : callSites) {
+            llvm::Function* caller = callSite.getCaller();
+            auto* loopInfo = loopInfoGetter(caller);
+            auto* callerBlock = callSite.getParent();
+            callSiteInLoop[&callSite]
+                = (loopInfo->getLoopFor(callerBlock) != nullptr);
+        }
+    }
+    return callSiteInLoop;
+}
+
 int getTypeComplexity(llvm::Type* type)
 {
     int complexity = 0;
@@ -471,19 +511,26 @@ void CallGraph::assignRetValueWeights()
 void CallGraph::assignLoopEdgeWeights(const pdg::PDG* pdg,
                                       const LoopInfoGetter& loopInfoGetter)
 {
-    //TODO:
-//    for (auto& node : m_functionNodes) {
-//        llvm::Function* F = node.first;
-//        auto Fpdg = pdg->getFunctionPDG(F);
-//        const auto& callSites = Fpdg->getCallSites();
-//        for (auto& callSite : callSites) {
-//            llvm::Function* caller = callSite.getCaller();
-//            auto* loopInfo = loopInfoGetter(caller);
-//            auto* callerBlock = callSite.getParent();
-//            if (loopInfo->getLoopFor(callerBlock)) {
-//            }
-//        }
-//    }
+    const auto& callSiteInfo = getFunctionsCallSiteInfo(pdg, loopInfoGetter);
+    const std::string factorName = getEdgeFactorName(IN_LOOP);
+    WeightFactor factor(factorName);
+    // TODO: think about these
+    factor.setValue(1);
+    factor.setCoef(1.0);
+    for (auto& node : m_functionNodes) {
+        llvm::Function* sourceF = node.first;
+        const auto& fCallSiteInfo = callSiteInfo.find(sourceF)->second;
+        for (auto it = node.second->outEdgesBegin();
+             it != node.second->outEdgesEnd();
+             ++it) {
+            llvm::Function* sinkF = it->getSink()->getFunction();
+            auto pos = fCallSiteInfo.find(sinkF);
+            if (pos != fCallSiteInfo.end() && pos->second) {
+                Weight& edgeWeight = it->getWeight();
+                edgeWeight.addFactor(factorName, factor);
+            }
+        }
+    }
 }
 
 } //namespace vazgen

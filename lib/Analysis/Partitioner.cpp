@@ -272,7 +272,9 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
         }
         //llvm::dbgs() << "   Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            m_partition.addToPartition(FNode->getFunction());
+            if (!FNode->getFunction()->isDeclaration()) {
+                m_partition.addToPartition(FNode->getFunction());
+            }
             // Stop traversal here
             // TODO: should we stop here or continue for other function calls?
             // i.e. find the formal argument for this call site and continue traversal for it.
@@ -349,7 +351,9 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
             if (!m_pdg->hasFunctionPDG(F)) {
                 continue;
             }
-            m_partition.addToPartition(F);
+            if (!F->isDeclaration()) {
+                m_partition.addToPartition(F);
+            }
             forwardWorkingList.push_front(destNode);
         }
     }
