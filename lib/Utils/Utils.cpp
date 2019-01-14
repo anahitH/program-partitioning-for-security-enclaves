@@ -1,6 +1,8 @@
 #include "Utils/Utils.h"
 
+#include "PDG/PDG/FunctionPDG.h"
 #include "PDG/PDG/PDGNode.h"
+#include "PDG/PDG/PDGEdge.h"
 #include "PDG/PDG/PDGLLVMNode.h"
 
 #include "llvm/IR/Function.h"

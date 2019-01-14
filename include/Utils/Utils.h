@@ -9,6 +9,8 @@ class Function;
 
 namespace pdg {
 class PDGNode;
+class FunctionPDG;
+class PDGLLVMFunctionNode;
 }
 
 namespace vazgen {

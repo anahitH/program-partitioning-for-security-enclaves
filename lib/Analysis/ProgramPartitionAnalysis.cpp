@@ -124,18 +124,27 @@ void ProgramPartition::optimize()
 void ProgramPartition::dump(const std::string& outFile) const
 {
     const auto& partitionFs = m_securePartition.getPartition();
-    if (!outFile.empty()) {
-        std::ofstream ostr(outFile);
-        for (auto& partitionF : partitionFs) {
-            ostr << partitionF->getName().str() << "\n";
-        }
-        ostr.close();
+    if (outFile.empty()) {
         return;
     }
-    llvm::dbgs() << "Partition of Module " << m_module.getName() << "\n";
-    for (auto F : partitionFs) {
-        llvm::dbgs() << "   " << F->getName() << "\n";
+    std::ofstream ostr(outFile);
+    for (auto& partitionF : partitionFs) {
+        ostr << partitionF->getName().str() << "\n";
     }
+    //ostr.close();
+    //llvm::dbgs() << "Partition of Module " << m_module.getName() << "\n";
+    //for (auto F : partitionFs) {
+    //    llvm::dbgs() << "   " << F->getName() << "\n";
+    //}
+    llvm::dbgs() << "Secure blocks\n";
+
+    for (const auto& fBlocks : m_securePartition.getSecureBlocks()) {
+        ostr << "Function " << fBlocks.first->getName().str() << "\n";
+        for (const auto& B : fBlocks.second) {
+            ostr << "   " << B->getName().str() << "\n";
+        }
+    }
+    ostr.close();
 }
 
 void ProgramPartition::dumpStats(const std::string& statsFile) const

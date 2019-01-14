@@ -25,6 +25,11 @@ void Partition::setGlobals(const GlobalsSet& globals)
     m_partitionGlobals = globals;
 }
 
+void Partition::setSecureBlocks(const FunctionBlocks& functionBlocks)
+{
+    m_secureBlocks = functionBlocks;
+}
+
 void Partition::setPartition(FunctionSet&& functions)
 {
     m_partition = std::move(functions);
@@ -45,6 +50,11 @@ void Partition::setGlobals(GlobalsSet&& globals)
     m_partitionGlobals = std::move(globals);
 }
 
+void Partition::setSecureBlocks(FunctionBlocks&& functionBlocks)
+{
+    m_secureBlocks = std::move(functionBlocks);
+}
+
 void Partition::addToPartition(llvm::Function* F)
 {
     m_partition.insert(F);
@@ -61,6 +71,12 @@ void Partition::addToPartition(const Partition& partition)
     m_inInterface.insert(partition.m_inInterface.begin(), partition.m_inInterface.end());
     m_outInterface.insert(partition.m_outInterface.begin(), partition.m_outInterface.end());
     m_partitionGlobals.insert(partition.m_partitionGlobals.begin(), partition.m_partitionGlobals.end());
+    m_secureBlocks.insert(partition.getSecureBlocks().begin(), partition.getSecureBlocks().end());
+}
+
+void Partition::addToPartition(const FunctionBlocks& secureBlocks)
+{
+    m_secureBlocks.insert(secureBlocks.begin(), secureBlocks.end());
 }
 
 const Partition::FunctionSet& Partition::getPartition() const
@@ -81,6 +97,11 @@ const Partition::FunctionSet& Partition::getOutInterface() const
 const Partition::GlobalsSet& Partition::getGlobals() const
 {
     return m_partitionGlobals;
+}
+
+const Partition::FunctionBlocks& Partition::getSecureBlocks() const
+{
+    return m_secureBlocks;
 }
 
 bool Partition::contains(llvm::Function* F) const

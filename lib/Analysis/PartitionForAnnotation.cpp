@@ -1,4 +1,4 @@
-#include "Analysis/Partitioner.h"
+#include "Analysis/PartitionForAnnotation.h"
 
 #include "Utils/PartitionUtils.h"
 #include "Utils/Annotation.h"
@@ -8,7 +8,6 @@
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
 #include "PDG/PDG/PDGEdge.h"
-#include "PDG/PDG/FunctionPDG.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
@@ -20,194 +19,16 @@
 
 namespace vazgen {
 
-namespace {
-
-std::unordered_set<llvm::BasicBlock*> getFunctionBlocks(llvm::Function& F)
+PartitionForAnnotation::PartitionForAnnotation(llvm::Module& M,
+                                               PDGType pdg,
+                                               const Annotation& annotation,
+                                               Logger& logger)
+    : m_module(M)
+    , m_annotation(annotation)
+    , m_pdg(pdg)
+    , m_logger(logger)
 {
-    std::unordered_set<llvm::BasicBlock*> blocks;
-    for (auto& B : F) {
-        blocks.insert(&B);
-    }
-    return blocks;
 }
-
-template <typename Collection>
-void collectFunctionReturnNodes(llvm::Function* F, const pdg::FunctionPDG& f_pdg, Collection& returns)
-{
-    for (auto& B : *F) {
-        for (auto& I : B) {
-            if (llvm::isa<llvm::ReturnInst>(&I)) {
-                if (!f_pdg.hasNode(&I)) {
-                    continue;
-                }
-                returns.push_back(f_pdg.getNode(&I));
-            }
-        }
-    }
-}
-
-// This is faster then the one above. But is uses information internal to PDG. Or? is it internal?
-template <typename Collection>
-void collectFunctionReturnNodes(const pdg::PDGLLVMFunctionNode& Fnode, Collection returns)
-{
-    for (auto it = Fnode.inEdgesBegin(); it != Fnode.inEdgesEnd(); ++it) {
-        auto source = (*it)->getSource();
-        if (source->getNodeType() != pdg::PDGLLVMNode::InstructionNode) {
-            continue;
-        }
-        auto* llvmSourceNode = llvm::dyn_cast<pdg::PDGLLVMNode>(source.get());
-        assert(llvmSourceNode != nullptr);
-        auto* retInst = llvm::dyn_cast<llvm::ReturnInst>(llvmSourceNode->getNodeValue());
-        if (!retInst) {
-            continue;
-        }
-        returns.push_back(llvmSourceNode);
-    }
-}
-
-}
-
-class PartitionForAnnotation
-{
-public:
-    using PDGType = std::shared_ptr<pdg::PDG>;
-    using BlockSet = std::unordered_set<llvm::BasicBlock*>;
-    using FunctionBlocks = std::unordered_map<llvm::Function*, BlockSet>;
-
-public:
-    PartitionForAnnotation(llvm::Module& M,
-                           PDGType pdg,
-                           const Annotation& annotation,
-                           Logger& logger)
-        : m_module(M)
-        , m_annotation(annotation)
-        , m_pdg(pdg)
-        , m_logger(logger)
-    {
-    }
-
-
-    virtual Partition partition();
-
-    const FunctionBlocks& getPartitionBlocks() const
-    {
-        return m_partitionBlocks;
-    }
-
-protected:
-    virtual bool canPartition() const = 0;
-    virtual void traverse() = 0;
-
-protected:
-    llvm::Module& m_module;
-    const Annotation& m_annotation;
-    PDGType m_pdg;
-    Partition m_partition;
-    // TODO: this is here only temporary
-    FunctionBlocks m_partitionBlocks;
-    Logger& m_logger;
-}; // PartitionForAnnotation
-
-/// Implementation of ProgramPartition for annotated function
-class PartitionForFunction : public PartitionForAnnotation
-{
-public:
-    PartitionForFunction(llvm::Module& M, const Annotation& annotation, Logger& logger)
-        : PartitionForAnnotation(M, PDGType(), annotation, logger)
-    {
-    }
-
-private:
-    virtual bool canPartition() const final
-    {
-        return (m_annotation.getFunction() != nullptr);
-    }
-
-    virtual void traverse() final
-    {
-        m_logger.info("Partitioning for sensitive functions");
-        m_partition.addToPartition(m_annotation.getFunction());
-        m_partitionBlocks.insert(std::make_pair(m_annotation.getFunction(), getFunctionBlocks(*m_annotation.getFunction())));
-    }
-
-}; // class PartitionForFunction
-
-/// Implementation of ProgramPartition for annotated function and arguments
-class PartitionForArguments : public PartitionForAnnotation
-{
-public:
-    PartitionForArguments(llvm::Module& M,
-                          const Annotation& annotation,
-                          PDGType pdg,
-                          Logger& logger)
-        : PartitionForAnnotation(M, pdg, annotation, logger)
-    {
-    }
-
-private:
-    virtual bool canPartition() const final;
-    virtual void traverse() final;
-
-    void traverseForArgument(llvm::Argument* arg);
-    template <typename Container>
-    void traverseForward(pdg::FunctionPDG::PDGNodeTy formalArgNode, Container& result);
-
-    template <typename Container>
-    void traverseBackward(Container& workingList);
-
-    template <typename Container>
-    void collectNodesForActualArg(pdg::PDGLLVMActualArgumentNode& actualArgNode, Container& forwardWorkingList);
-
-}; // class PartitionForArguments
-
-/// Implementation of ProgramPartition for annotated function and arguments
-class PartitionForReturnValue : public PartitionForAnnotation
-{
-public:
-    PartitionForReturnValue(llvm::Module& M,
-                            const Annotation& annotation,
-                            PDGType pdg,
-                            Logger& logger)
-        : PartitionForAnnotation(M, pdg, annotation, logger)
-    {
-    }
-
-private:
-    virtual bool canPartition() const final;
-    virtual void traverse() final;
-}; // class PartitionForArguments
-
-class PartitionGlobals
-{
-public:
-    using PDGType = std::shared_ptr<pdg::PDG>;
-
-    PartitionGlobals(llvm::Module& module,
-                     PDGType pdg,
-                     const Partition& partition,
-                     Logger& logger)
-        : m_module(module)
-        , m_pdg(pdg)
-        , m_partition(partition)
-        , m_logger(logger)
-    {
-    }
-
-public:
-    void partition();
-
-    const Partition::GlobalsSet& getReferencedGlobals() const
-    {
-        return m_referencedGlobals;
-    }
-
-private:
-    llvm::Module& m_module;
-    PDGType m_pdg;
-    const Partition& m_partition;
-    Logger& m_logger;
-    Partition::GlobalsSet m_referencedGlobals;
-}; // class PartitionGlobals
 
 Partition PartitionForAnnotation::partition()
 {
@@ -216,6 +37,27 @@ Partition PartitionForAnnotation::partition()
     }
     traverse();
     return m_partition;
+}
+
+PartitionForFunction::PartitionForFunction(llvm::Module& M,
+                                           const Annotation& annotation,
+                                           Logger& logger)
+    : PartitionForAnnotation(M, PDGType(), annotation, logger)
+{
+}
+
+void PartitionForFunction::traverse()
+{
+    m_logger.info("Partitioning for sensitive functions");
+    m_partition.addToPartition(m_annotation.getFunction());
+}
+
+PartitionForArguments::PartitionForArguments(llvm::Module& M,
+                                             const Annotation& annotation,
+                                             PDGType pdg,
+                                             Logger& logger)
+    : PartitionForAnnotation(M, pdg, annotation, logger)
+{
 }
 
 bool PartitionForArguments::canPartition() const
@@ -283,9 +125,6 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
         if (!nodeValue) {
             continue;
         }
-        if (auto* instr = llvm::dyn_cast<llvm::Instruction>(nodeValue)) {
-            m_partitionBlocks[instr->getFunction()].insert(instr->getParent());
-        }
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -334,9 +173,6 @@ void PartitionForArguments::traverseBackward(Container& workingList)
         if (!nodeValue) {
             continue;
         }
-        if (auto* instr = llvm::dyn_cast<llvm::Instruction>(nodeValue)) {
-            m_partitionBlocks[instr->getFunction()].insert(instr->getParent());
-        }
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -384,6 +220,14 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
     }
 }
 
+PartitionForReturnValue::PartitionForReturnValue(llvm::Module& M,
+                                                 const Annotation& annotation,
+                                                 PDGType pdg,
+                                                 Logger& logger)
+    : PartitionForAnnotation(M, pdg, annotation, logger)
+{
+}
+
 bool PartitionForReturnValue::canPartition() const
 {
     if (!m_annotation.isReturnAnnotated()) {
@@ -419,12 +263,6 @@ void PartitionForReturnValue::traverse()
             continue;
         }
         auto* nodeValue = llvmNode->getNodeValue();
-        if (nodeValue) {
-            if (auto* instr = llvm::dyn_cast<llvm::Instruction>(nodeValue)) {
-                m_partitionBlocks[instr->getFunction()].insert(instr->getParent());
-            }
-        }
-
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -445,6 +283,17 @@ void PartitionForReturnValue::traverse()
             workingList.push_front((*in_it)->getSource());
         }
     }
+}
+
+PartitionGlobals::PartitionGlobals(llvm::Module& module,
+                                   PDGType pdg,
+                                   const Partition& partition,
+                                   Logger& logger)
+    : m_module(module)
+    , m_pdg(pdg)
+    , m_partition(partition)
+    , m_logger(logger)
+{
 }
 
 void PartitionGlobals::partition()
@@ -473,51 +322,6 @@ void PartitionGlobals::partition()
              m_referencedGlobals.insert(&*glob_it);
          }
     }
-}
-
-void Partitioner::computeInsecurePartition()
-{
-    for (auto& F : m_module) {
-        if (!m_securePartition.contains(&F)) {
-            m_insecurePartition.addToPartition(&F);
-        }
-    }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition, m_logger);
-    globals_partitioner.partition();
-    m_insecurePartition.setGlobals(globals_partitioner.getReferencedGlobals());
-
-    m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
-    m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
-}
-
-void Partitioner::partition(const Annotations& annotations)
-{
-    using BlockSet = std::unordered_set<llvm::BasicBlock*>;
-    std::unordered_map<llvm::Function*, BlockSet> secureBlocks;
-    for (const auto& annot : annotations) {
-        PartitionForFunction f_partitioner(m_module, annot, m_logger);
-        const auto& f_partition = f_partitioner.partition();
-        m_securePartition.addToPartition(f_partition);
-        secureBlocks.insert(f_partitioner.getPartitionBlocks().begin(), f_partitioner.getPartitionBlocks().end());
-
-        PartitionForArguments arg_partitioner(m_module, annot, m_pdg, m_logger);
-        const auto& arg_partition = arg_partitioner.partition();
-        m_securePartition.addToPartition(arg_partition);
-        secureBlocks.insert(arg_partitioner.getPartitionBlocks().begin(), arg_partitioner.getPartitionBlocks().end());
-
-        PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg, m_logger);
-        const auto& ret_partition = ret_partitioner.partition();
-        m_securePartition.addToPartition(ret_partition);
-        secureBlocks.insert(ret_partitioner.getPartitionBlocks().begin(), ret_partitioner.getPartitionBlocks().end());
-    }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition, m_logger);
-    globals_partitioner.partition();
-    m_securePartition.setGlobals(globals_partitioner.getReferencedGlobals());
-
-    m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
-    m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
-    m_securePartition.setSecureBlocks(secureBlocks);
-    computeInsecurePartition();
 }
 
 } // namespace vazgen
