@@ -184,6 +184,7 @@ char ProgramPartitionAnalysis::ID = 0;
 
 void ProgramPartitionAnalysis::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 {
+    AU.setPreservesCFG();
     AU.addRequired<pdg::SVFGPDGBuilder>();
     AU.addRequired<llvm::LoopInfoWrapperPass>();
     AU.setPreservesAll();

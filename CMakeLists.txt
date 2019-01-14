@@ -35,6 +35,8 @@ add_library(program_partitioning MODULE
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp
         lib/Analysis/CallGraph.cpp
+        lib/Analysis/BasicBlockLivenessInfo.cpp
+        lib/Analysis/LivenessAnalysis.cpp
         lib/Optimization/PartitionOptimizer.cpp
         lib/Optimization/PartitionOptimization.cpp
         lib/Optimization/GlobalsMoveToPartitionOptimization.cpp
@@ -52,7 +54,9 @@ add_library(debug-program_partitioning MODULE
         #lib/Debug/SVFGTraversal.cpp
         lib/Debug/FunctionExtractor.cpp
         lib/Debug/OptimizationFactorsTable.cpp
+        lib/Debug/BlockOptimizationFactorsTable.cpp
         lib/Debug/ILPOptimizationData.cpp
+        lib/Debug/ILPBlockOptimizationData.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
