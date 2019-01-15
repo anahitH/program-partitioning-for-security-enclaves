@@ -18,9 +18,21 @@
 
 #include <list>
 
-namespace vazgen {
+namespace  vazgen {
 
 namespace {
+
+using BlockSet = std::unordered_set<llvm::BasicBlock*>;
+void addToSecureBlocks(std::unordered_map<llvm::Function*, BlockSet>& secureBlocks,
+                       const std::unordered_map<llvm::Function*, BlockSet>& blocks)
+{
+    for (const auto& item : blocks) {
+        auto res = secureBlocks.insert(item);
+        if (!res.second) {
+            res.first->second.insert(item.second.begin(), item.second.end());
+        }
+    }
+}
 
 std::unordered_set<llvm::BasicBlock*> getFunctionBlocks(llvm::Function& F)
 {
@@ -283,9 +295,11 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
         if (!nodeValue) {
             continue;
         }
-        if (auto* instr = llvm::dyn_cast<llvm::Instruction>(nodeValue)) {
-            m_partitionBlocks[instr->getFunction()].insert(instr->getParent());
-        }
+        if (auto* callInstr = llvm::dyn_cast<llvm::CallInst>(nodeValue)) {
+            m_partitionBlocks[callInstr->getFunction()].insert(callInstr->getParent());
+        } else if (auto* invokeInstr = llvm::dyn_cast<llvm::InvokeInst>(nodeValue)) {
+            m_partitionBlocks[invokeInstr->getFunction()].insert(invokeInstr->getParent());
+        } 
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
@@ -306,6 +320,7 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
             collectNodesForActualArg(*actualArgNode, forwardWorkingList);
         }
         if (auto* storeInst = llvm::dyn_cast<llvm::StoreInst>(nodeValue)) {
+            m_partitionBlocks[storeInst->getFunction()].insert(storeInst->getParent());
             auto valueOp = storeInst->getValueOperand();
             if (Fpdg->hasNode(valueOp)) {
                 result.push_back(Fpdg->getNode(valueOp));
@@ -334,8 +349,12 @@ void PartitionForArguments::traverseBackward(Container& workingList)
         if (!nodeValue) {
             continue;
         }
-        if (auto* instr = llvm::dyn_cast<llvm::Instruction>(nodeValue)) {
-            m_partitionBlocks[instr->getFunction()].insert(instr->getParent());
+        if (auto* callInstr = llvm::dyn_cast<llvm::CallInst>(nodeValue)) {
+            m_partitionBlocks[callInstr->getFunction()].insert(callInstr->getParent());
+        } else if (auto* invokeInstr = llvm::dyn_cast<llvm::InvokeInst>(nodeValue)) {
+            m_partitionBlocks[invokeInstr->getFunction()].insert(invokeInstr->getParent());
+        } else if (auto* storeInst = llvm::dyn_cast<llvm::StoreInst>(nodeValue)) {
+            m_partitionBlocks[storeInst->getFunction()].insert(storeInst->getParent());
         }
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
@@ -412,6 +431,7 @@ void PartitionForReturnValue::traverse()
     std::unordered_set<llvm::Value*> processed_values;
 
     while (!workingList.empty()) {
+        
         auto* currentNode = workingList.back().get();
         workingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
@@ -435,6 +455,11 @@ void PartitionForReturnValue::traverse()
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
             if (!FNode->getFunction()->isDeclaration()) {
                 m_partition.addToPartition(FNode->getFunction());
+            }
+            auto* nodeF = FNode->getFunction();
+            if (m_pdg->hasFunctionPDG(nodeF)) {
+                auto nodeFpdg = m_pdg->getFunctionPDG(nodeF);
+                collectFunctionReturnNodes(nodeF, *nodeFpdg, workingList);
             }
             // Stop traversal here
             continue;
@@ -498,17 +523,19 @@ void Partitioner::partition(const Annotations& annotations)
         PartitionForFunction f_partitioner(m_module, annot, m_logger);
         const auto& f_partition = f_partitioner.partition();
         m_securePartition.addToPartition(f_partition);
-        secureBlocks.insert(f_partitioner.getPartitionBlocks().begin(), f_partitioner.getPartitionBlocks().end());
+        if (!annot.hasAnnotatedArguments() && !annot.isReturnAnnotated()) {
+            addToSecureBlocks(secureBlocks, f_partitioner.getPartitionBlocks());
+        }
 
         PartitionForArguments arg_partitioner(m_module, annot, m_pdg, m_logger);
         const auto& arg_partition = arg_partitioner.partition();
         m_securePartition.addToPartition(arg_partition);
-        secureBlocks.insert(arg_partitioner.getPartitionBlocks().begin(), arg_partitioner.getPartitionBlocks().end());
+        addToSecureBlocks(secureBlocks, arg_partitioner.getPartitionBlocks());
 
         PartitionForReturnValue ret_partitioner(m_module, annot, m_pdg, m_logger);
         const auto& ret_partition = ret_partitioner.partition();
         m_securePartition.addToPartition(ret_partition);
-        secureBlocks.insert(ret_partitioner.getPartitionBlocks().begin(), ret_partitioner.getPartitionBlocks().end());
+        addToSecureBlocks(secureBlocks, ret_partitioner.getPartitionBlocks());
     }
     PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition, m_logger);
     globals_partitioner.partition();
@@ -519,6 +546,7 @@ void Partitioner::partition(const Annotations& annotations)
     m_securePartition.setSecureBlocks(secureBlocks);
     computeInsecurePartition();
 }
+
 
 } // namespace vazgen
 

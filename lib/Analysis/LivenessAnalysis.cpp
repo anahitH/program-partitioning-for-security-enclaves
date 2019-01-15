@@ -62,7 +62,9 @@ void update_block_liveins(llvm::BasicBlock* B,
                 || !llvm::dyn_cast<llvm::Instruction>(v)) {
                 continue;
             }
-            live.insert(v);
+            if (llvm::dyn_cast<llvm::AllocaInst>(v)) {
+                live.insert(v);
+            }
         }
         // TODO: is an instruction other than store, that need to be handled here?
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(I)) {
@@ -239,20 +241,23 @@ void LivenessAnalysis::dump(llvm::Function& F)
     llvm::dbgs() << "**** " << F.getName() << " ****\n";
     for (auto& B : F) {
         auto info = m_blockLivenessInfo.find(&B);
-        assert(info != m_blockLivenessInfo.end());
+        if (info == m_blockLivenessInfo.end()) {
+            continue;
+        }
+        //assert(info != m_blockLivenessInfo.end());
         llvm::dbgs() << "BB: " << B.getName() << "\n";
         const auto& liveins = info->second.get_liveIn();
         llvm::dbgs() << "Live in values: " << liveins.size() << "\n";
         for (const auto& val : liveins) {
-            llvm::dbgs() << "   " << *val << ", ";
+            llvm::dbgs() << "   " << *val << "\n";
         }
         llvm::dbgs() << "\n";
         const auto& liveouts = info->second.get_liveOut();
         llvm::dbgs() << "Live out values: " << liveouts.size() << "\n";
         for (const auto& val : liveouts) {
-            llvm::dbgs() << "   " << *val << ", ";
+            llvm::dbgs() << "   " << *val << "\n";
         }
-        llvm::dbgs() << "\n";
+        llvm::dbgs() << "----------\n";
     }
 }
 

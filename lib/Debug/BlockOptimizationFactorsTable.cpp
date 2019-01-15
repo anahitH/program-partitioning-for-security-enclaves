@@ -26,10 +26,11 @@
 #include "PDG/PDG/PDGNode.h"
 #include "PDG/PDG/PDGLLVMNode.h"
 
-#include <unordered_map>
-#include <sstream>
 #include <fstream>
 #include <functional>
+#include <list>
+#include <sstream>
+#include <unordered_map>
 
 namespace debug {
 
@@ -46,8 +47,10 @@ public:
 public:
     GroupBlocks(llvm::Module& M,
                 const LoopInfoGetter& loopGetter,
-                const LivenessInfoGetter& livenessInfoGetter)
+                const LivenessInfoGetter& livenessInfoGetter,
+                pdg::PDG* pdg)
         : m_M(M)
+        , m_pdg(pdg)
         , m_loopInfoGetter(loopGetter)
         , m_livenessInfoGetter(livenessInfoGetter)
     {
@@ -62,7 +65,12 @@ public:
 
     int getBlockGroupIdx(llvm::BasicBlock* B) const
     {
-        return m_blockGroupIdx.find(B)->second;
+        auto pos = m_blockGroupIdx.find(B);
+        if (pos == m_blockGroupIdx.end()) {
+            llvm::dbgs() << B->getParent()->getName() << "  " << B->getName() << "\n";
+        }
+        assert(pos != m_blockGroupIdx.end());
+        return pos->second;
     }
 
     void dumpGroups() const;
@@ -72,12 +80,15 @@ private:
     void computeLivenessGroups();
     void assignGroup(const BlockGroup& group);
     void assignGroup(llvm::BasicBlock* block1, llvm::BasicBlock* block2);
+    void assignGroup(llvm::BasicBlock* block);
     int mergeGroups(int idx1, int idx2);
     bool areDependent(const vazgen::BasicBlockLivenessInfo::ValueSet& liveOuts,
                       const vazgen::BasicBlockLivenessInfo::ValueSet& liveIns) const;
+    bool isReachableFromArgument(llvm::Value* value) const;
 
 private:
     llvm::Module& m_M;
+    pdg::PDG* m_pdg;
     BlockGroups m_groups;
     BlockGroupIndex m_blockGroupIdx;
     const LoopInfoGetter& m_loopInfoGetter;
@@ -138,6 +149,14 @@ void GroupBlocks::computeLivenessGroups()
         auto* liveness = m_livenessInfoGetter(&F);
         for (auto& block : F) {
             const auto& blockLiveOuts = liveness->getLivenessInfo(&block).get_liveOut();
+            if (llvm::succ_empty(&block)) {
+                auto res = m_blockGroupIdx.insert(std::make_pair(&block, m_groups.size()));
+                if (res.second) {
+                    m_groups.push_back(BlockGroup());
+                    m_groups.back().insert(&block);
+                }
+                continue;
+            }
             for (auto succ_it = llvm::succ_begin(&block);
                  succ_it != llvm::succ_end(&block);
                  ++succ_it) {
@@ -145,6 +164,9 @@ void GroupBlocks::computeLivenessGroups()
                 const auto& succLiveIns = liveness->getLivenessInfo(succ_block).get_liveIn();
                 if (areDependent(blockLiveOuts, succLiveIns)) {
                     assignGroup(&block, succ_block);
+                } else {
+                    assignGroup(&block);
+                    assignGroup(succ_block);
                 }
             }
         }
@@ -207,6 +229,15 @@ void GroupBlocks::assignGroup(llvm::BasicBlock* block1, llvm::BasicBlock* block2
     m_blockGroupIdx[block2] = idx;
 }
 
+void GroupBlocks::assignGroup(llvm::BasicBlock* block)
+{
+    auto res = m_blockGroupIdx.insert(std::make_pair(block, m_groups.size()));
+    if (res.second) {
+        m_groups.push_back(BlockGroup());
+        m_groups.back().insert(block);
+    }
+}
+
 int GroupBlocks::mergeGroups(int idx1, int idx2)
 {
     int idx = std::min(idx1, idx2);
@@ -225,7 +256,55 @@ bool GroupBlocks::areDependent(
 {
     for (auto val : liveOuts) {
         if (liveIns.find(val) != liveIns.end()) {
-            return true;
+            if (!isReachableFromArgument(val)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool GroupBlocks::isReachableFromArgument(llvm::Value* value) const
+{
+    auto* instr = llvm::dyn_cast<llvm::Instruction>(value);
+    if (!instr) {
+        return false;
+    }
+    llvm::Function* F = instr->getFunction();
+    auto Fpdg = m_pdg->getFunctionPDG(F);
+    assert(Fpdg);
+    std::list<llvm::Value*> workingList;
+    workingList.push_back(value);
+    std::unordered_set<llvm::Value*> processed_values;
+    while (!workingList.empty()) {
+        llvm::Value* currentVal = workingList.back();
+        workingList.pop_back();
+        if (!processed_values.insert(currentVal).second) {
+            continue;
+        }
+        if (!Fpdg->hasNode(currentVal)) {
+            continue;
+        }
+        auto node = Fpdg->getNode(currentVal);
+        for (auto out_it = node->outEdgesBegin();
+             out_it != node->outEdgesEnd();
+             ++out_it) {
+            if ((*out_it)->isControlEdge()) {
+                continue;
+            }
+            auto llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>((*out_it)->getDestination().get());
+            if (!llvmNode) {
+                continue;
+            }
+            if (!llvmNode->getNodeValue()) {
+                continue;
+            }
+            if (auto* store = llvm::dyn_cast<llvm::StoreInst>(llvmNode->getNodeValue())) {
+                if (llvm::dyn_cast<llvm::Argument>(store->getValueOperand())) {
+                    return true;
+                }
+            }
+            workingList.push_back(llvmNode->getNodeValue());
         }
     }
     return false;
@@ -301,7 +380,7 @@ bool BlockOptimizationFactorsTablePrinterPass::runOnModule(llvm::Module& M)
     const auto& livenessGetter = [this] (llvm::Function* F)
         { return &this->getAnalysis<vazgen::LivenessAnalysis>(*F); };
 
-    m_groupBlocks = new GroupBlocks(M, loopGetter, livenessGetter);
+    m_groupBlocks = new GroupBlocks(M, loopGetter, livenessGetter, pdg.get());
     m_groupBlocks->computeBlockGroups();
     m_groupBlocks->dumpGroups();
 
@@ -329,6 +408,7 @@ void BlockOptimizationFactorsTablePrinterPass::dumpTable() const
             continue;
         }
         tableFile << "group" << i << ": ";
+        tableFile << " function " << (*blockGroups[i].begin())->getParent()->getName().str() << ":  ";
         for (auto B : blockGroups[i]) {
             tableFile << B->getName().str() << "   ";
         }
@@ -348,6 +428,7 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
     const auto& securePart = getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
 
     std::ofstream modelFile(filename);
+    std::ofstream helperFile("variable_names.txt");
     std::unordered_map<llvm::Function*, std::string> variableNames;
     std::stringstream objectiveStr;
     std::stringstream constraintsStr;
@@ -356,6 +437,7 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
     constraintsStr << "Subject To\n";
     boundsStr << "Bounds\n";
 
+    int edgeNum = 0;
     const auto& blockVarNames = getBlockGroupVariableNames();
     auto functionVarNames = getFunctionVariableNames();
     const auto& blockGroups = m_groupBlocks->getBlockGroups();
@@ -364,6 +446,7 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
 
     for (const auto& declFVar : functionVarNames) {
         constraintsStr << declFVar.second << " <= 0\n";
+        boundsStr << "0 <= " << declFVar.second << " <= 1\n";
     }
 
     for (int i = 0; i < blockGroups.size(); ++i) {
@@ -372,13 +455,15 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
         if (currentG.empty()) {
             continue;
         }
-        if (isSecureGroup(currentG, securePart)) {
+        helperFile << "group" << i << "  " << varName << "\n";
+        llvm::Function* currentGF = (*currentG.begin())->getParent();
+        if (currentGF->getName() == "main"
+                && currentG.find(&currentGF->getEntryBlock()) != currentG.end()) {
+            constraintsStr << blockVarNames[i] << " <= 0\n";
+        } else if (isSecureGroup(currentG, securePart)) {
             boundsStr << "1 <= " << blockVarNames[i] << " <= 1\n";
         } else {
             boundsStr << "0 <= " << blockVarNames[i] << " <= 1\n";
-        }
-        if ((*currentG.begin())->getParent()->getName() == "main") {
-            constraintsStr << blockVarNames[i] << " <= 0\n";
         }
         const auto& groupContextSwitches = groupsContextSwitches[i];
         for (const auto& ctxSwitch : groupContextSwitches) {
@@ -386,22 +471,45 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
             std::string edgeVarName;
             std::string calleeVarName;
             if (F->isDeclaration()) {
-                edgeVarName = "d" + std::to_string(i) + functionVarNames[F].back();
+                edgeVarName = "b" + std::to_string(i) + functionVarNames[F].back();
                 calleeVarName = functionVarNames[F];
+                helperFile << "edge group" << i << "  to" << F->getName().str() << "  " << edgeVarName << "\n";
             } else {
                 llvm::BasicBlock* entryBlock = &F->getEntryBlock();
                 int blockGroupIdx = m_groupBlocks->getBlockGroupIdx(entryBlock);
                 calleeVarName = blockVarNames[blockGroupIdx];
                 edgeVarName = "d" + std::to_string(i) + std::to_string(blockGroupIdx);
+                helperFile << "edge group" << i << "  to" << blockGroupIdx << "  " << edgeVarName << "\n";
             }
             if (ctxSwitch.second == -1) {
                 objectiveStr << "100 ";
             } else {
                 objectiveStr << std::to_string(ctxSwitch.second) << " ";
             }
+            ++edgeNum;
             objectiveStr << edgeVarName << " + ";
+            boundsStr << "0 <= " << edgeVarName << " <= 1\n";
             constraintsStr << edgeVarName << " - " << varName << " + " << calleeVarName << " <= 1\n";
             constraintsStr << edgeVarName << " + " << varName << " - " << calleeVarName << " <= 1\n";
+        }
+        for (auto& B : currentG) {
+            int Bidx = m_groupBlocks->getBlockGroupIdx(B);
+            const auto& BvarName = blockVarNames[Bidx];
+            for (auto succ_it = llvm::succ_begin(B); succ_it != llvm::succ_end(B); ++succ_it) {
+                llvm::BasicBlock* succ = *succ_it;
+                if (currentG.find(succ) == currentG.end()) {
+                    int succIdx = m_groupBlocks->getBlockGroupIdx(succ);
+                    const auto& succVarName = blockVarNames[succIdx];
+                    std::string edgeVarName = "l" + std::to_string(Bidx) + std::to_string(succIdx);
+                    helperFile << "edge local group" << i << "  to " << succIdx << "  " << edgeVarName << "\n";
+                    constraintsStr << edgeVarName << " - " << BvarName << " + " << succVarName << " <= 1\n";
+                    constraintsStr << edgeVarName << " + " << BvarName << " - " << succVarName << " <= 1\n";
+                    objectiveStr << edgeVarName << " + ";
+                    boundsStr << "0 <= " << edgeVarName << " <= 1\n";
+                    ++edgeNum;
+
+                }
+            }
         }
     }
     std::string obj = objectiveStr.str();
@@ -421,6 +529,10 @@ void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& 
     modelFile << constraintsStr.str();
     modelFile << boundsStr.str();
     modelFile << "end\n";
+
+    modelFile.close();
+    helperFile.close();
+    llvm::dbgs() << "Edge num " << edgeNum << "\n";
 }
 
 std::vector<std::string>
