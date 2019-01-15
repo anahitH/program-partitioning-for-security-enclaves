@@ -60,6 +60,11 @@ public:
         return m_groups;
     }
 
+    int getBlockGroupIdx(llvm::BasicBlock* B) const
+    {
+        return m_blockGroupIdx.find(B)->second;
+    }
+
     void dumpGroups() const;
 
 private:
@@ -226,6 +231,28 @@ bool GroupBlocks::areDependent(
     return false;
 }
 
+bool isSecureGroup(const GroupBlocks::BlockGroup& group, const vazgen::Partition& partition)
+{
+    if (group.empty()) {
+        return false;
+    }
+    llvm::BasicBlock* block = *group.begin();
+    auto pos = partition.getSecureBlocks().find(block->getParent());
+    if (pos == partition.getSecureBlocks().end()) {
+        return false;
+    }
+    const auto& secureBlocks = pos->second;
+    if (secureBlocks.empty()) {
+        return false;
+    }
+    for (auto& B : group) {
+        if (secureBlocks.find(B) != secureBlocks.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 class BlockOptimizationFactorsTablePrinterPass : public llvm::ModulePass
 {
@@ -244,9 +271,15 @@ public:
 private:
     void dumpTable() const;
     void dumpILPModule(const std::string& filename) const;
+    std::vector<std::string> getBlockGroupVariableNames() const;
+    std::unordered_map<llvm::Function*, std::string> getFunctionVariableNames() const;
+    std::vector<ILPBlockOptimizationDataRow::ContextSwitchData> getGroupContextSwitches() const;
+    std::vector<int> getGroupsSizes() const;
 
 private:
     ILPBlockOptimizationData* m_ilpData;
+    GroupBlocks* m_groupBlocks;
+    llvm::Module* m_M;
 }; // class OptimizationFactorsTablePrinterPass
 
 void BlockOptimizationFactorsTablePrinterPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
@@ -261,28 +294,194 @@ void BlockOptimizationFactorsTablePrinterPass::getAnalysisUsage(llvm::AnalysisUs
 
 bool BlockOptimizationFactorsTablePrinterPass::runOnModule(llvm::Module& M)
 {
+    m_M = &M;
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
     const auto& livenessGetter = [this] (llvm::Function* F)
         { return &this->getAnalysis<vazgen::LivenessAnalysis>(*F); };
 
+    m_groupBlocks = new GroupBlocks(M, loopGetter, livenessGetter);
+    m_groupBlocks->computeBlockGroups();
+    m_groupBlocks->dumpGroups();
+
     m_ilpData = new ILPBlockOptimizationData(M, pdg.get(), loopGetter);
     m_ilpData->collectOptimizationData();
 
-    GroupBlocks groupBlocks(M, loopGetter, livenessGetter);
-    groupBlocks.computeBlockGroups();
+    dumpTable();
+    dumpILPModule(M.getName().str() + ".lp");
 
-    groupBlocks.dumpGroups();
+    delete m_ilpData;
+    delete m_groupBlocks;
+
     return false;
 }
 
 void BlockOptimizationFactorsTablePrinterPass::dumpTable() const
 {
+    const auto& groupsContextSwitches = getGroupContextSwitches();
+    const auto& groupsSizes = getGroupsSizes();
+    const auto& blockGroups = m_groupBlocks->getBlockGroups();
+
+    std::ofstream tableFile("opt_table.txt");
+    for (int i = 0; i < blockGroups.size(); ++i) {
+        if (blockGroups[i].empty()) {
+            continue;
+        }
+        tableFile << "group" << i << ": ";
+        for (auto B : blockGroups[i]) {
+            tableFile << B->getName().str() << "   ";
+        }
+        tableFile << "| " << groupsSizes[i] << " |";
+        for (const auto& ctxSwitchData : groupsContextSwitches[i]) {
+            tableFile << ctxSwitchData.first->getName().str() << " " << ctxSwitchData.second << "; ";
+        }
+        tableFile << "\n";
+    }
+    tableFile.close();
 }
 
 void BlockOptimizationFactorsTablePrinterPass::dumpILPModule(const std::string& filename) const
 {
+    const auto& functions = m_ilpData->getFunctions();
+    const auto& tableRows = m_ilpData->getILPBlockOptimizationData();
+    const auto& securePart = getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+
+    std::ofstream modelFile(filename);
+    std::unordered_map<llvm::Function*, std::string> variableNames;
+    std::stringstream objectiveStr;
+    std::stringstream constraintsStr;
+    std::stringstream boundsStr;
+    objectiveStr << "Maximize\n";
+    constraintsStr << "Subject To\n";
+    boundsStr << "Bounds\n";
+
+    const auto& blockVarNames = getBlockGroupVariableNames();
+    auto functionVarNames = getFunctionVariableNames();
+    const auto& blockGroups = m_groupBlocks->getBlockGroups();
+    const auto& groupsContextSwitches = getGroupContextSwitches();
+    const auto& groupsSizes = getGroupsSizes();
+
+    for (const auto& declFVar : functionVarNames) {
+        constraintsStr << declFVar.second << " <= 0\n";
+    }
+
+    for (int i = 0; i < blockGroups.size(); ++i) {
+        const auto& currentG = blockGroups[i];
+        const std::string varName = blockVarNames[i];
+        if (currentG.empty()) {
+            continue;
+        }
+        if (isSecureGroup(currentG, securePart)) {
+            boundsStr << "1 <= " << blockVarNames[i] << " <= 1\n";
+        } else {
+            boundsStr << "0 <= " << blockVarNames[i] << " <= 1\n";
+        }
+        if ((*currentG.begin())->getParent()->getName() == "main") {
+            constraintsStr << blockVarNames[i] << " <= 0\n";
+        }
+        const auto& groupContextSwitches = groupsContextSwitches[i];
+        for (const auto& ctxSwitch : groupContextSwitches) {
+            llvm::Function* F = ctxSwitch.first;
+            std::string edgeVarName;
+            std::string calleeVarName;
+            if (F->isDeclaration()) {
+                edgeVarName = "d" + std::to_string(i) + functionVarNames[F].back();
+                calleeVarName = functionVarNames[F];
+            } else {
+                llvm::BasicBlock* entryBlock = &F->getEntryBlock();
+                int blockGroupIdx = m_groupBlocks->getBlockGroupIdx(entryBlock);
+                calleeVarName = blockVarNames[blockGroupIdx];
+                edgeVarName = "d" + std::to_string(i) + std::to_string(blockGroupIdx);
+            }
+            if (ctxSwitch.second == -1) {
+                objectiveStr << "100 ";
+            } else {
+                objectiveStr << std::to_string(ctxSwitch.second) << " ";
+            }
+            objectiveStr << edgeVarName << " + ";
+            constraintsStr << edgeVarName << " - " << varName << " + " << calleeVarName << " <= 1\n";
+            constraintsStr << edgeVarName << " + " << varName << " - " << calleeVarName << " <= 1\n";
+        }
+    }
+    std::string obj = objectiveStr.str();
+    obj.pop_back();
+    obj.pop_back();
+    objectiveStr = std::stringstream();
+    objectiveStr << obj; 
+    for (int i = 0; i < blockGroups.size(); ++i) {
+        const auto& group = blockGroups[i];
+        if (group.empty()) {
+            continue;
+        }
+        objectiveStr << " - 100 " << std::to_string(groupsSizes[i]) << " " << blockVarNames[i];
+    }
+    objectiveStr << "\n";
+    modelFile << objectiveStr.str();
+    modelFile << constraintsStr.str();
+    modelFile << boundsStr.str();
+    modelFile << "end\n";
+}
+
+std::vector<std::string>
+BlockOptimizationFactorsTablePrinterPass::getBlockGroupVariableNames() const
+{
+    std::vector<std::string> names;
+    for (int i = 0; i < m_groupBlocks->getBlockGroups().size(); ++i) {
+        names.push_back("g" + std::to_string(i));
+    }
+    return names;
+}
+
+std::unordered_map<llvm::Function*, std::string>
+BlockOptimizationFactorsTablePrinterPass::getFunctionVariableNames() const
+{
+    std::unordered_map<llvm::Function*, std::string> functionVarNames;
+    int fidx = 0;
+    for (auto& F : *m_M) {
+        if (F.isDeclaration()) {
+            functionVarNames.insert(std::make_pair(&F, "f"+std::to_string(fidx++)));
+        }
+    }
+    return functionVarNames;
+}
+
+std::vector<ILPBlockOptimizationDataRow::ContextSwitchData>
+BlockOptimizationFactorsTablePrinterPass::getGroupContextSwitches() const
+{
+    const auto& groups = m_groupBlocks->getBlockGroups();
+    std::vector<ILPBlockOptimizationDataRow::ContextSwitchData> contextSwitchData(groups.size());
+    for (int i = 0; i < groups.size(); ++i) {
+        auto& groupCtxSwitchData = contextSwitchData[i];
+        for (auto& B : groups[i]) {
+            const auto& BctxSwData = m_ilpData->getILPBlockOptimizationData(const_cast<llvm::BasicBlock*>(B));
+            for (const auto& data : BctxSwData.getContextSwitchData()) {
+                if (groupCtxSwitchData[data.first]
+                        || data.second == -1) {
+                    groupCtxSwitchData[data.first] = -1;
+                } else {
+                    groupCtxSwitchData[data.first] += data.second;
+                }
+            }
+        }
+    }
+    return contextSwitchData;
+}
+
+std::vector<int> BlockOptimizationFactorsTablePrinterPass::getGroupsSizes() const
+{
+    const auto& groups = m_groupBlocks->getBlockGroups();
+    std::vector<int> sizes(groups.size());
+    for (int i = 0; i < groups.size(); ++i) {
+        if (groups[i].empty()) {
+            continue;
+        }
+        int& size = sizes[i];
+        for (auto& B : groups[i]) {
+            size += B->size();
+        }
+    }
+    return sizes;
 }
 
 char BlockOptimizationFactorsTablePrinterPass::ID = 0;

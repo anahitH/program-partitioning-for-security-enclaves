@@ -57,7 +57,7 @@ class ILPBlockOptimizationData
 {
 public:
     using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
-    using FunctionBlockOptData =  std::unordered_map<llvm::Function*, std::vector<ILPBlockOptimizationDataRow>>;
+    using BlockOptData =  std::unordered_map<llvm::BasicBlock*, ILPBlockOptimizationDataRow>;
 
 public:
     ILPBlockOptimizationData(llvm::Module& M,
@@ -66,16 +66,16 @@ public:
 
     void collectOptimizationData();
 
-    const FunctionBlockOptData&
+    const BlockOptData&
     getILPBlockOptimizationData() const
     {
         return m_ilpOptData;
     }
 
-    const std::vector<ILPBlockOptimizationDataRow>&
-    getILPBlockOptimizationData(llvm::Function* F) const
+    const ILPBlockOptimizationDataRow&
+    getILPBlockOptimizationData(llvm::BasicBlock* B) const
     {
-        auto pos = m_ilpOptData.find(F);
+        auto pos = m_ilpOptData.find(B);
         assert(pos != m_ilpOptData.end());
         return pos->second;
     }
@@ -89,7 +89,7 @@ private:
     llvm::Module& m_M;
     pdg::PDG* m_pdg;
     const LoopInfoGetter& m_loopInfoGetter;
-    FunctionBlockOptData m_ilpOptData;
+    BlockOptData m_ilpOptData;
     std::unordered_map<llvm::Function*, int> m_functions;
 };
 

@@ -108,16 +108,14 @@ void ILPBlockOptimizationData::collectOptimizationData()
     for (auto& F : m_M) {
         m_functions.insert(std::make_pair(&F, idx++));
         if (F.isDeclaration()) {
-            m_ilpOptData.insert(std::make_pair(&F,
-                            std::vector<ILPBlockOptimizationDataRow>()));
             continue;
         }
         llvm::LoopInfo* loopInfo = m_loopInfoGetter(&F);
         for (auto& B : F) {
             auto* loop = loopInfo->getLoopFor(&B);
             auto* fPdg = m_pdg->getFunctionPDG(&F).get();
-            m_ilpOptData[&F].push_back(ILPBlockOptimizationDataRow(&B, fPdg, loop));
-            m_ilpOptData[&F].back().fillRow();
+            auto pos = m_ilpOptData.insert(std::make_pair(&B, ILPBlockOptimizationDataRow(&B, fPdg, loop)));
+            pos.first->second.fillRow();
         }
     }
 }
