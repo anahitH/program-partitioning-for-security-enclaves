@@ -85,267 +85,191 @@ int getArgComplexity(llvm::Function* F)
     return complexity;
 }
 
-std::string getNodeFactorName(CallGraph::NodeFactor fact)
+std::string getNodeFactorName(WeightFactor::Factor fact)
 {
     switch (fact) {
-    case CallGraph::ANNOTATED_SENSITIVE:
-        return "annotated_sensitive";
-    case CallGraph::ANALYSIS_SENSITIVE:
-        return "analysis_sensitive";
-    case CallGraph::SIZE:
+    case WeightFactor::SENSITIVE:
+        return "sensitive";
+    case WeightFactor::SIZE:
         return "size";
-    default:
-        assert(false);
-    };
-    return "";
-}
-
-std::string getEdgeFactorName(CallGraph::EdgeFactor fact)
-{
-    switch (fact) {
-    case CallGraph::IN_LOOP:
+    case WeightFactor::CALL_NUM:
         return "in_loop";
-    case CallGraph::ARG_NUM:
+    case WeightFactor::ARG_NUM:
         return "arg_num";
-    case CallGraph::ARG_COMPLEXITY:
+    case WeightFactor::ARG_COMPLEXITY:
         return "arg_complexity";
-    case CallGraph::RET_COMPLEXITY:
+    case WeightFactor::RET_COMPLEXITY:
         return "ret_complexity";
     default:
         assert(false);
     };
     return "";
 }
-
 } // unnamed namespace
 
-class CallGraph::WeightFactor
+class WeightAssigningHelper
 {
 public:
-    WeightFactor(const std::string name)
-        : m_name(name)
-    {
-    }
+    using LoopInfoGetter = CallGraph::LoopInfoGetter;
+    using CallSiteData = std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, int>>;
 
 public:
-    void setValue(int value)
-    {
-        m_value = value;
-    }
-
-    void setCoef(double coef)
-    {
-        m_coeff = coef;
-    }
-
-    int getValue() const
-    {
-        return m_value;
-    }
-
-    double getCoef() const
-    {
-        return m_coeff;
-    }
-
-    double getWeight() const
-    {
-        //TODO: consider having a member for this
-        return m_value * m_coeff;
-    }
+    WeightAssigningHelper(CallGraph& callGraph,
+                          const Partition& securePartition,
+                          const Partition& insecurePartition,
+                          const pdg::PDG* pdg,
+                          const LoopInfoGetter& loopInfoGetter);
+    
+    void assignWeights();
 
 private:
-    std::string m_name;
-    int m_value;
-    double m_coeff;
-};
+    void assignNodeWeights();
+    void assignSensitiveNodeWeights();
+    void assignNodeSizeWeights();
+    void assignEdgeWeights();
+    void assignCallNumWeights();
+    void assignArgWeights();
+    void assignRetValueWeights();
+    CallSiteData collectFunctionCallSiteData();
 
-class CallGraph::Weight
+private:
+    CallGraph& m_callGraph;
+    const Partition& m_securePartition;
+    const Partition& m_insecurePartition;
+    const pdg::PDG* m_pdg;
+    const LoopInfoGetter& m_loopInfoGetter;
+}; // class WeightAssigningHelper
+
+WeightAssigningHelper::WeightAssigningHelper(CallGraph& callGraph,
+                                             const Partition& securePartition,
+                                             const Partition& insecurePartition,
+                                             const pdg::PDG* pdg,
+                                             const LoopInfoGetter& loopInfoGetter)
+    : m_callGraph(callGraph)
+    , m_securePartition(securePartition)
+    , m_insecurePartition(insecurePartition)
+    , m_pdg(pdg)
+    , m_loopInfoGetter(loopInfoGetter)
 {
-public:
-    using Factors = std::unordered_map<std::string, WeightFactor>;
+}
+ 
+void WeightAssigningHelper::assignWeights()
+{
+    assignNodeWeights();
+    assignEdgeWeights();
+}
 
-public:
-    Weight() = default;
+void WeightAssigningHelper::assignNodeWeights()
+{
+    assignSensitiveNodeWeights();
+    assignNodeSizeWeights();
+}
 
-
-    void addFactor(const std::string& name, const WeightFactor& factor)
-    {
-        m_factors.insert(std::make_pair(name, factor));
+void WeightAssigningHelper::assignSensitiveNodeWeights()
+{
+    WeightFactor factor(WeightFactor::SENSITIVE);
+    factor.setValue(1);
+    for (llvm::Function* F : m_securePartition.getPartition()) {
+        auto* Fnode = m_callGraph.getFunctionNode(F);
+        Weight& nodeWeight = Fnode->getWeight();
+        nodeWeight.addFactor(factor);
     }
+}
 
-    bool hasFactor(const std::string& name) const
-    {
-        return m_factors.find(name) != m_factors.end();
+void WeightAssigningHelper::assignNodeSizeWeights()
+{
+    WeightFactor sizeFactor(WeightFactor::SIZE);
+    for (auto it = m_callGraph.begin();
+            it != m_callGraph.end();
+            ++it) {
+        int Fsize = Utils::getFunctionSize(it->first);
+        sizeFactor.setValue(Fsize);
+        Weight& nodeWeight = it->second->getWeight();
+        nodeWeight.addFactor(sizeFactor);
     }
+}
 
-    WeightFactor& getFactor(const std::string& name)
-    {
-        return m_factors.find(name)->second;
-    }
+void WeightAssigningHelper::assignEdgeWeights()
+{
+    assignCallNumWeights();
+    assignArgWeights();
+    assignRetValueWeights();
+}
 
-    const WeightFactor& getFactor(const std::string& name) const
-    {
-        return const_cast<Weight*>(this)->getFactor(name);
-    }
-
-    double getWeight() const
-    {
-        double weight = 0.0;
-        for (const auto& factor : m_factors) {
-            weight += factor.second.getWeight();
+void WeightAssigningHelper::assignCallNumWeights()
+{
+    const auto& callSiteData = collectFunctionCallSiteData();
+    WeightFactor callNumFactor(WeightFactor::CALL_NUM);
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        llvm::Function* F = it->first;
+        auto functionCallDataPos = callSiteData.find(F);
+        if (functionCallDataPos != callSiteData.end()) {
+            continue;
         }
-        return weight;
+        for (auto edge_it = it->second->inEdgesBegin();
+             edge_it != it->second->inEdgesEnd();
+             ++edge_it) {
+             llvm::Function* caller = edge_it->getSink()->getFunction();
+             int calls = functionCallDataPos->second.find(caller)->second;
+             Weight& edgeWeight = edge_it->getWeight();
+             callNumFactor.setValue(calls);
+             edgeWeight.addFactor(callNumFactor);
+        }
     }
+}
 
-private:
-    Factors m_factors;
-};
-
-class CallGraph::Edge
+void WeightAssigningHelper::assignArgWeights()
 {
-public:
-    Edge(Node* source, Node* sink)
-        : m_source(source)
-        , m_sink(sink)
-    {
+    WeightFactor argNumFactor(WeightFactor::ARG_NUM);
+    WeightFactor argComplexityFactor(WeightFactor::ARG_COMPLEXITY);
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        argNumFactor.setValue(it->first->arg_size());
+        int argsComplexity = getArgComplexity(it->first);
+        argComplexityFactor.setValue(argsComplexity);
+        for (auto edge_it = it->second->inEdgesBegin();
+             edge_it != it->second->inEdgesEnd();
+             ++edge_it) {
+             Weight& edgeWeight = edge_it->getWeight();
+             edgeWeight.addFactor(argNumFactor);
+             edgeWeight.addFactor(argComplexityFactor);
+        }
     }
+}
 
-public:
-    Node* getSource() const
-    {
-        return m_source;
-    }
-
-    Node* getSink() const
-    {
-        return m_sink;
-    }
-
-    Weight& getWeight()
-    {
-        return m_weight;
-    }
-
-    const Weight& getWeight() const
-    {
-        return const_cast<Edge*>(this)->getWeight();
-    }
-
-private:
-    Node* m_source;
-    Node* m_sink;
-    Weight m_weight;
-}; //class CallGraph::Node
-
-class CallGraph::Node
+void WeightAssigningHelper::assignRetValueWeights()
 {
-public:
-    using Edges = std::vector<CallGraph::Edge>;
-    using iterator = Edges::iterator;
-    using const_iterator = Edges::const_iterator;
-
-public:
-    Node(llvm::Function* F)
-        : m_F(F)
-    {
+    WeightFactor factor(WeightFactor::RET_COMPLEXITY);
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        factor.setValue(getTypeComplexity(it->first->getReturnType()));
+        for (auto edge_it = it->second->inEdgesBegin();
+                edge_it != it->second->inEdgesEnd();
+                ++edge_it) {
+            Weight& edgeWeight = edge_it->getWeight();
+            edgeWeight.addFactor(factor);
+        }
     }
+}
 
-    Node(const Node&) = delete;
-    Node(Node&&) = delete;
-    Node& operator =(const Node&) = delete;
-    Node& operator =(Node&&) = delete;
-
-public:
-    llvm::Function* getFunction() const
-    {
-        return m_F;
+WeightAssigningHelper::CallSiteData
+WeightAssigningHelper::collectFunctionCallSiteData()
+{
+    CallSiteData callSiteData;
+    for (auto& Fpdg : m_pdg->getFunctionPDGs()) {
+        auto& fCallSiteData = callSiteData[Fpdg.first];
+        for (const auto& callSite : Fpdg.second->getCallSites()) {
+            llvm::Function* caller = callSite.getCaller();
+            llvm::LoopInfo* loop = m_loopInfoGetter(caller);
+            if (loop && loop->getLoopFor(callSite.getParent())) {
+                fCallSiteData[caller] = std::numeric_limits<int>::max();
+            } else if (fCallSiteData[caller] != std::numeric_limits<int>::max()) {
+                ++fCallSiteData[caller];
+            }
+        }
     }
+    return callSiteData;
+}
 
-    const Edges& getInEdges() const
-    {
-        return m_inEdges;
-    }
-
-    const Edges& getOutEdges() const
-    {
-        return m_outEdges;
-    }
-
-    void addInEdge(Edge edge)
-    {
-        m_inEdges.push_back(edge);
-    }
-
-    void addOutEdge(Edge edge)
-    {
-        m_outEdges.push_back(edge);
-    }
-
-    void connectTo(CallGraph::Node* node)
-    {
-        Edge edge(this, node);
-        addOutEdge(edge);
-    }
-
-    Weight& getWeight()
-    {
-        return m_weight;
-    }
-
-    const Weight& getWeight() const
-    {
-        return const_cast<Node*>(this)->getWeight();
-    }
-
-public:
-    iterator inEdgesBegin()
-    {
-        return m_inEdges.begin();
-    }
-
-    iterator inEdgesEnd()
-    {
-        return m_inEdges.end();
-    }
-
-    const_iterator inEdgesBegin()const
-    {
-        return m_inEdges.begin();
-    }
-
-    const_iterator inEdgesEnd() const
-    {
-        return m_inEdges.end();
-    }
-
-    iterator outEdgesBegin()
-    {
-        return m_outEdges.begin();
-    }
-
-    iterator outEdgesEnd()
-    {
-        return m_outEdges.end();
-    }
-
-    const_iterator outEdgesBegin()const
-    {
-        return m_outEdges.begin();
-    }
-
-    const_iterator outEdgesEnd() const
-    {
-        return m_outEdges.end();
-    }
-
-private:
-    llvm::Function* m_F;
-    Edges m_inEdges;
-    Edges m_outEdges;
-    Weight m_weight;
-}; //class CallGraph::Node
-
+/**********************************************************/
 CallGraph::CallGraph(const llvm::CallGraph& graph)
 {
     create(graph);
@@ -356,20 +280,19 @@ bool CallGraph::hasFunctionNode(llvm::Function* F) const
     return m_functionNodes.find(F) != m_functionNodes.end();
 }
 
-CallGraph::Node* CallGraph::getFunctionNode(llvm::Function* F) const
+Node* CallGraph::getFunctionNode(llvm::Function* F) const
 {
     assert(hasFunctionNode(F));
     return m_functionNodes.find(F)->second.get();
 }
 
-void CallGraph::assignWeights(const Partition::FunctionSet& annotatedFs,
-                              const Partition& securePartition,
+void CallGraph::assignWeights(const Partition& securePartition,
                               const Partition& insecurePartition,
                               const pdg::PDG* pdg,
                               const LoopInfoGetter& loopInfoGetter)
 {
-    assignNodeWeights(annotatedFs, securePartition, insecurePartition);
-    assignEdgeWeights(pdg, loopInfoGetter);
+    WeightAssigningHelper helper(*this, securePartition, insecurePartition, pdg, loopInfoGetter);
+    helper.assignWeights();
 }
 
 void CallGraph::create(const llvm::CallGraph& graph)
@@ -383,7 +306,7 @@ void CallGraph::create(const llvm::CallGraph& graph)
     }
 }
 
-CallGraph::Node* CallGraph::getOrAddNode(llvm::Function* F)
+Node* CallGraph::getOrAddNode(llvm::Function* F)
 {
     if (!hasFunctionNode(F)) {
         m_functionNodes.insert(std::make_pair(F, std::make_unique<Node>(F)));
@@ -400,137 +323,6 @@ void CallGraph::addNodeConnections(llvm::CallGraphNode* llvmNode, Node* sourceNo
     Edge edge(sourceNode, sinkNode);
     sourceNode->addOutEdge(edge);
     sinkNode->addInEdge(edge);
-}
-
-void CallGraph::assignNodeWeights(const Partition::FunctionSet& annotatedFs,
-                                  const Partition& securePartition,
-                                  const Partition& insecurePartition)
-{
-    assignAnnotatedFunctionsWeights(annotatedFs);
-    assignAnalysisFunctionsWeights(annotatedFs, securePartition);
-    assignSizeWeights();
-}
-
-void CallGraph::assignAnnotatedFunctionsWeights(const Partition::FunctionSet& annotatedFs)
-{
-    const std::string factorName = getNodeFactorName(ANNOTATED_SENSITIVE);
-    WeightFactor factor(factorName);
-    // TODO, max may be changed with min, depending on how eventually we'll encode the optimization problem
-    factor.setValue(std::numeric_limits<int>::max());
-    factor.setCoef(1.0);
-    for (llvm::Function* annotatedF : annotatedFs) {
-        Node* Fnode = getFunctionNode(annotatedF);
-        Weight& nodeWeight = Fnode->getWeight();
-        nodeWeight.addFactor(factorName, factor);
-    }
-}
-
-void CallGraph::assignAnalysisFunctionsWeights(const Partition::FunctionSet& annotatedFs,
-                                               const Partition& securePartition)
-{
-    const std::string factorName = getNodeFactorName(ANALYSIS_SENSITIVE);
-    WeightFactor factor(factorName);
-    // TODO, max may be changed with min, depending on how eventually we'll encode the optimization problem
-    // TODO: think about value
-    factor.setValue(std::numeric_limits<int>::max() - 1);
-    // TODO: think about coefficient
-    factor.setCoef(1.0);
-    for (llvm::Function* F : securePartition.getPartition()) {
-        if (annotatedFs.find(F) != annotatedFs.end()) {
-            continue;
-        }
-        Node* Fnode = getFunctionNode(F);
-        Weight& nodeWeight = Fnode->getWeight();
-        nodeWeight.addFactor(factorName, factor);
-    }
-}
-
-void CallGraph::assignSizeWeights()
-{
-    const std::string factorName = getNodeFactorName(SIZE);
-    WeightFactor factor(factorName);
-    // TODO: think about coefficient
-    factor.setCoef(0.001);
-    for (auto& node : m_functionNodes) {
-        // TODO: this is size of blocks, consider having size of instructions
-        llvm::Function* F = node.first;
-        factor.setValue(Utils::getFunctionSize(F));
-        Node* Fnode = getFunctionNode(F);
-        Weight& nodeWeight = Fnode->getWeight();
-        nodeWeight.addFactor(factorName, factor);
-    }
-}
-
-void CallGraph::assignEdgeWeights(const pdg::PDG* pdg,
-                                  const LoopInfoGetter& loopInfoGetter)
-{
-    assignArgWeights();
-    assignRetValueWeights();
-    assignLoopEdgeWeights(pdg, loopInfoGetter);
-}
-
-void CallGraph::assignArgWeights()
-{
-    const std::string argNumFactorName = getEdgeFactorName(ARG_NUM);
-    const std::string argComplexityFactorName = getEdgeFactorName(ARG_COMPLEXITY);
-    WeightFactor argNumFactor(argNumFactorName);
-    WeightFactor argComplexityFactor(argComplexityFactorName);
-    // TODO: think about coefficient
-    argNumFactor.setCoef(0.01);
-    argComplexityFactor.setCoef(0.1);
-    for (auto& node : m_functionNodes) {
-        argNumFactor.setValue(node.first->arg_size());
-        int argsComplexity = getArgComplexity(node.first);
-        argComplexityFactor.setValue(argsComplexity);
-        for (auto it = node.second->inEdgesBegin();
-             it != node.second->inEdgesEnd();
-             ++it) {
-             Weight& edgeWeight = it->getWeight();
-             edgeWeight.addFactor(argNumFactorName, argNumFactor);
-             edgeWeight.addFactor(argComplexityFactorName, argComplexityFactor);
-        }
-    }
-}
-
-void CallGraph::assignRetValueWeights()
-{
-    const std::string factorName = getEdgeFactorName(RET_COMPLEXITY);
-    WeightFactor factor(factorName);
-    factor.setCoef(0.1);
-    for (auto& node : m_functionNodes) {
-        factor.setValue(getTypeComplexity(node.first->getReturnType()));
-        for (auto it = node.second->inEdgesBegin();
-             it != node.second->inEdgesEnd();
-             ++it) {
-            Weight& edgeWeight = it->getWeight();
-            edgeWeight.addFactor(factorName, factor);
-        }
-    }
-}
-
-void CallGraph::assignLoopEdgeWeights(const pdg::PDG* pdg,
-                                      const LoopInfoGetter& loopInfoGetter)
-{
-    const auto& callSiteInfo = getFunctionsCallSiteInfo(pdg, loopInfoGetter);
-    const std::string factorName = getEdgeFactorName(IN_LOOP);
-    WeightFactor factor(factorName);
-    // TODO: think about these
-    factor.setValue(1);
-    factor.setCoef(1.0);
-    for (auto& node : m_functionNodes) {
-        llvm::Function* sourceF = node.first;
-        const auto& fCallSiteInfo = callSiteInfo.find(sourceF)->second;
-        for (auto it = node.second->outEdgesBegin();
-             it != node.second->outEdgesEnd();
-             ++it) {
-            llvm::Function* sinkF = it->getSink()->getFunction();
-            auto pos = fCallSiteInfo.find(sinkF);
-            if (pos != fCallSiteInfo.end() && pos->second) {
-                Weight& edgeWeight = it->getWeight();
-                edgeWeight.addFactor(factorName, factor);
-            }
-        }
-    }
 }
 
 } //namespace vazgen

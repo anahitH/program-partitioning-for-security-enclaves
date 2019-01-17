@@ -2,9 +2,10 @@
 
 #include "Analysis/Partition.h"
 
+#include <functional>
 #include <memory>
 #include <unordered_map>
-#include <functional>
+#include <vector>
 
 namespace llvm {
 class Function;
@@ -19,32 +20,266 @@ class PDG;
 
 namespace vazgen {
 
-class CallGraph
+class WeightFactor
 {
 public:
-    class Node;
-    class Edge;
-    class WeightFactor;
-    class Weight;
-
-    using NodeType = std::unique_ptr<Node>;
-    using FunctionNodes = std::unordered_map<llvm::Function*, NodeType>;
-    using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
-
-    enum NodeFactor {
-        ANNOTATED_SENSITIVE,
-        ANALYSIS_SENSITIVE,
+    enum Factor {
+        SENSITIVE = 0,
         SIZE,
-        NODE_FACTOR_NUM,
-    };
-
-    enum EdgeFactor {
-        IN_LOOP,
+        CALL_NUM,
         ARG_NUM,
         ARG_COMPLEXITY,
         RET_COMPLEXITY,
-        EDGE_FACTOR_NUM,
+        UNKNOWN
     };
+public:
+    explicit WeightFactor(Factor factor = UNKNOWN)
+        : m_factor(factor)
+        , m_coeff(1.0)
+    {
+    }
+
+public:
+    Factor getFactor() const
+    {
+        return m_factor;
+    }
+
+    bool isDefined() const
+    {
+        return m_factor < UNKNOWN;
+    }
+
+    void setValue(int value)
+    {
+        m_value = value;
+    }
+
+    void setCoef(double coef)
+    {
+        m_coeff = coef;
+    }
+
+    int getValue() const
+    {
+        return m_value;
+    }
+
+    double getCoef() const
+    {
+        return m_coeff;
+    }
+
+    double getWeight() const
+    {
+        return m_value * m_coeff;
+    }
+
+private:
+    Factor m_factor;
+    std::string m_name;
+    int m_value;
+    double m_coeff;
+}; // class WeightFactor
+
+class Weight
+{
+public:
+    using Factors = std::vector<WeightFactor>;
+
+public:
+    Weight()
+        : m_factors(WeightFactor::UNKNOWN)
+    {
+    }
+
+    void addFactor(const WeightFactor& factor)
+    {
+        m_factors[factor.getFactor()] = factor;
+    }
+
+    bool hasFactor(WeightFactor::Factor factor) const
+    {
+        return m_factors[factor].isDefined();
+    }
+
+    WeightFactor& getFactor(WeightFactor::Factor factor)
+    {
+        return m_factors[factor];
+    }
+
+    const WeightFactor& getFactor(WeightFactor::Factor factor) const
+    {
+        return const_cast<Weight*>(this)->getFactor(factor);
+    }
+
+    double getValue() const
+    {
+        double weight = 0.0;
+        for (const auto& factor : m_factors) {
+            weight += factor.getWeight();
+        }
+        return weight;
+    }
+
+private:
+    Factors m_factors;
+}; // class Weight
+
+class Node;
+
+class Edge
+{
+public:
+    Edge(Node* source, Node* sink)
+        : m_source(source)
+        , m_sink(sink)
+    {
+    }
+
+public:
+    Node* getSource() const
+    {
+        return m_source;
+    }
+
+    Node* getSink() const
+    {
+        return m_sink;
+    }
+
+    Weight& getWeight()
+    {
+        return m_weight;
+    }
+
+    const Weight& getWeight() const
+    {
+        return const_cast<Edge*>(this)->getWeight();
+    }
+
+private:
+    Node* m_source;
+    Node* m_sink;
+    Weight m_weight;
+}; //class Node
+
+class Node
+{
+public:
+    using Edges = std::vector<Edge>;
+    using iterator = Edges::iterator;
+    using const_iterator = Edges::const_iterator;
+
+public:
+    Node(llvm::Function* F)
+        : m_F(F)
+    {
+    }
+
+    Node(const Node&) = delete;
+    Node(Node&&) = delete;
+    Node& operator =(const Node&) = delete;
+    Node& operator =(Node&&) = delete;
+
+public:
+    llvm::Function* getFunction() const
+    {
+        return m_F;
+    }
+
+    const Edges& getInEdges() const
+    {
+        return m_inEdges;
+    }
+
+    const Edges& getOutEdges() const
+    {
+        return m_outEdges;
+    }
+
+    void addInEdge(Edge edge)
+    {
+        m_inEdges.push_back(edge);
+    }
+
+    void addOutEdge(Edge edge)
+    {
+        m_outEdges.push_back(edge);
+    }
+
+    void connectTo(Node* node)
+    {
+        Edge edge(this, node);
+        addOutEdge(edge);
+    }
+
+    Weight& getWeight()
+    {
+        return m_weight;
+    }
+
+    const Weight& getWeight() const
+    {
+        return const_cast<Node*>(this)->getWeight();
+    }
+
+public:
+    iterator inEdgesBegin()
+    {
+        return m_inEdges.begin();
+    }
+
+    iterator inEdgesEnd()
+    {
+        return m_inEdges.end();
+    }
+
+    const_iterator inEdgesBegin()const
+    {
+        return m_inEdges.begin();
+    }
+
+    const_iterator inEdgesEnd() const
+    {
+        return m_inEdges.end();
+    }
+
+    iterator outEdgesBegin()
+    {
+        return m_outEdges.begin();
+    }
+
+    iterator outEdgesEnd()
+    {
+        return m_outEdges.end();
+    }
+
+    const_iterator outEdgesBegin()const
+    {
+        return m_outEdges.begin();
+    }
+
+    const_iterator outEdgesEnd() const
+    {
+        return m_outEdges.end();
+    }
+
+private:
+    llvm::Function* m_F;
+    Edges m_inEdges;
+    Edges m_outEdges;
+    Weight m_weight;
+}; //class Node
+
+class CallGraph
+{
+public:
+    using NodeType = std::unique_ptr<Node>;
+    using FunctionNodes = std::unordered_map<llvm::Function*, NodeType>;
+    using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
+    using iterator = FunctionNodes::iterator;
+    using const_iterator = FunctionNodes::const_iterator;
 
 public:
     explicit CallGraph(const llvm::CallGraph& graph);
@@ -58,28 +293,37 @@ public:
     bool hasFunctionNode(llvm::Function* F) const;
     Node* getFunctionNode(llvm::Function* F) const;
 
-    void assignWeights(const Partition::FunctionSet& annotatedFs,
-                       const Partition& securePartition,
+    void assignWeights(const Partition& securePartition,
                        const Partition& insecurePartition,
                        const pdg::PDG* pdg,
                        const LoopInfoGetter& loopInfoGetter);
+
+public:
+    iterator begin()
+    {
+        return m_functionNodes.begin();
+    }
+
+    iterator end()
+    {
+        return m_functionNodes.end();
+    }
+
+    const_iterator begin() const
+    {
+        return m_functionNodes.begin();
+    }
+
+    const_iterator end() const
+    {
+        return m_functionNodes.end();
+    }
 
 private:    
     void create(const llvm::CallGraph& graph);
     Node* getOrAddNode(llvm::Function* F);
     void addNodeConnections(llvm::CallGraphNode* llvmNode,
                             Node* sourceNode);
-    void assignNodeWeights(const Partition::FunctionSet& annotatedFs,
-                           const Partition& securePartition,
-                           const Partition& insecurePartition);
-    void assignAnnotatedFunctionsWeights(const Partition::FunctionSet& annotatedFs);
-    void assignAnalysisFunctionsWeights(const Partition::FunctionSet& annotatedFs,
-                                        const Partition& securePartition);
-    void assignSizeWeights();
-    void assignEdgeWeights(const pdg::PDG* pdg, const LoopInfoGetter& loopInfoGetter);
-    void assignArgWeights();
-    void assignRetValueWeights();
-    void assignLoopEdgeWeights(const pdg::PDG* pdg, const LoopInfoGetter& loopInfoGetter);
 
 private:
     FunctionNodes m_functionNodes;
