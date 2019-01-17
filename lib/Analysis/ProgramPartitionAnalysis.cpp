@@ -1,6 +1,7 @@
 #include "Analysis/ProgramPartitionAnalysis.h"
 
 #include "Analysis/Partitioner.h"
+#include "Analysis/CallGraph.h"
 #include "Utils/Logger.h"
 #include "Utils/Statistics.h"
 #include "Utils/AnnotationParser.h"
@@ -10,6 +11,7 @@
 
 #include "PDG/Passes/PDGBuildPasses.h"
 
+#include "llvm/Analysis/CallGraph.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/Dominators.h"
@@ -27,6 +29,32 @@
 #include <fstream>
 
 namespace vazgen {
+
+namespace {
+
+auto getOptimizations(const std::string& optName, Logger& logger)
+{
+    PartitionOptimizer::Optimizations opts;
+    if (optName == "local") {
+        opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
+        opts.push_back(PartitionOptimizer::GLOBALS_MOVE_TO);
+        opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
+    } else if (optName == "function_move") {
+        opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
+    } else if (optName == "global_move") {
+        opts.push_back(PartitionOptimizer::GLOBALS_MOVE_TO);
+    } else if (optName == "function_duplicate") {
+        opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
+    } else if (optName == "kl") {
+        opts.push_back(PartitionOptimizer::KERNIGHAN_LIN);
+    } else {
+        logger.error("No optimization with name " + optName);
+    }
+    return opts;
+}
+
+}
+
 
 class ProgramPartition::PartitionStatistics : public Statistics
 {
@@ -94,9 +122,11 @@ void ProgramPartition::PartitionStatistics::report()
 
 ProgramPartition::ProgramPartition(llvm::Module& M,
                                    PDGType pdg,
+                                   const llvm::CallGraph& callgraph,
                                    Logger& logger)
     : m_module(M)
     , m_pdg(pdg)
+    , m_callgraph(callgraph)
     , m_logger(logger)
 {
 }
@@ -114,11 +144,12 @@ void ProgramPartition::partition(const Annotations& annotations)
     m_insecurePartition = partitioner.getInsecurePartition();
 }
 
-void ProgramPartition::optimize()
+void ProgramPartition::optimize(auto optimizations)
 {
-    PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_pdg, m_logger);
+    CallGraph callgraph(m_callgraph);
+    PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_pdg, callgraph, m_logger);
     optimizer.setLoopInfoGetter(m_loopInfoGetter);
-    optimizer.run();
+    optimizer.run(optimizations);
 }
 
 void ProgramPartition::dump(const std::string& outFile) const
@@ -166,10 +197,10 @@ llvm::cl::opt<bool> Stats(
     llvm::cl::value_desc("flag to dump stats"));
 
 // This is running the simplest optimization passes
-llvm::cl::opt<bool> Opt(
+llvm::cl::opt<std::string> Opt(
     "optimize",
-    llvm::cl::desc("Optimize partition"),
-    llvm::cl::value_desc("boolean flag"));
+    llvm::cl::desc("Optimization type"),
+    llvm::cl::value_desc("optimization name"));
 
 char ProgramPartitionAnalysis::ID = 0;
 
@@ -177,6 +208,7 @@ void ProgramPartitionAnalysis::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 {
     AU.addRequired<pdg::SVFGPDGBuilder>();
     AU.addRequired<llvm::LoopInfoWrapperPass>();
+    AU.addRequired<llvm::CallGraphWrapperPass>();
     AU.setPreservesAll();
 }
 
@@ -195,13 +227,15 @@ bool ProgramPartitionAnalysis::runOnModule(llvm::Module& M)
     const auto& annotations = annotationParser->getAllAnnotations();
 
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
-    m_partition.reset(new ProgramPartition(M, pdg, logger));
+    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
+    m_partition.reset(new ProgramPartition(M, pdg, CG, logger));
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
     m_partition->setLoopInfoGetter(loopGetter);
     m_partition->partition(annotations);
-    if (Opt) {
-        m_partition->optimize();
+    if (!Opt.empty()) {
+        const auto& optimizations = getOptimizations(Opt, logger);
+        m_partition->optimize(optimizations);
     }
     m_partition->dump(Outfile);
     if (Stats) {

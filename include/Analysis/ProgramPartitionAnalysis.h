@@ -13,6 +13,7 @@ namespace llvm {
 class Module;
 class Function;
 class LoopInfo;
+class CallGraph;
 }
 
 namespace vazgen {
@@ -36,7 +37,7 @@ public:
     using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
-    ProgramPartition(llvm::Module& M, PDGType pdg, Logger& logger);
+    ProgramPartition(llvm::Module& M, PDGType pdg, const llvm::CallGraph& callGraph, Logger& logger);
 
     ProgramPartition(const ProgramPartition& ) = delete;
     ProgramPartition(ProgramPartition&& ) = delete;
@@ -46,7 +47,7 @@ public:
 
 public:
     void partition(const Annotations& annotations);
-    void optimize();
+    void optimize(auto optimizations);
 
     void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
     const Partition& getSecurePartition() const
@@ -76,6 +77,7 @@ public:
 private:
     llvm::Module& m_module;
     PDGType m_pdg;
+    const llvm::CallGraph& m_callgraph;
     Logger& m_logger;
     LoopInfoGetter m_loopInfoGetter;
     Partition m_securePartition;

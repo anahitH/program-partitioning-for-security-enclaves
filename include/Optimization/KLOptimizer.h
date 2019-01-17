@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Optimization/PartitionOptimization.h"
+
 namespace pdg {
 class PDG;
 }
@@ -12,11 +14,11 @@ class CallGraph;
 class Partition;
 class Logger;
 
-class KLOptimizer
+class KLOptimizer : public PartitionOptimization
 {
 public:
     KLOptimizer(const CallGraph& callgraph,
-                const pdg::PDG& pdg,
+                PDGType pdg,
                 Partition& securePartition,
                 Partition& insecurePartition,
                 Logger& logger);
@@ -27,7 +29,7 @@ public:
     KLOptimizer& operator =(KLOptimizer&& ) = delete;
 
 public:
-    void run();
+    void run() override;
 
 private:
     class Impl;

@@ -50,6 +50,7 @@ KLOptimizer::Impl::Impl(const CallGraph& callgraph,
 
 void KLOptimizer::Impl::run()
 {
+    m_logger.info("Running Kernighan-Lin optimization");
     const auto& passCandidates = collectPassCandidates();
     KLOptimizationPass klOptPass(m_callGraph, m_securePartition, m_insecurePartition, m_logger);
 
@@ -59,10 +60,10 @@ void KLOptimizer::Impl::run()
     klOptPass.run();
     //}
 
-    m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), m_pdg));
-    m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), m_pdg));
-    m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), m_pdg));
-    m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), m_pdg));
+    //m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), m_pdg));
+    //m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), m_pdg));
+    //m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), m_pdg));
+    //m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), m_pdg));
 }
 
 KLOptimizationPass::Functions KLOptimizer::Impl::collectPassCandidates() const
@@ -77,11 +78,12 @@ KLOptimizationPass::Functions KLOptimizer::Impl::collectPassCandidates() const
 }
 
 KLOptimizer::KLOptimizer(const CallGraph& callgraph,
-                         const pdg::PDG& pdg,
+                         PDGType pdg,
                          Partition& securePartition,
                          Partition& insecurePartition,
                          Logger& logger)
-    : m_impl(new Impl(callgraph, pdg, securePartition, insecurePartition, logger))
+    : PartitionOptimization(securePartition, pdg, logger, PartitionOptimizer::KERNIGHAN_LIN)
+    , m_impl(new Impl(callgraph, *pdg, securePartition, insecurePartition, logger))
 {
 }
 

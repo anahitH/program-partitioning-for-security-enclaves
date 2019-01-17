@@ -3,6 +3,7 @@
 #include "Optimization/FunctionsMoveToPartitionOptimization.h"
 #include "Optimization/GlobalsMoveToPartitionOptimization.h"
 #include "Optimization/DuplicateFunctionsOptimization.h"
+#include "Optimization/KLOptimizer.h"
 #include "Utils/PartitionUtils.h"
 #include "Utils/Logger.h"
 
@@ -15,13 +16,14 @@ namespace vazgen {
 PartitionOptimizer::PartitionOptimizer(Partition& securePartition,
                                        Partition& insecurePartition,
                                        PDGType pdg,
+                                       const CallGraph& callgraph,
                                        Logger& logger)
     : m_securePartition(securePartition)
     , m_insecurePartition(insecurePartition)
     , m_pdg(pdg)
+    , m_callgraph(callgraph)
     , m_logger(logger)
 {
-    collectAvailableOptimizations();
 }
 
 void PartitionOptimizer::setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter)
@@ -29,25 +31,21 @@ void PartitionOptimizer::setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter)
     m_loopInfoGetter = loopInfoGetter;
 }
 
-void PartitionOptimizer::run()
+void PartitionOptimizer::run(const Optimizations& opts)
 {
-    for (auto opt : m_optimizations) {
-        if (llvm::dyn_cast<DuplicateFunctionsOptimization>(opt.get())) {
-            runDuplicateFunctionsOptimization(opt);
-        } else {
-            opt->run();
+    for (auto opt : opts) {
+        m_optimizations.push_back(getOptimizerFor(opt, m_securePartition, m_insecurePartition));
+        if (opt == DUPLICATE_FUNCTIONS) {
+            runDuplicateFunctionsOptimization(m_optimizations.back());
+            continue;
+        }
+        m_optimizations.back()->run();
+        if (opt == FUNCTIONS_MOVE_TO || opt == GLOBALS_MOVE_TO) {
+            m_optimizations.push_back(getOptimizerFor(opt, m_insecurePartition, m_securePartition));
+            m_optimizations.back()->run();
         }
     }
     apply();
-}
-
-void PartitionOptimizer::collectAvailableOptimizations()
-{
-    m_optimizations.push_back(getOptimizerFor(FUNCTIONS_MOVE_TO, m_securePartition, m_insecurePartition));
-    m_optimizations.push_back(getOptimizerFor(FUNCTIONS_MOVE_TO, m_insecurePartition, m_securePartition));
-    m_optimizations.push_back(getOptimizerFor(GLOBALS_MOVE_TO, m_securePartition, m_insecurePartition));
-    m_optimizations.push_back(getOptimizerFor(GLOBALS_MOVE_TO, m_insecurePartition, m_securePartition));
-    m_optimizations.push_back(getOptimizerFor(DUPLICATE_FUNCTIONS, m_securePartition, m_insecurePartition));
 }
 
 PartitionOptimizer::OptimizationTy
@@ -62,6 +60,8 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt,
         return std::make_shared<GlobalsMoveToPartitionOptimization>(partition, complementPart.getGlobals(), m_pdg, m_logger);
     case PartitionOptimizer::DUPLICATE_FUNCTIONS:
         return std::make_shared<DuplicateFunctionsOptimization>(partition, m_logger);
+    case KERNIGHAN_LIN:
+        return std::make_shared<KLOptimizer>(m_callgraph, m_pdg, m_securePartition, m_insecurePartition, m_logger);
     default:
         break;
     }
@@ -85,8 +85,8 @@ void PartitionOptimizer::runDuplicateFunctionsOptimization(OptimizationTy opt)
 void PartitionOptimizer::apply()
 {
     m_logger.info("Applying optimizations");
-    for (int i = 0; i < OPT_NUM; ++i) {
-        m_optimizations[i]->apply();
+    for (auto opt : m_optimizations) {
+        opt->apply();
     }
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
