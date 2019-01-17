@@ -1,15 +1,176 @@
 #include "Analysis/CallGraph.h"
 
+#include "Analysis/ProgramPartitionAnalysis.h"
 #include "Utils/Utils.h"
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/FunctionPDG.h"
+#include "PDG/Passes/PDGBuildPasses.h"
 
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Function.h"
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Type.h"
+#include "llvm/PassRegistry.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Analysis/DOTGraphTraitsPass.h"
 
 #include <limits>
+#include <sstream>
+
+namespace llvm {
+
+template <> struct GraphTraits<vazgen::Node*>
+{
+  using NodeRef = vazgen::Node*;
+  using DerefEdge = std::pointer_to_unary_function<vazgen::Edge, NodeRef>;
+  using ChildIteratorType = mapped_iterator<vazgen::Node::iterator, DerefEdge>;
+
+  static NodeRef getEntryNode(vazgen::Node *CGN) { return CGN; }
+
+  static ChildIteratorType child_begin(NodeRef N) {
+    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+  }
+
+  static ChildIteratorType child_end(NodeRef N) {
+    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+  }
+
+  static NodeRef edgeDereference(vazgen::Edge edge) {
+      return edge.getSink();
+  }
+
+};
+
+template <> struct GraphTraits<const vazgen::Node*>
+{
+  using NodeRef = const vazgen::Node*;
+  using DerefEdge = std::pointer_to_unary_function<vazgen::Edge, NodeRef>;
+  using ChildIteratorType = mapped_iterator<vazgen::Node::const_iterator, DerefEdge>;
+
+  static NodeRef getEntryNode(const vazgen::Node *CGN) { return CGN; }
+
+  static ChildIteratorType child_begin(NodeRef N) {
+    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+  }
+
+  static ChildIteratorType child_end(NodeRef N) {
+    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+  }
+  static NodeRef edgeDereference(const vazgen::Edge edge) {
+      return edge.getSink();
+  }
+
+};
+
+template <>
+struct GraphTraits<vazgen::CallGraph *> : public GraphTraits<vazgen::Node *> {
+  using PairTy = std::pair<Function *const, vazgen::CallGraph::NodeType>;
+
+  static NodeRef getEntryNode(vazgen::CallGraph *CGN) {
+      return CGN->begin()->second.get();
+  }
+
+  static vazgen::Node *CGGetValuePtr(const PairTy &P) {
+      return P.second.get();
+  }
+
+  // nodes_iterator/begin/end - Allow iteration over all nodes in the graph
+  using nodes_iterator =
+      mapped_iterator<vazgen::CallGraph::iterator, decltype(&CGGetValuePtr)>;
+
+  static nodes_iterator nodes_begin(vazgen::CallGraph *CG) {
+    return nodes_iterator(CG->begin(), &CGGetValuePtr);
+  }
+
+  static nodes_iterator nodes_end(vazgen::CallGraph *CG) {
+    return nodes_iterator(CG->end(), &CGGetValuePtr);
+  }
+};
+
+template <>
+struct GraphTraits<const vazgen::CallGraph *> : public GraphTraits<const vazgen::Node*> {
+  using PairTy = std::pair<Function *const, vazgen::CallGraph::NodeType>;
+
+  static NodeRef getEntryNode(const vazgen::CallGraph *CGN) {
+      return CGN->begin()->second.get();
+  }
+
+  static const vazgen::Node *CGGetValuePtr(const PairTy &P) {
+    return P.second.get();
+  }
+
+  // nodes_iterator/begin/end - Allow iteration over all nodes in the graph
+  using nodes_iterator =
+      mapped_iterator<vazgen::CallGraph::const_iterator, decltype(&CGGetValuePtr)>;
+
+  static nodes_iterator nodes_begin(const vazgen::CallGraph *CG) {
+    return nodes_iterator(CG->begin(), &CGGetValuePtr);
+  }
+
+  static nodes_iterator nodes_end(const vazgen::CallGraph *CG) {
+    return nodes_iterator(CG->end(), &CGGetValuePtr);
+  }
+};
+
+template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphTraits {
+    typedef GraphTraits<vazgen::CallGraph*>::NodeRef NodeRef;
+    typedef GraphTraits<vazgen::CallGraph*>::ChildIteratorType ChildIteratorType;
+
+  DOTGraphTraits(bool isSimple = false) : DefaultDOTGraphTraits(isSimple) {}
+
+  static std::string getGraphName(vazgen::CallGraph *Graph) { return "Call graph"; }
+
+  std::string getNodeLabel(NodeRef node, vazgen::CallGraph *Graph) {
+      std::stringstream label;
+      label << node->getFunction()->getName().str();
+      if (node->getWeight().hasFactor(vazgen::WeightFactor::SIZE)) {
+        label << " " << std::to_string(node->getWeight().getFactor(vazgen::WeightFactor::SIZE).getValue());
+      }
+      return label.str();
+  }
+
+  static std::string getNodeAttributes(NodeRef node, vazgen::CallGraph* graph)
+  {
+    if (node->getWeight().hasFactor(vazgen::WeightFactor::SENSITIVE)) {
+        return "color=green";
+    } else if (node->getFunction()->isDeclaration()) {
+        return "color=red";
+    }
+    return "color=black";
+  }
+
+  static std::string getEdgeAttributes(NodeRef node, ChildIteratorType edge_iter, vazgen::CallGraph* graph)
+  {
+      return "";
+  }
+
+  static std::string getEdgeSourceLabel(NodeRef node, ChildIteratorType edge_iter)
+  {
+    std::stringstream label;
+    auto edge = edge_iter.getCurrent();
+    const auto& edgeWeight = edge->getWeight();
+    if (edgeWeight.hasFactor(vazgen::WeightFactor::CALL_NUM)) {
+        int value = edgeWeight.getFactor(vazgen::WeightFactor::CALL_NUM).getValue();
+        if (value == std::numeric_limits<int>::max()) {
+            label << "loop";
+        } else {
+            label << std::to_string(value);
+        }
+    }
+    return label.str();
+  }
+
+};
+
+struct AnalysisCallGraphPassTraits {
+  static vazgen::CallGraph *getGraph(vazgen::CallGraphPass *P) {
+    return &P->getCallGraph();
+  }
+};
+
+} // end llvm namespace
 
 namespace vazgen {
 
@@ -191,6 +352,7 @@ void WeightAssigningHelper::assignNodeSizeWeights()
 
 void WeightAssigningHelper::assignEdgeWeights()
 {
+    // TODO: for each make sure to assign both to in edges and out edges
     assignCallNumWeights();
     assignArgWeights();
     assignRetValueWeights();
@@ -203,17 +365,40 @@ void WeightAssigningHelper::assignCallNumWeights()
     for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
         llvm::Function* F = it->first;
         auto functionCallDataPos = callSiteData.find(F);
-        if (functionCallDataPos != callSiteData.end()) {
+        if (functionCallDataPos == callSiteData.end()) {
             continue;
         }
         for (auto edge_it = it->second->inEdgesBegin();
              edge_it != it->second->inEdgesEnd();
              ++edge_it) {
-             llvm::Function* caller = edge_it->getSink()->getFunction();
+             llvm::Function* caller = edge_it->getSource()->getFunction();
              int calls = functionCallDataPos->second.find(caller)->second;
              Weight& edgeWeight = edge_it->getWeight();
              callNumFactor.setValue(calls);
              edgeWeight.addFactor(callNumFactor);
+        }
+    }
+
+    // This makes edge updating more complicated, plus edges are duplicated.
+    // See if can have one direction of connection, i.e. only outEdges
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        llvm::Function* caller = it->first;
+        for (auto edge_it = it->second->outEdgesBegin();
+                edge_it != it->second->outEdgesEnd();
+                ++edge_it) {
+            llvm::Function* F = edge_it->getSink()->getFunction();
+            auto functionCallDataPos = callSiteData.find(F);
+            if (functionCallDataPos == callSiteData.end()) {
+                continue;
+            }
+            auto callerPos = functionCallDataPos->second.find(caller);
+            if (callerPos == functionCallDataPos->second.end()) {
+                continue;
+            }
+            int calls = callerPos->second;
+            Weight& edgeWeight = edge_it->getWeight();
+            callNumFactor.setValue(calls);
+            edgeWeight.addFactor(callNumFactor);
         }
     }
 }
@@ -302,7 +487,9 @@ void CallGraph::create(const llvm::CallGraph& graph)
             continue;
         }
         Node* node = getOrAddNode(const_cast<llvm::Function*>(it->first));
-        addNodeConnections(it->second.get(), node);
+        for (auto conn_it = it->second->begin(); conn_it != it->second->end(); ++conn_it) {
+            addNodeConnections(conn_it->second, node);
+        }
     }
 }
 
@@ -321,9 +508,56 @@ void CallGraph::addNodeConnections(llvm::CallGraphNode* llvmNode, Node* sourceNo
     }
     Node* sinkNode = getOrAddNode(llvmNode->getFunction());
     Edge edge(sourceNode, sinkNode);
-    sourceNode->addOutEdge(edge);
-    sinkNode->addInEdge(edge);
+    if (sourceNode->addOutEdge(edge)) {
+        sinkNode->addInEdge(edge);
+    }
 }
+
+char CallGraphPass::ID = 0;
+
+void CallGraphPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
+{
+    AU.addRequired<pdg::SVFGPDGBuilder>();
+    AU.addRequired<llvm::CallGraphWrapperPass>();
+    AU.addPreserved<llvm::CallGraphWrapperPass>();
+    AU.addRequired<llvm::LoopInfoWrapperPass>();
+    AU.addRequired<ProgramPartitionAnalysis>();
+}
+
+bool CallGraphPass::runOnModule(llvm::Module& M)
+{
+    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
+    m_callgraph.reset(new CallGraph(CG));
+    auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
+    auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
+    const auto& loopGetter = [this] (llvm::Function* F)
+        {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
+
+    m_callgraph->assignWeights(partition->getSecurePartition(), partition->getInsecurePartition(),
+                               pdg.get(), loopGetter);
+    return false;
+}
+
+class CallGraphDotPrinter : public llvm::DOTGraphTraitsModulePrinter<CallGraphPass,
+                                                                     true,
+                                                                     CallGraph*,
+                                                                     llvm::AnalysisCallGraphPassTraits>
+{
+public:
+    static char ID;
+
+    CallGraphDotPrinter()
+        : DOTGraphTraitsModulePrinter<CallGraphPass, true, CallGraph *,
+                                      llvm::AnalysisCallGraphPassTraits>("callgraph", ID)
+    {
+        llvm::initializeCallGraphDOTPrinterPass(*llvm::PassRegistry::getPassRegistry());
+    }
+}; // class CallGraphDotPrinter
+
+
+char CallGraphDotPrinter::ID = 0;
+static llvm::RegisterPass<CallGraphPass> X("callgraph","Creates Call graph");
+static llvm::RegisterPass<CallGraphDotPrinter> Y("callgraph-dot","Prints Call graph");
 
 } //namespace vazgen
 

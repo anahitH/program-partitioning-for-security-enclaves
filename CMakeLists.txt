@@ -92,9 +92,9 @@ if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm-c/")
 endif ()
 
-target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_14)
+target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(program_partitioning PRIVATE -fno-rtti -g)
 
-target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_14)
+target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 

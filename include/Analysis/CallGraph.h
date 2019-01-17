@@ -2,6 +2,8 @@
 
 #include "Analysis/Partition.h"
 
+#include "llvm/Pass.h"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -170,6 +172,8 @@ public:
     using Edges = std::vector<Edge>;
     using iterator = Edges::iterator;
     using const_iterator = Edges::const_iterator;
+    using children_iterator = std::unordered_set<Node*>::iterator;
+    using const_children_iterator = std::unordered_set<Node*>::const_iterator;
 
 public:
     Node(llvm::Function* F)
@@ -203,15 +207,22 @@ public:
         m_inEdges.push_back(edge);
     }
 
-    void addOutEdge(Edge edge)
+    bool addOutEdge(Edge edge)
     {
-        m_outEdges.push_back(edge);
+        auto [iter, inserted] = m_children.insert(edge.getSink());
+        if (inserted) {
+            m_outEdges.push_back(edge);
+        }
+        return inserted;
     }
 
     void connectTo(Node* node)
     {
         Edge edge(this, node);
-        addOutEdge(edge);
+        auto [iter, inserted] = m_children.insert(node);
+        if (inserted) {
+            m_outEdges.push_back(edge);
+        }
     }
 
     Weight& getWeight()
@@ -265,10 +276,31 @@ public:
         return m_outEdges.end();
     }
 
+    children_iterator children_begin()
+    {
+        return m_children.begin();
+    }
+
+    children_iterator children_end()
+    {
+        return m_children.end();
+    }
+
+    const_children_iterator children_begin() const
+    {
+        return m_children.begin();
+    }
+
+    const_children_iterator children_end() const
+    {
+        return m_children.end();
+    }
+
 private:
     llvm::Function* m_F;
     Edges m_inEdges;
     Edges m_outEdges;
+    std::unordered_set<Node*> m_children;
     Weight m_weight;
 }; //class Node
 
@@ -328,6 +360,33 @@ private:
 private:
     FunctionNodes m_functionNodes;
 }; // class CallGraph
+
+class CallGraphPass : public llvm::ModulePass
+{
+public:
+    static char ID;
+
+    CallGraphPass()
+        : llvm::ModulePass(ID)
+    {
+    }
+
+    void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
+    bool runOnModule(llvm::Module& M) override;
+
+    const CallGraph& getCallGraph() const
+    {
+        return *m_callgraph;
+    }
+
+    CallGraph& getCallGraph()
+    {
+        return *m_callgraph;
+    }
+
+private:
+    std::unique_ptr<CallGraph> m_callgraph;
+}; // class CallGraphPass
 
 } // namespace vazgen
 

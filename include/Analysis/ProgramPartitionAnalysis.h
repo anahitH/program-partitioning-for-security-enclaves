@@ -104,6 +104,11 @@ public:
         return *m_partition.get();
     }
 
+    ProgramPartition& getProgramPartition()
+    {
+        return *m_partition.get();
+    }
+
 private:
     std::unique_ptr<ProgramPartition> m_partition;
 }; // class ProgramPartitionAnalysis

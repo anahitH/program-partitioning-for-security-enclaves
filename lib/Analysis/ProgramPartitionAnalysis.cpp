@@ -147,6 +147,7 @@ void ProgramPartition::partition(const Annotations& annotations)
 void ProgramPartition::optimize(auto optimizations)
 {
     CallGraph callgraph(m_callgraph);
+    callgraph.assignWeights(m_securePartition, m_insecurePartition, m_pdg.get(), m_loopInfoGetter);
     PartitionOptimizer optimizer(m_securePartition, m_insecurePartition, m_pdg, callgraph, m_logger);
     optimizer.setLoopInfoGetter(m_loopInfoGetter);
     optimizer.run(optimizations);
