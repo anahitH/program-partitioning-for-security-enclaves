@@ -40,6 +40,8 @@ add_library(program_partitioning MODULE
         lib/Optimization/GlobalsMoveToPartitionOptimization.cpp
         lib/Optimization/FunctionsMoveToPartitionOptimization.cpp
         lib/Optimization/DuplicateFunctionsOptimization.cpp
+        lib/Optimization/KLOptimizer.cpp
+        lib/Optimization/KLOptimizationPass.cpp
         lib/Transforms/ProgramSlicer.cpp
 )
 
