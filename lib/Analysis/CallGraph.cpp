@@ -153,7 +153,7 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
     const auto& edgeWeight = edge->getWeight();
     if (edgeWeight.hasFactor(vazgen::WeightFactor::CALL_NUM)) {
         int value = edgeWeight.getFactor(vazgen::WeightFactor::CALL_NUM).getValue();
-        if (value == std::numeric_limits<int>::max()) {
+        if (value == 1000000 /*std::numeric_limits<int>::max()*/) {
             label << "loop";
         } else {
             label << std::to_string(value);
@@ -445,8 +445,8 @@ WeightAssigningHelper::collectFunctionCallSiteData()
             llvm::Function* caller = callSite.getCaller();
             llvm::LoopInfo* loop = m_loopInfoGetter(caller);
             if (loop && loop->getLoopFor(callSite.getParent())) {
-                fCallSiteData[caller] = std::numeric_limits<int>::max();
-            } else if (fCallSiteData[caller] != std::numeric_limits<int>::max()) {
+                fCallSiteData[caller] = 1000000; //std::numeric_limits<int>::max();
+            } else if (fCallSiteData[caller] != 1000000) { //std::numeric_limits<int>::max()) {
                 ++fCallSiteData[caller];
             }
         }

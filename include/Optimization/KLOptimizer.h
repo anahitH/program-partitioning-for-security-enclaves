@@ -31,6 +31,11 @@ public:
 public:
     void run() override;
 
+    static bool classof(const PartitionOptimization* opt)
+    {
+        return opt->getOptimizationType() == PartitionOptimizer::KERNIGHAN_LIN;
+    }
+
 private:
     class Impl;
     std::shared_ptr<Impl> m_impl;

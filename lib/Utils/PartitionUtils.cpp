@@ -7,6 +7,8 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/CallSite.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace vazgen {
 
@@ -16,6 +18,12 @@ PartitionUtils::computeInInterface(const FunctionSet& functions,
 {
     FunctionSet inInterface;
     for (const auto& F : functions) {
+        if (!F) {
+            continue;
+        }
+        if (!pdg.hasFunctionPDG(F)) {
+            continue;
+        }
         assert(pdg.hasFunctionPDG(F));
         const auto& Fpdg = pdg.getFunctionPDG(F);
         const auto& callSites = Fpdg->getCallSites();
@@ -36,6 +44,12 @@ PartitionUtils::computeOutInterface(const FunctionSet& functions,
 {
     FunctionSet outInterface;
     for (const auto& F : functions) {
+        if (!F) {
+            continue;
+        }
+        if (!pdg.hasFunctionPDG(F)) {
+            continue;
+        }
         assert(pdg.hasFunctionPDG(F));
         const auto& Fpdg = pdg.getFunctionPDG(F);
         // TODO: think about having call site information embedded in PDG directly.

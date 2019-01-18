@@ -70,7 +70,7 @@ KLOptimizationPass::Functions KLOptimizer::Impl::collectPassCandidates() const
 {
     KLOptimizationPass::Functions passCandidates;
     for (auto F : m_insecurePartition.getPartition()) {
-        if (!F->isDeclaration() && !F->isIntrinsic()) {
+        if (!F->isDeclaration() && !F->isIntrinsic() && F->getName() != "main") {
             passCandidates.push_back(F);
         }
     }

@@ -38,6 +38,7 @@ public:
     explicit WeightFactor(Factor factor = UNKNOWN)
         : m_factor(factor)
         , m_coeff(1.0)
+        , m_value(0)
     {
     }
 
@@ -119,7 +120,9 @@ public:
     {
         double weight = 0.0;
         for (const auto& factor : m_factors) {
-            weight += factor.getWeight();
+            if (factor.isDefined()) {
+                weight += factor.getWeight();
+            }
         }
         return weight;
     }
