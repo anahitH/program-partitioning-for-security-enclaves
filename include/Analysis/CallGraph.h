@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Analysis/Partition.h"
+#include "Analysis/Numbers.h"
 
 #include "llvm/Pass.h"
 
@@ -58,31 +59,31 @@ public:
         m_value = value;
     }
 
-    void setCoef(double coef)
+    void setCoef(Double coef)
     {
         m_coeff = coef;
     }
 
-    int getValue() const
+    Integer getValue() const
     {
         return m_value;
     }
 
-    double getCoef() const
+    Double getCoef() const
     {
         return m_coeff;
     }
 
-    double getWeight() const
+    Double getWeight() const
     {
-        return m_value * m_coeff;
+        return (double)m_value * m_coeff;
     }
 
 private:
     Factor m_factor;
     std::string m_name;
-    int m_value;
-    double m_coeff;
+    Integer m_value;
+    Double m_coeff;
 }; // class WeightFactor
 
 class Weight
@@ -116,9 +117,9 @@ public:
         return const_cast<Weight*>(this)->getFactor(factor);
     }
 
-    double getValue() const
+    Double getValue() const
     {
-        double weight = 0.0;
+        Double weight = 0.0;
         for (const auto& factor : m_factors) {
             if (factor.isDefined()) {
                 weight += factor.getWeight();

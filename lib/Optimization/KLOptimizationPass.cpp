@@ -28,7 +28,7 @@ private:
     void computeCandidateEdgeCosts();
     void computeMoveGains(llvm::Function* movedF);
     void computeInitialMoveGains();
-    std::pair<int, int> getFunctionCosts(Node* node);
+    std::pair<Double, Double> getFunctionCosts(Node* node);
     void moveFunction(int idx);
     void applyOptimization();
 
@@ -38,11 +38,11 @@ private:
     Partition& m_insecurePartition;
     Logger& m_logger;
     Functions m_candidates;
-    std::vector<int> m_moveGains;
+    std::vector<Double> m_moveGains;
     // for each function the gain when it's moved
-    std::vector<std::pair<llvm::Function*, int>> m_functionMoveGains;
+    std::vector<std::pair<llvm::Function*, Double>> m_functionMoveGains;
     // For each function its' edge cost with the rest of functions
-    std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, int>> m_functionEdgeCosts;
+    std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, Double>> m_functionEdgeCosts;
 }; // class KLOptimizationPass::Impl
 
 KLOptimizationPass::Impl::Impl(const CallGraph& callgraph,
@@ -84,20 +84,12 @@ void KLOptimizationPass::Impl::computeCandidateEdgeCosts()
         auto& edgeCosts = m_functionEdgeCosts[F];
         auto* Fnode = m_callgraph.getFunctionNode(F);
         for (auto it = Fnode->inEdgesBegin(); it != Fnode->inEdgesEnd(); ++it) {
-            int weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-            if (weight == std::numeric_limits<int>::max()) {
-                edgeCosts[it->getSource()->getFunction()] = weight;
-            } else {
-                edgeCosts[it->getSource()->getFunction()] += weight;
-            }
+            auto weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getWeight();
+            edgeCosts[it->getSource()->getFunction()] += weight;
         }
         for (auto it = Fnode->outEdgesBegin(); it != Fnode->outEdgesEnd(); ++it) {
-            int weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-            if (weight == std::numeric_limits<int>::max()) {
-                edgeCosts[it->getSink()->getFunction()] = weight;
-            } else {
-                edgeCosts[it->getSink()->getFunction()] += weight;
-            }
+            auto weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getWeight();
+            edgeCosts[it->getSink()->getFunction()] += weight;
         }
     }
 }
@@ -111,10 +103,8 @@ void KLOptimizationPass::Impl::computeMoveGains(llvm::Function* movedF)
         return;
     }
     for (int i = 0; i < m_candidates.size(); ++i) {
-        int edgeCost = m_functionEdgeCosts[m_candidates[i]][movedF];
-        if (m_moveGains[i] != std::numeric_limits<int>::max() || edgeCost <= 0) {
-            m_moveGains[i] += 2 * m_functionEdgeCosts[m_candidates[i]][movedF];
-        }
+        auto edgeCost = m_functionEdgeCosts[m_candidates[i]][movedF];
+        m_moveGains[i] += 2 * m_functionEdgeCosts[m_candidates[i]][movedF];
     }
 }
 
@@ -125,66 +115,30 @@ void KLOptimizationPass::Impl::computeInitialMoveGains()
         assert(m_callgraph.hasFunctionNode(F));
         auto* Fnode = m_callgraph.getFunctionNode(F);
         const auto& costs = getFunctionCosts(Fnode);
-        //if (costs.first == std::numeric_limits<int>::max()
-        //        && costs.second == std::numeric_limits<int>::max()) {
-        //    m_moveGains[i] = 0;
-        //}
-        //if (costs.first == std::numeric_limits<int>::max()) {
-        //    m_moveGains[i] = std::numeric_limits<int>::min();
-        //} else {
         m_moveGains[i] = costs.second - costs.first;
-        //}
     }
 }
 
-std::pair<int, int> KLOptimizationPass::Impl::getFunctionCosts(Node* node)
+std::pair<Double, Double> KLOptimizationPass::Impl::getFunctionCosts(Node* node)
 {
-    int internalCost = 0;
-    int externalCost = 0;
+    Double internalCost = 0;
+    Double externalCost = 0;
     for (auto it = node->inEdgesBegin(); it != node->inEdgesEnd(); ++it) {
         llvm::Function* source = it->getSource()->getFunction();
-        int weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
+        auto weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getWeight();
         if (m_insecurePartition.contains(source)) {
-            if (internalCost == std::numeric_limits<int>::max()) {
-                continue;
-            }
-            if (weight == std::numeric_limits<int>::max()) {
-                internalCost = weight;
-            } else {
-                internalCost += weight;
-            }
+            internalCost += weight;
         } else {
-            if (externalCost == std::numeric_limits<int>::max()) {
-                continue;
-            }
-            if (weight == std::numeric_limits<int>::max()) {
-                externalCost = weight;
-            } else {
-                externalCost += weight;
-            }
+            externalCost += weight;
         }
     }
     for (auto it = node->outEdgesBegin(); it != node->outEdgesEnd(); ++it) {
         llvm::Function* sink = it->getSink()->getFunction();
-        int weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
+        auto weight = it->getWeight().getFactor(WeightFactor::CALL_NUM).getWeight();
         if (m_insecurePartition.contains(sink)) {
-            if (internalCost == std::numeric_limits<int>::max()) {
-                continue;
-            }
-            if (weight == std::numeric_limits<int>::max()) {
-                internalCost = weight;
-            } else {
-                internalCost += weight;
-            }
+            internalCost += weight;
         } else {
-            if (externalCost == std::numeric_limits<int>::max()) {
-                continue;
-            }
-            if (weight == std::numeric_limits<int>::max()) {
-                externalCost = weight;
-            } else {
-                externalCost += weight;
-            }
+            externalCost += weight;
         }
     }
     return std::make_pair(internalCost, externalCost);
@@ -193,7 +147,7 @@ std::pair<int, int> KLOptimizationPass::Impl::getFunctionCosts(Node* node)
 void KLOptimizationPass::Impl::moveFunction(int idx)
 {
     llvm::Function* F = m_candidates[idx];
-    int gain = m_moveGains[idx];
+    auto gain = m_moveGains[idx];
     m_functionMoveGains.push_back(std::make_pair(F, gain));
     m_candidates.erase(m_candidates.begin() + idx);
     m_moveGains.erase(m_moveGains.begin() + idx);
@@ -203,16 +157,11 @@ void KLOptimizationPass::Impl::moveFunction(int idx)
 
 void KLOptimizationPass::Impl::applyOptimization()
 {
-    int maxGain = 0;
-    int intmdGain = 0;
+    Double maxGain = 0;
+    Double intmdGain = 0;
     int idx = -1;
     for (int i = 0; i < m_functionMoveGains.size(); ++i) {
-        if (m_functionMoveGains[i].second == std::numeric_limits<int>::max()
-                || m_functionMoveGains[i].second == std::numeric_limits<int>::min()) {
-            intmdGain = m_functionMoveGains[i].second;
-        } else {
-            intmdGain += m_functionMoveGains[i].second;
-        }
+        intmdGain += m_functionMoveGains[i].second;
         if (maxGain <= intmdGain) {
             maxGain = intmdGain;
             idx = i;

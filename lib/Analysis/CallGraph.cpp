@@ -16,7 +16,6 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Analysis/DOTGraphTraitsPass.h"
 
-#include <limits>
 #include <sstream>
 
 namespace llvm {
@@ -152,11 +151,11 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
     auto edge = edge_iter.getCurrent();
     const auto& edgeWeight = edge->getWeight();
     if (edgeWeight.hasFactor(vazgen::WeightFactor::CALL_NUM)) {
-        int value = edgeWeight.getFactor(vazgen::WeightFactor::CALL_NUM).getValue();
-        if (value == 1000000 /*std::numeric_limits<int>::max()*/) {
+        auto value = edgeWeight.getFactor(vazgen::WeightFactor::CALL_NUM).getValue();
+        if (value.isPosInfinity()) {
             label << "loop";
         } else {
-            label << std::to_string(value);
+            label << std::to_string((int)value);
         }
     }
     return label.str();
@@ -272,7 +271,7 @@ class WeightAssigningHelper
 {
 public:
     using LoopInfoGetter = CallGraph::LoopInfoGetter;
-    using CallSiteData = std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, int>>;
+    using CallSiteData = std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, Integer>>;
 
 public:
     WeightAssigningHelper(CallGraph& callGraph,
@@ -445,8 +444,8 @@ WeightAssigningHelper::collectFunctionCallSiteData()
             llvm::Function* caller = callSite.getCaller();
             llvm::LoopInfo* loop = m_loopInfoGetter(caller);
             if (loop && loop->getLoopFor(callSite.getParent())) {
-                fCallSiteData[caller] = 1000000; //std::numeric_limits<int>::max();
-            } else if (fCallSiteData[caller] != 1000000) { //std::numeric_limits<int>::max()) {
+                fCallSiteData[caller] = Integer::POS_INFINITY;
+            } else if (!fCallSiteData[caller].isPosInfinity()) {
                 ++fCallSiteData[caller];
             }
         }
@@ -455,6 +454,7 @@ WeightAssigningHelper::collectFunctionCallSiteData()
 }
 
 /**********************************************************/
+
 CallGraph::CallGraph(const llvm::CallGraph& graph)
 {
     create(graph);
