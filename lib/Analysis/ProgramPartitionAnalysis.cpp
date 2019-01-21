@@ -90,6 +90,15 @@ void ProgramPartition::PartitionStatistics::report()
     double partition_portion = (m_partition.getPartition().size() * 100.0) / m_module.size();
     write_entry({"program_partition", "partition%"}, partition_portion);
 
+    std::vector<std::string> staticAnalysisFs;
+    staticAnalysisFs.reserve(m_partition.getRelatedFunctions().size());
+    std::transform(m_partition.getRelatedFunctions().begin(), m_partition.getRelatedFunctions().end(), std::back_inserter(staticAnalysisFs),
+            [] (const auto& pair) { return pair.first->getName().str() + std::to_string(pair.second);});
+    write_entry({"program_partition", "security_related_functions"}, staticAnalysisFs);
+    write_entry({"program_partition", "security_related_functions_size"}, (unsigned) staticAnalysisFs.size());
+    double security_related_portion = (m_partition.getRelatedFunctions().size() * 100.0) / m_module.size();
+    write_entry({"program_partition", "security_related%"}, security_related_portion);
+
     std::vector<std::string> inInterface;
     inInterface.reserve(m_partition.getInInterface().size());
     std::transform(m_partition.getInInterface().begin(), m_partition.getInInterface().end(), std::back_inserter(inInterface),
@@ -158,8 +167,13 @@ void ProgramPartition::dump(const std::string& outFile) const
     const auto& partitionFs = m_securePartition.getPartition();
     if (!outFile.empty()) {
         std::ofstream ostr(outFile);
+        ostr << "Partition functions-----------\n";
         for (auto& partitionF : partitionFs) {
             ostr << partitionF->getName().str() << "\n";
+        }
+        ostr << "Static analyser output--------\n";
+        for (auto& [function, level] : m_securePartition.getRelatedFunctions()) {
+            ostr << function->getName().str() << " level " << level << "\n";
         }
         ostr.close();
         return;

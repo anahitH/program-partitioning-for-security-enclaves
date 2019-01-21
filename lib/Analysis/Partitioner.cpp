@@ -82,6 +82,9 @@ protected:
     virtual bool canPartition() const = 0;
     virtual void traverse() = 0;
 
+    int getFunctionLevel(pdg::PDGLLVMNode* node);
+    int getFunctionLevel(llvm::Function* F);
+
 protected:
     llvm::Module& m_module;
     const Annotation& m_annotation;
@@ -199,6 +202,47 @@ Partition PartitionForAnnotation::partition()
     return m_partition;
 }
 
+int PartitionForAnnotation::getFunctionLevel(pdg::PDGLLVMNode* node)
+{
+    if (!node) {
+        return -1;
+    }
+    if (!node->getNodeValue()) {
+        return -1;
+    }
+    llvm::Function* F = nullptr;
+
+    if (auto* instr = llvm::dyn_cast<llvm::Instruction>(node->getNodeValue())) {
+        F = instr->getFunction();
+    } else if (auto* block = llvm::dyn_cast<llvm::BasicBlock>(node->getNodeValue())) {
+        F = block->getParent();
+    }
+    if (!F) {
+        return -1;
+    }
+    if (m_partition.contains(F)) {
+        return 0;
+    }
+    int level = m_partition.getFunctionRelationLevel(F);
+    if (level < 0) {
+        m_logger.error("Function " + F->getName().str() + " is not added to partition related functions");
+        return level;
+    }
+    return level;
+}
+
+int PartitionForAnnotation::getFunctionLevel(llvm::Function* F)
+{
+    if (m_partition.contains(F)) {
+        return 0;
+    }
+    int level = m_partition.getFunctionRelationLevel(F);
+    if (level < 0) {
+        m_logger.error("Function " + F->getName().str() + " is not added to partition related functions");
+    }
+    return level;
+}
+
 bool PartitionForArguments::canPartition() const
 {
     if (!m_annotation.hasAnnotatedArguments()) {
@@ -253,8 +297,11 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
     std::list<pdg::FunctionPDG::PDGNodeTy> forwardWorkingList;
     std::unordered_set<llvm::Value*> processed_values;
     forwardWorkingList.push_back(formalArgNode);
+    pdg::PDGNode* prevNode = nullptr;
+    pdg::PDGNode* currentNode = nullptr;
     while (!forwardWorkingList.empty()) {
-        auto* currentNode = forwardWorkingList.back().get();
+        prevNode = currentNode;
+        currentNode = forwardWorkingList.back().get();
         forwardWorkingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
         if (!llvmNode) {
@@ -264,16 +311,26 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
         if (!nodeValue) {
             continue;
         }
+        //llvm::dbgs() << "   Node value " << *nodeValue << "\n";
         // TODO: check this
         if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
             if (!processed_values.insert(nodeValue).second) {
                 continue;
             }
         }
-        //llvm::dbgs() << "   Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            if (!FNode->getFunction()->isDeclaration()) {
-                m_partition.addToPartition(FNode->getFunction());
+            auto* F = FNode->getFunction(); 
+            if (!F->isDeclaration()) {
+                if (F == m_annotation.getFunction()) {
+                    continue;
+                }
+                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
+                if (level >= 0) {
+                    m_partition.addRelatedFunction(F, level + 1);
+                } else {
+                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
+                }
+
             }
             // Stop traversal here
             // TODO: should we stop here or continue for other function calls?
@@ -301,8 +358,11 @@ template <typename Container>
 void PartitionForArguments::traverseBackward(Container& workingList)
 {
     std::unordered_set<llvm::Value*> processed_values;
+    pdg::PDGNode* prevNode = nullptr;
+    pdg::PDGNode* currentNode = nullptr;
     while (!workingList.empty()) {
-        auto* currentNode = workingList.back().get();
+        prevNode = currentNode;
+        currentNode = workingList.back().get();
         workingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
         if (!llvmNode) {
@@ -320,8 +380,18 @@ void PartitionForArguments::traverseBackward(Container& workingList)
         }
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            if (!FNode->getFunction()->isDeclaration()) {
-                m_partition.addToPartition(FNode->getFunction());
+            auto* F = FNode->getFunction(); 
+            if (F == m_annotation.getFunction()) {
+                continue;
+            }
+            if (!F->isDeclaration()) {
+                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
+                if (level >= 0) {
+                    m_partition.addRelatedFunction(F, level + 1);
+                } else {
+                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
+                }
+
             }
             // Stop traversal here
             continue;
@@ -352,7 +422,13 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
                 continue;
             }
             if (!F->isDeclaration()) {
-                m_partition.addToPartition(F);
+                int level = getFunctionLevel(actualArgNode.getCallSite().getCaller());
+                if (level >= 0) {
+                    m_partition.addRelatedFunction(F, level + 1);
+                } else {
+                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
+                }
+
             }
             forwardWorkingList.push_front(destNode);
         }
@@ -386,8 +462,11 @@ void PartitionForReturnValue::traverse()
     collectFunctionReturnNodes(F, *Fpdg, workingList);
     std::unordered_set<llvm::Value*> processed_values;
 
+    pdg::PDGNode* prevNode = nullptr;
+    pdg::PDGNode* currentNode = nullptr;
     while (!workingList.empty()) {
-        auto* currentNode = workingList.back().get();
+        prevNode = currentNode;
+        currentNode = workingList.back().get();
         workingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
         if (!llvmNode) {
@@ -402,10 +481,18 @@ void PartitionForReturnValue::traverse()
         }
         //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
-            if (!FNode->getFunction()->isDeclaration()) {
-                m_partition.addToPartition(FNode->getFunction());
+            llvm::Function* F = FNode->getFunction();
+            if (F == m_annotation.getFunction()) {
+                continue;
             }
-            // Stop traversal here
+            if (!F->isDeclaration()) {
+                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
+                if (level >= 0) {
+                    m_partition.addRelatedFunction(F, level + 1);
+                } else {
+                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
+                }
+            }
             continue;
         }
         for (auto in_it = currentNode->inEdgesBegin();

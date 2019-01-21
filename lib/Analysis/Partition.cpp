@@ -61,6 +61,7 @@ void Partition::addToPartition(const Partition& partition)
     m_inInterface.insert(partition.m_inInterface.begin(), partition.m_inInterface.end());
     m_outInterface.insert(partition.m_outInterface.begin(), partition.m_outInterface.end());
     m_partitionGlobals.insert(partition.m_partitionGlobals.begin(), partition.m_partitionGlobals.end());
+    addRelatedFunctions(partition);
 }
 
 void Partition::addRelatedFunction(llvm::Function* F, int level)
@@ -98,6 +99,15 @@ const std::unordered_map<llvm::Function*, int> Partition::getRelatedFunctions() 
     return m_relatedFunctions;
 }
 
+int Partition::getFunctionRelationLevel(llvm::Function* F) const
+{
+    auto pos = m_relatedFunctions.find(F);
+    if (pos == m_relatedFunctions.end()) {
+        return -1;
+    }
+    return pos->second;
+}
+
 bool Partition::contains(llvm::Function* F) const
 {
     return m_partition.find(F) != m_partition.end();
@@ -106,6 +116,17 @@ bool Partition::contains(llvm::Function* F) const
 bool Partition::references(llvm::GlobalVariable* global) const
 {
     return m_partitionGlobals.find(global) != m_partitionGlobals.end();
+}
+
+void Partition::addRelatedFunctions(const Partition& partition)
+{
+    const auto& relatedFunctions = partition.getRelatedFunctions();
+    for (const auto& [function, level] : relatedFunctions) {
+        auto [pair, inserted] = m_relatedFunctions.insert(std::make_pair(function, level));
+        if (!inserted) {
+            pair->second = std::min(pair->second, level);
+        }
+    }
 }
 
 } // namespace vazgen

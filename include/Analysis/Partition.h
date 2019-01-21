@@ -42,9 +42,13 @@ public:
     const FunctionSet& getOutInterface() const;
     const GlobalsSet& getGlobals() const;
     const std::unordered_map<llvm::Function*, int> getRelatedFunctions() const;
+    int getFunctionRelationLevel(llvm::Function* F) const;
 
     bool contains(llvm::Function* F) const;
     bool references(llvm::GlobalVariable* global) const;
+
+private:
+    void addRelatedFunctions(const Partition& partition);
 
 private:
     std::unordered_map<llvm::Function*, int> m_relatedFunctions;
