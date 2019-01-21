@@ -36,6 +36,7 @@ public:
     void addRelatedFunction(llvm::Function* F, int level);
 
     void removeFromPartition(llvm::Function* F);
+    void clearRelatedFunctions();
 
     const FunctionSet& getPartition() const;
     const FunctionSet& getInInterface() const;

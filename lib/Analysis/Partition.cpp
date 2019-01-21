@@ -74,6 +74,11 @@ void Partition::removeFromPartition(llvm::Function* F)
     m_partition.erase(F);
 }
 
+void Partition::clearRelatedFunctions()
+{
+    m_relatedFunctions.clear();
+}
+
 const Partition::FunctionSet& Partition::getPartition() const
 {
     return m_partition;

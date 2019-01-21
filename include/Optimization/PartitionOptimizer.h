@@ -30,6 +30,7 @@ public:
         GLOBALS_MOVE_TO,
         DUPLICATE_FUNCTIONS,
         KERNIGHAN_LIN,
+        STATIC_ANALYSIS,
         OPT_NUM
     };
 

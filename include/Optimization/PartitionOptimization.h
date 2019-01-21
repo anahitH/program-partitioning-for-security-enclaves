@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Analysis/Partition.h"
-
 #include "Optimization/PartitionOptimizer.h"
 
 #include <memory>
@@ -35,7 +34,6 @@ public:
 
 public:
     virtual void run() = 0;
-
     virtual void apply()
     {
     }

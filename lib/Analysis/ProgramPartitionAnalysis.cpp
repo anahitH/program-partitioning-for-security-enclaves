@@ -35,15 +35,17 @@ namespace {
 auto getOptimizations(const std::string& optName, Logger& logger)
 {
     PartitionOptimizer::Optimizations opts;
-    if (optName == "local") {
+    if (optName == "static-analysis") {
+        opts.push_back(PartitionOptimizer::STATIC_ANALYSIS);
+    } else if (optName == "local") {
         opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
         opts.push_back(PartitionOptimizer::GLOBALS_MOVE_TO);
         opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
-    } else if (optName == "function_move") {
+    } else if (optName == "function-move") {
         opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
-    } else if (optName == "global_move") {
+    } else if (optName == "global-move") {
         opts.push_back(PartitionOptimizer::GLOBALS_MOVE_TO);
-    } else if (optName == "function_duplicate") {
+    } else if (optName == "function-duplicate") {
         opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
     } else if (optName == "kl") {
         opts.push_back(PartitionOptimizer::KERNIGHAN_LIN);
