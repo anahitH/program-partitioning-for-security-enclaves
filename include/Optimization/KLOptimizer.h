@@ -11,7 +11,6 @@ class PDG;
 namespace vazgen {
 
 class CallGraph;
-class Partition;
 class Logger;
 
 class KLOptimizer : public PartitionOptimization

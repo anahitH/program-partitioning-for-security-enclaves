@@ -49,6 +49,8 @@ auto getOptimizations(const std::string& optName, Logger& logger)
         opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
     } else if (optName == "kl") {
         opts.push_back(PartitionOptimizer::KERNIGHAN_LIN);
+    } else if (optName == "ilp") {
+        opts.push_back(PartitionOptimizer::ILP);
     } else {
         logger.error("No optimization with name " + optName);
     }

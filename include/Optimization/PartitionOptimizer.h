@@ -31,6 +31,7 @@ public:
         DUPLICATE_FUNCTIONS,
         KERNIGHAN_LIN,
         STATIC_ANALYSIS,
+        ILP,
         OPT_NUM
     };
 

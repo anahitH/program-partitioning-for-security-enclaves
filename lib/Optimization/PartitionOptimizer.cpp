@@ -5,6 +5,7 @@
 #include "Optimization/DuplicateFunctionsOptimization.h"
 #include "Optimization/KLOptimizer.h"
 #include "Optimization/StaticAnalysisOptimization.h"
+#include "Optimization/ILPOptimization.h"
 #include "Utils/PartitionUtils.h"
 #include "Utils/Logger.h"
 
@@ -65,6 +66,8 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt,
         return std::make_shared<KLOptimizer>(m_callgraph, m_pdg, m_securePartition, m_insecurePartition, m_logger);
     case STATIC_ANALYSIS:
         return std::make_shared<StaticAnalysisOptimization>(m_securePartition, m_logger);
+    case ILP:
+        return std::make_shared<ILPOptimization>(m_callgraph, m_securePartition, m_logger);
     default:
         break;
     }

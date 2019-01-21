@@ -38,3 +38,6 @@ lib/.*.swp
 
 # Build files
 build/
+test/partitioner
+test/liveness
+test/slicer
