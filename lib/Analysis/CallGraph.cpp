@@ -125,7 +125,15 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
       std::stringstream label;
       label << node->getFunction()->getName().str();
       if (node->getWeight().hasFactor(vazgen::WeightFactor::SIZE)) {
-        label << " " << std::to_string(node->getWeight().getFactor(vazgen::WeightFactor::SIZE).getValue());
+        label << " size " << std::to_string(node->getWeight().getFactor(vazgen::WeightFactor::SIZE).getValue());
+      }
+      if (node->getWeight().hasFactor(vazgen::WeightFactor::SENSITIVE_RELATED)) {
+        auto value = node->getWeight().getFactor(vazgen::WeightFactor::SENSITIVE_RELATED).getValue();
+        if (value.isPosInfinity()) {
+            label << " sensitive related level infinity";
+        } else {
+            label << " sensitive related level " << std::to_string(value);
+        }
       }
       return label.str();
   }
@@ -250,6 +258,8 @@ std::string getNodeFactorName(WeightFactor::Factor fact)
     switch (fact) {
     case WeightFactor::SENSITIVE:
         return "sensitive";
+    case WeightFactor::SENSITIVE_RELATED:
+        return "sensitive_related";
     case WeightFactor::SIZE:
         return "size";
     case WeightFactor::CALL_NUM:
@@ -285,6 +295,7 @@ public:
 private:
     void assignNodeWeights();
     void assignSensitiveNodeWeights();
+    void assignSensitiveRelatedNodeWeights();
     void assignNodeSizeWeights();
     void assignEdgeWeights();
     void assignCallNumWeights();
@@ -322,6 +333,7 @@ void WeightAssigningHelper::assignWeights()
 void WeightAssigningHelper::assignNodeWeights()
 {
     assignSensitiveNodeWeights();
+    assignSensitiveRelatedNodeWeights();
     assignNodeSizeWeights();
 }
 
@@ -331,6 +343,18 @@ void WeightAssigningHelper::assignSensitiveNodeWeights()
     factor.setValue(1);
     for (llvm::Function* F : m_securePartition.getPartition()) {
         auto* Fnode = m_callGraph.getFunctionNode(F);
+        Weight& nodeWeight = Fnode->getWeight();
+        nodeWeight.addFactor(factor);
+    }
+}
+
+void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
+{
+    WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
+    factor.setValue(Integer::POS_INFINITY);
+    for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
+        factor.setCoef(1/level);
+        auto* Fnode = m_callGraph.getFunctionNode(function);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
     }

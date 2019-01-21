@@ -28,6 +28,7 @@ class WeightFactor
 public:
     enum Factor {
         SENSITIVE = 0,
+        SENSITIVE_RELATED,
         SIZE,
         CALL_NUM,
         ARG_NUM,
