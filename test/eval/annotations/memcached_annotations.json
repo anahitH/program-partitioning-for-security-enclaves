@@ -1,0 +1,11 @@
+[
+{
+    "annotation" : "sensitive",
+        "functions" : [
+        {
+            "function" : "process_command",
+            "arguments" : [0, 1]
+        }
+        ]
+}
+]

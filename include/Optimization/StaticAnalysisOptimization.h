@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Optimization/PartitionOptimization.h"
+#include "Utils/Logger.h"
 
 namespace vazgen {
 
@@ -20,6 +21,7 @@ public:
 public:
     void run() override
     {
+        m_logger.info("Running StaticAnalysisOptimization optimization");
     }
 
     void apply() override

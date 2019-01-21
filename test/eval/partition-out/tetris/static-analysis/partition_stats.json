@@ -1,0 +1,41 @@
+{
+    "program_partition": {
+        "globals": [
+            ".str.3",
+            ".str.2",
+            "lines_cleared",
+            "shapes",
+            ".str.1",
+            "level",
+            "peek_shape",
+            "board",
+            "shadow"
+        ],
+        "globals%": 31.03448275862069,
+        "globals_size": 9,
+        "in_interface": [
+            "main"
+        ],
+        "in_interface%": 3.3333333333333335,
+        "in_interface_size": 1,
+        "out_interface": [
+            "printf",
+            "rand",
+            "fflush",
+            "getchar"
+        ],
+        "out_interface%": 13.333333333333334,
+        "out_interface_size": 4,
+        "partition%": 13.333333333333334,
+        "partition_size": 4,
+        "partitioned_functions": [
+            "place",
+            "next_shape",
+            "fits_in",
+            "update"
+        ],
+        "security_related%": 0.0,
+        "security_related_functions": [],
+        "security_related_functions_size": 0
+    }
+}

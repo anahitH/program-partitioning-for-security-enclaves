@@ -1,0 +1,49 @@
+{
+    "program_partition": {
+        "globals": [
+            ".str.11",
+            "usec_delay",
+            ".str.12",
+            ".str.13",
+            ".str.15",
+            ".str.14"
+        ],
+        "globals%": 27.272727272727273,
+        "globals_size": 6,
+        "in_interface": [
+            "main"
+        ],
+        "in_interface%": 4.0,
+        "in_interface_size": 1,
+        "out_interface": [
+            "collide_object",
+            "srand",
+            "printf",
+            "rand",
+            "time",
+            "puts",
+            "show_score"
+        ],
+        "out_interface%": 28.0,
+        "out_interface_size": 7,
+        "partition%": 28.0,
+        "partition_size": 7,
+        "partitioned_functions": [
+            "draw_line",
+            "collide_walls",
+            "collision",
+            "eat_gold",
+            "collide_self",
+            "setup_level",
+            "move"
+        ],
+        "security_related%": 16.0,
+        "security_related_functions": [
+            "show_score1",
+            "collide_object1",
+            "collide_walls1",
+            "collide_self1"
+        ],
+        "security_related_functions_size": 4
+    }
+}
