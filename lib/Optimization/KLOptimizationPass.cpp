@@ -26,6 +26,7 @@ public:
 
 private:
     void computeCandidateEdgeCosts();
+    void computeNodeCosts();
     void computeMoveGains(llvm::Function* movedF);
     void computeInitialMoveGains();
     std::pair<Double, Double> getFunctionCosts(Node* node);
@@ -43,6 +44,7 @@ private:
     std::vector<std::pair<llvm::Function*, Double>> m_functionMoveGains;
     // For each function its' edge cost with the rest of functions
     std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, Double>> m_functionEdgeCosts;
+    std::unordered_map<llvm::Function*, Double> m_functionCosts;
 }; // class KLOptimizationPass::Impl
 
 KLOptimizationPass::Impl::Impl(const CallGraph& callgraph,
@@ -64,6 +66,7 @@ void KLOptimizationPass::Impl::setCandidates(const Functions& candidates)
 void KLOptimizationPass::Impl::run()
 {
     computeCandidateEdgeCosts();
+    computeNodeCosts();
     llvm::Function* movedF = nullptr;
     while (!m_candidates.empty()) {
         computeMoveGains(movedF);
@@ -94,6 +97,21 @@ void KLOptimizationPass::Impl::computeCandidateEdgeCosts()
     }
 }
 
+void KLOptimizationPass::Impl::computeNodeCosts()
+{
+    for (auto F : m_candidates) {
+        if (!m_callgraph.hasFunctionNode(F)) {
+            continue;
+        }
+        auto* Fnode = m_callgraph.getFunctionNode(F);
+        const auto& sensitiveRelatedFactor = Fnode->getWeight().hasFactor(WeightFactor::SENSITIVE_RELATED) ?
+            Fnode->getWeight().getFactor(WeightFactor::SENSITIVE_RELATED).getWeight() : Double();
+        const auto& sizeFactor =  Fnode->getWeight().hasFactor(WeightFactor::SIZE) ?
+            Fnode->getWeight().getFactor(WeightFactor::SIZE).getWeight() : Double();
+        m_functionCosts.insert(std::make_pair(F, sensitiveRelatedFactor - sizeFactor));
+    }
+}
+
 void KLOptimizationPass::Impl::computeMoveGains(llvm::Function* movedF)
 {
     if (!movedF) {
@@ -115,7 +133,8 @@ void KLOptimizationPass::Impl::computeInitialMoveGains()
         assert(m_callgraph.hasFunctionNode(F));
         auto* Fnode = m_callgraph.getFunctionNode(F);
         const auto& costs = getFunctionCosts(Fnode);
-        m_moveGains[i] = costs.second - costs.first;
+        const auto& nodeCost = m_functionCosts[F];
+        m_moveGains[i] = costs.second - costs.first + nodeCost;
     }
 }
 
@@ -171,6 +190,9 @@ void KLOptimizationPass::Impl::applyOptimization()
         llvm::Function* revertF = m_functionMoveGains[i].first;
         m_securePartition.removeFromPartition(revertF);
         m_insecurePartition.addToPartition(revertF);
+    }
+    for (int i = 0; i <= idx; ++i) {
+        m_securePartition.removeRelatedFunction(m_functionMoveGains[i].first);
     }
 }
 

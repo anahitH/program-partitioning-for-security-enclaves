@@ -74,6 +74,11 @@ void Partition::removeFromPartition(llvm::Function* F)
     m_partition.erase(F);
 }
 
+void Partition::removeRelatedFunction(llvm::Function* F)
+{
+    m_relatedFunctions.erase(F);
+}
+
 void Partition::clearRelatedFunctions()
 {
     m_relatedFunctions.clear();
