@@ -10,26 +10,25 @@ class Function;
 class Module;
 }
 
-
 namespace vazgen {
 
 class Logger;
+class Partition;
 
-class ProgramSlicer
+class PartitionExtractor
 {
 public:
-    using Slice = std::vector<llvm::Function*>;
+    PartitionExtractor(llvm::Module* M,
+                       const Partition& partition,
+                       Logger& logger);
+
+    PartitionExtractor(const PartitionExtractor& ) = delete;
+    PartitionExtractor(PartitionExtractor&& ) = delete;
+    PartitionExtractor& operator =(const PartitionExtractor& ) = delete;
+    PartitionExtractor& operator =(PartitionExtractor&& ) = delete;
 
 public:
-    ProgramSlicer(llvm::Module* M, Slice slice, Logger& logger);
-
-    ProgramSlicer(const ProgramSlicer& ) = delete;
-    ProgramSlicer(ProgramSlicer&& ) = delete;
-    ProgramSlicer& operator =(const ProgramSlicer& ) = delete;
-    ProgramSlicer& operator =(ProgramSlicer&& ) = delete;
-
-public:
-    bool slice();
+    bool extract();
 
     const std::unique_ptr<llvm::Module>& getSlicedModule()
     {
@@ -39,21 +38,21 @@ public:
 private:
     llvm::Function* createFunctionDeclaration(llvm::Function* originalF);
     bool changeFunctionUses(llvm::Function* originalF, llvm::Function* cloneF);
-    void createSliceModule(const std::unordered_set<std::string>& functions);
+    void createModule(const std::unordered_set<std::string>& functions);
 
 private:
     llvm::Module* m_module;
-    Slice m_slice;
+    const Partition& m_partition;
     std::unique_ptr<llvm::Module> m_slicedModule;
     Logger& m_logger;
-}; //class ProgramSlicer
+}; //class PartitionExtractor
 
-class ProgramSlicerPass : public llvm::ModulePass
+class PartitionExtractorPass : public llvm::ModulePass
 {
 public:
     static char ID;
 
-    ProgramSlicerPass()
+    PartitionExtractorPass()
         : llvm::ModulePass(ID)
     {
     }
@@ -66,8 +65,8 @@ private:
     bool sliceForPartition(Logger& logger, llvm::Module& M, bool enclave);
 
 private:
-    std::unique_ptr<ProgramSlicer> m_slicer;
-}; // class ProgramSlicerPass
+    std::unique_ptr<PartitionExtractor> m_extractor;
+}; // class PartitionExtractorPass
 
 } // namespace vazgen
 

@@ -67,7 +67,7 @@ public:
 
     Partition& getInsecurePartition()
     {
-        return m_securePartition;
+        return m_insecurePartition;
     }
 
 public:

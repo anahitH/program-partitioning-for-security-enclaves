@@ -51,7 +51,7 @@ add_library(program_partitioning MODULE
         lib/Optimization/KLOptimizer.cpp
         lib/Optimization/KLOptimizationPass.cpp
         lib/Optimization/ILPOptimization.cpp
-        lib/Transforms/ProgramSlicer.cpp
+        lib/Transforms/PartitionExtractor.cpp
 )
 
 add_library(debug-program_partitioning MODULE

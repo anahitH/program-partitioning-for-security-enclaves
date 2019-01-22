@@ -47,6 +47,7 @@ public:
     int getFunctionRelationLevel(llvm::Function* F) const;
 
     bool contains(llvm::Function* F) const;
+    bool contains(llvm::GlobalVariable* g) const;
     bool references(llvm::GlobalVariable* global) const;
 
 private:

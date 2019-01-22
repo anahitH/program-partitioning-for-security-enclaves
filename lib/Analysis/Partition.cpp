@@ -123,6 +123,11 @@ bool Partition::contains(llvm::Function* F) const
     return m_partition.find(F) != m_partition.end();
 }
 
+bool Partition::contains(llvm::GlobalVariable* g) const
+{
+    return m_partitionGlobals.find(g) != m_partitionGlobals.end();
+}
+
 bool Partition::references(llvm::GlobalVariable* global) const
 {
     return m_partitionGlobals.find(global) != m_partitionGlobals.end();

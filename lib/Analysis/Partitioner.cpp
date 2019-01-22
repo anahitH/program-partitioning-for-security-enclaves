@@ -510,11 +510,13 @@ void PartitionGlobals::partition()
     for (auto glob_it = m_module.global_begin();
          glob_it != m_module.global_end();
          ++glob_it) {
+         llvm::dbgs() << *glob_it << "\n";
          assert(m_pdg->hasGlobalVariableNode(&*glob_it));
          const auto& globalNode = m_pdg->getGlobalVariableNode(&*glob_it);
          for (auto in_it = globalNode->inEdgesBegin();
               in_it != globalNode->inEdgesEnd();
               ++in_it) {
+             llvm::dbgs() << "A:" << Utils::getNodeParent((*in_it)->getSource().get())->getName() << "\n";
              if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
                  continue;
              }
@@ -523,6 +525,7 @@ void PartitionGlobals::partition()
          for (auto out_it = globalNode->outEdgesBegin();
               out_it != globalNode->outEdgesEnd();
               ++out_it) {
+             llvm::dbgs() <<  "B:" << Utils::getNodeParent((*out_it)->getDestination().get())->getName() << "\n";
              if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
                  continue;
              }
@@ -541,6 +544,9 @@ void Partitioner::computeInsecurePartition()
     PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition, m_logger);
     globals_partitioner.partition();
     m_insecurePartition.setGlobals(globals_partitioner.getReferencedGlobals());
+    for (const auto* g : globals_partitioner.getReferencedGlobals()) {
+        llvm::dbgs() << *g << "\n";
+    }
 
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
