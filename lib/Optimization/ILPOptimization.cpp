@@ -18,11 +18,13 @@ class ILPOptimization::Impl
 {
 public:
     Impl(const CallGraph& callgraph,
-         Partition& partition,
+         Partition& securePartition,
+         Partition& insecurePartition,
          Logger& logger);
 
 public:
     void run();
+    void apply();
 
 private:
     void createNodeVariables();
@@ -33,7 +35,8 @@ private:
 
 private:
     const CallGraph& m_callgraph;
-    Partition& m_partition;
+    Partition& m_securePartition;
+    Partition& m_insecurePartition;
     Logger& m_logger;
 
     IloEnv m_ilpEnv;
@@ -41,13 +44,16 @@ private:
     std::unordered_map<Node*, IloNumVar> m_nodeVariables;
     std::unordered_map<Edge*, IloNumVar> m_edgeVariables;
     std::unordered_map<llvm::Function*, int> m_functionIdx;
+    Partition::FunctionSet m_movedFunctions;
 }; // class Impl
 
 ILPOptimization::Impl::Impl(const CallGraph& callgraph,
-                            Partition& partition,
+                            Partition& securePartition,
+                            Partition& insecurePartition,
                             Logger& logger)
     : m_callgraph(callgraph)
-    , m_partition(partition)
+    , m_securePartition(securePartition)
+    , m_insecurePartition(insecurePartition)
     , m_logger(logger)
     , m_ilpModel(m_ilpEnv)
 {
@@ -66,14 +72,29 @@ void ILPOptimization::Impl::run()
         m_ilpEnv.error() << "Failed to optimize LP" << endl;
         return;
     }
-    m_logger.info("Yuhuuu");
+    IloNumArray vals(m_ilpEnv);
+    m_ilpEnv.out() << "Solution status " << cplex.getStatus() << std::endl;
+    for (const auto& [node, var] : m_nodeVariables) {
+        if (cplex.getValue(var) == 1) {
+            m_movedFunctions.insert(node->getFunction());
+        }
+    }
+}
+
+void ILPOptimization::Impl::apply()
+{
+    for (auto* F : m_movedFunctions) {
+        m_securePartition.addToPartition(F);
+        m_securePartition.removeRelatedFunction(F);
+        m_insecurePartition.removeFromPartition(F);
+    }
 }
 
 void ILPOptimization::Impl::createNodeVariables()
 {
     int i = 0;
     for (auto it = m_callgraph.begin(); it != m_callgraph.end(); ++it) {
-        m_nodeVariables.insert(std::make_pair(it->second.get(),
+        auto [pos, succ] = m_nodeVariables.insert(std::make_pair(it->second.get(),
                                               IloNumVar(m_ilpEnv, 0.0, 1.0)));
         m_functionIdx.insert(std::make_pair(it->second->getFunction(), i));
         const std::string name = "v" + std::to_string(i++);
@@ -107,7 +128,7 @@ void ILPOptimization::Impl::createConstraints()
 {
     for (const auto& [node, var] : m_nodeVariables) {
         auto* F = node->getFunction();
-        if (m_partition.contains(F)) {
+        if (m_securePartition.contains(F)) {
             m_ilpModel.add(var <= 1);
             m_ilpModel.add(var >= 1);
         } else if (F->isDeclaration() || F->getName() == "main") {
@@ -133,16 +154,22 @@ void ILPOptimization::Impl::createObjective()
 }
 
 ILPOptimization::ILPOptimization(const CallGraph& callgraph,
-                                 Partition& partition,
+                                 Partition& securePartition,
+                                 Partition& insecurePartition,
                                  Logger& logger)
-    : PartitionOptimization(partition, nullptr, logger, PartitionOptimizer::ILP)
-    , m_impl(new Impl(callgraph, partition, logger))
+    : PartitionOptimization(securePartition, nullptr, logger, PartitionOptimizer::ILP)
+    , m_impl(new Impl(callgraph, securePartition, insecurePartition, logger))
 {
 }
 
 void ILPOptimization::run()
 {
     m_impl->run();
+}
+
+void ILPOptimization::apply()
+{
+    m_impl->apply();
 }
 
 } // namesapce vazgen

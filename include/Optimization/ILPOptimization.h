@@ -12,7 +12,8 @@ class ILPOptimization : public PartitionOptimization
 {
 public:
     ILPOptimization(const CallGraph& callgraph,
-                    Partition& partition,
+                    Partition& securePartition,
+                    Partition& insecurePartition,
                     Logger& logger);
 
     ILPOptimization(const ILPOptimization& ) = delete;
@@ -22,6 +23,7 @@ public:
 
 public:
     void run() override;
+    void apply() override;
 
     static bool classof(const PartitionOptimization* opt)
     {

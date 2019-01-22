@@ -67,7 +67,7 @@ PartitionOptimizer::getOptimizerFor(PartitionOptimizer::Optimization opt,
     case STATIC_ANALYSIS:
         return std::make_shared<StaticAnalysisOptimization>(m_securePartition, m_logger);
     case ILP:
-        return std::make_shared<ILPOptimization>(m_callgraph, m_securePartition, m_logger);
+        return std::make_shared<ILPOptimization>(m_callgraph, m_securePartition, m_insecurePartition, m_logger);
     default:
         break;
     }
