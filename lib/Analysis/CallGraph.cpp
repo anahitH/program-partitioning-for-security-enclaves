@@ -181,6 +181,8 @@ struct AnalysisCallGraphPassTraits {
 
 namespace vazgen {
 
+static const int LOOP_COST = 100000;
+
 namespace {
 
 using CallSiteInfo = std::unordered_map<llvm::Function*, bool>;
@@ -469,6 +471,7 @@ WeightAssigningHelper::collectFunctionCallSiteData()
             llvm::LoopInfo* loop = m_loopInfoGetter(caller);
             if (loop && loop->getLoopFor(callSite.getParent())) {
                 fCallSiteData[caller] = Integer::POS_INFINITY;
+                //LOOP_COST;
             } else if (!fCallSiteData[caller].isPosInfinity()) {
                 ++fCallSiteData[caller];
             }

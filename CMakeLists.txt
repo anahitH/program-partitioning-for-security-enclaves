@@ -15,9 +15,11 @@ find_package(Boost COMPONENTS thread REQUIRED)
 set (DG_INCLUDE_DIR "/usr/local/include/dg")
 set (CPLEX_CONCERT_INCLUDE "/home/anahitik/ibm/concert/include")
 set (CPLEX_INCLUDE "/home/anahitik/ibm/cplex/include")
+set (CP_INCLUDE "/home/anahitik/ibm/opl/include")
 set (CPLEX_CONCERT_LIB "libconcert.a")
 set (ILOCPLEX_LIB "libilocplex.a")
 set (CPLEX_LIB "libcplex.a")
+set (CP_LIB "libcp.a")
 # Needed to use dg
 add_definitions(-DHAVE_LLVM)
 add_definitions(-DENABLE_CFG)
@@ -73,6 +75,7 @@ target_include_directories(program_partitioning PUBLIC
         ${pdg_INCLUDE_DIR}
         ${CPLEX_CONCERT_INCLUDE}
         ${CPLEX_INCLUDE}
+        ${CP_INCLUDE}
 )
 
 target_include_directories(debug-program_partitioning PUBLIC
@@ -86,12 +89,14 @@ target_include_directories(debug-program_partitioning PUBLIC
         ${pdg_INCLUDE_DIR}
         ${CPLEX_CONCERT_INCLUDE}
         ${CPLEX_INCLUDE}
+        ${CP_INCLUDE}
 )
 target_link_libraries(program_partitioning PRIVATE
                       Threads::Threads
                       svf::Svf
                       nlohmann_json::nlohmann_json
                       ${CPLEX_CONCERT_LIB}
+                      ${CP_LIB}
                       ${ILOCPLEX_LIB}
                       ${CPLEX_LIB}
                       m

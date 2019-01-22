@@ -41,6 +41,7 @@ private:
 
     IloEnv m_ilpEnv;
     IloModel m_ilpModel;
+    IloCplex m_cplex;
     std::unordered_map<Node*, IloNumVar> m_nodeVariables;
     std::unordered_map<Edge*, IloNumVar> m_edgeVariables;
     std::unordered_map<llvm::Function*, int> m_functionIdx;
@@ -56,6 +57,7 @@ ILPOptimization::Impl::Impl(const CallGraph& callgraph,
     , m_insecurePartition(insecurePartition)
     , m_logger(logger)
     , m_ilpModel(m_ilpEnv)
+    , m_cplex(m_ilpModel)
 {
 }
 
@@ -65,17 +67,16 @@ void ILPOptimization::Impl::run()
     createEdgeVariables();
     createConstraints();
     createObjective();
-    IloCplex cplex(m_ilpModel);
-    cplex.exportModel("partition_model.lp");
+    m_cplex.exportModel("partition_model.lp");
 
-    if ( !cplex.solve() ) {
+    if ( !m_cplex.solve() ) {
         m_ilpEnv.error() << "Failed to optimize LP" << endl;
         return;
     }
     IloNumArray vals(m_ilpEnv);
-    m_ilpEnv.out() << "Solution status " << cplex.getStatus() << std::endl;
+    m_ilpEnv.out() << "Solution status " << m_cplex.getStatus() << std::endl;
     for (const auto& [node, var] : m_nodeVariables) {
-        if (cplex.getValue(var) == 1) {
+        if (m_cplex.getValue(var) == 1) {
             m_movedFunctions.insert(node->getFunction());
         }
     }
@@ -146,9 +147,21 @@ void ILPOptimization::Impl::createConstraints()
 void ILPOptimization::Impl::createObjective()
 {
     IloObjective obj = IloMaximize(m_ilpEnv);
-    for (const auto& [edge, val] : m_edgeVariables) {
+    for (const auto& [edge, var] : m_edgeVariables) {
         const auto& edgeCost = edge->getWeight().getValue();
-        obj.setLinearCoef(val, edgeCost);
+        obj.setLinearCoef(var, edgeCost);
+    }
+    for (const auto& [node, var] : m_nodeVariables) {
+        Double sensitiveRelatedCost;
+        Double sizeCost;
+        if (node->getWeight().hasFactor(WeightFactor::SENSITIVE_RELATED)) {
+            sensitiveRelatedCost = 1/5 * node->getWeight().getFactor(WeightFactor::SENSITIVE_RELATED).getValue();
+        }
+        if (node->getWeight().hasFactor(WeightFactor::SIZE)) {
+            sizeCost =  1/10 * node->getWeight().getFactor(WeightFactor::SIZE).getValue();
+        }
+        const auto& nodeCost = sensitiveRelatedCost - sizeCost;
+        obj.setLinearCoef(var, nodeCost);
     }
     m_ilpModel.add(obj);
 }
