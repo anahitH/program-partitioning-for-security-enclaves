@@ -155,10 +155,10 @@ void ILPOptimization::Impl::createObjective()
         Double sensitiveRelatedCost;
         Double sizeCost;
         if (node->getWeight().hasFactor(WeightFactor::SENSITIVE_RELATED)) {
-            sensitiveRelatedCost = 1/5 * node->getWeight().getFactor(WeightFactor::SENSITIVE_RELATED).getValue();
+            sensitiveRelatedCost = node->getWeight().getFactor(WeightFactor::SENSITIVE_RELATED).getWeight();
         }
         if (node->getWeight().hasFactor(WeightFactor::SIZE)) {
-            sizeCost =  1/10 * node->getWeight().getFactor(WeightFactor::SIZE).getValue();
+            sizeCost =  node->getWeight().getFactor(WeightFactor::SIZE).getWeight();
         }
         const auto& nodeCost = sensitiveRelatedCost - sizeCost;
         obj.setLinearCoef(var, nodeCost);

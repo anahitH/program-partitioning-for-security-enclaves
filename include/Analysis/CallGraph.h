@@ -55,7 +55,7 @@ public:
         return m_factor < UNKNOWN;
     }
 
-    void setValue(int value)
+    void setValue(double value)
     {
         m_value = value;
     }
@@ -65,7 +65,7 @@ public:
         m_coeff = coef;
     }
 
-    Integer getValue() const
+    Double getValue() const
     {
         return m_value;
     }
@@ -77,13 +77,13 @@ public:
 
     Double getWeight() const
     {
-        return (double)m_value * m_coeff;
+        return m_value * m_coeff;
     }
 
 private:
     Factor m_factor;
     std::string m_name;
-    Integer m_value;
+    Double m_value;
     Double m_coeff;
 }; // class WeightFactor
 

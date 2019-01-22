@@ -283,7 +283,7 @@ class WeightAssigningHelper
 {
 public:
     using LoopInfoGetter = CallGraph::LoopInfoGetter;
-    using CallSiteData = std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, Integer>>;
+    using CallSiteData = std::unordered_map<llvm::Function*, std::unordered_map<llvm::Function*, Double>>;
 
 public:
     WeightAssigningHelper(CallGraph& callGraph,
@@ -353,7 +353,7 @@ void WeightAssigningHelper::assignSensitiveNodeWeights()
 void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
 {
     WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
-    factor.setValue(Integer::POS_INFINITY);
+    factor.setValue(Double::POS_INFINITY);
     for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
         factor.setCoef(1/level);
         auto* Fnode = m_callGraph.getFunctionNode(function);
@@ -470,7 +470,7 @@ WeightAssigningHelper::collectFunctionCallSiteData()
             llvm::Function* caller = callSite.getCaller();
             llvm::LoopInfo* loop = m_loopInfoGetter(caller);
             if (loop && loop->getLoopFor(callSite.getParent())) {
-                fCallSiteData[caller] = Integer::POS_INFINITY;
+                fCallSiteData[caller] = Double::POS_INFINITY;
                 //LOOP_COST;
             } else if (!fCallSiteData[caller].isPosInfinity()) {
                 ++fCallSiteData[caller];
