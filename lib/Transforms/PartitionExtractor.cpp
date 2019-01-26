@@ -70,7 +70,7 @@ public:
 private:
     void addGlobalSetter(llvm::GlobalVariable* global);
     void addGlobalSetterAfter(llvm::Instruction* instr, llvm::GlobalVariable* global);
-    llvm::Function* createGlobalSetterFunction(llvm::GlobalVariable* global);
+    void createGlobalSetterFunction(llvm::GlobalVariable* global);
 
 private:
     llvm::Module* m_module;
@@ -124,10 +124,8 @@ void GlobalVariableExtractorHelper::addGlobalSetter(llvm::GlobalVariable* global
         auto* nodeValue = llvmNode->getNodeValue();
         assert(nodeValue);
         if (auto* storeInst = llvm::dyn_cast<llvm::StoreInst>(nodeValue)) {
-            llvm::dbgs() << "Store " << *storeInst << "\n";
             if (storeInst->getPointerOperand() == global
-                    && m_partition.contains(storeInst->getFunction())
-                    && m_complementPartition.contains(global)) {
+                    && m_partition.contains(storeInst->getFunction())) {
                 addGlobalSetterAfter(storeInst, global);
             }
         }
@@ -140,23 +138,28 @@ void GlobalVariableExtractorHelper::addGlobalSetterAfter(llvm::Instruction* inst
 {
     auto pos = m_globalSetter.find(global);
     if (pos == m_globalSetter.end()) {
-        pos->second = createGlobalSetterFunction(global);
+        createGlobalSetterFunction(global);
     }
+    pos = m_globalSetter.find(global);
     llvm::LLVMContext& Ctx = m_module->getContext();
     llvm::IRBuilder<> builder(instr);
     builder.SetInsertPoint(instr->getParent(), ++builder.GetInsertPoint());
+    auto* loadGlobal = builder.CreateLoad(global);
     std::vector<llvm::Value*> arg_values;
-    arg_values.push_back(global);
+    arg_values.push_back(loadGlobal);
     llvm::ArrayRef<llvm::Value*> args(arg_values);
     builder.CreateCall(pos->second, args);
 }
 
 // TODO: it's only declaration; add definitions after extraction
-llvm::Function*
-GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVariable* global)
+void GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVariable* global)
 {
     llvm::LLVMContext& Ctx = m_module->getContext();
-    llvm::ArrayRef<llvm::Type*> params{global->getType()};
+    llvm::Type* globalType = global->getType();
+    if (auto* ptrType = llvm::dyn_cast<llvm::PointerType>(globalType)) {
+        globalType = ptrType->getElementType();
+    }
+    llvm::ArrayRef<llvm::Type*> params{globalType};
     llvm::FunctionType* fType = llvm::FunctionType::get(llvm::Type::getVoidTy(Ctx),
                                                         params, false);
     std::string fName = "set_";
@@ -165,7 +168,16 @@ GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVariable* 
     fName += global->getName().str();
     llvm::Function* setter = llvm::dyn_cast<llvm::Function>(
             m_module->getOrInsertFunction(fName, fType));
-    return setter;
+    m_globalSetter.insert(std::make_pair(global, setter));
+
+    auto* entryBlock = llvm::BasicBlock::Create(Ctx, "entry", setter);
+    llvm::IRBuilder<> builder(setter->getContext());
+    builder.SetInsertPoint(entryBlock);
+    auto* argAlloca = builder.CreateAlloca(globalType, nullptr, "arg");
+    auto* storeArg = builder.CreateStore(&*setter->arg_begin(), argAlloca);
+    auto* load = builder.CreateLoad(argAlloca);
+    auto* storeGlobal = builder.CreateStore(load, global);
+    auto* ret = builder.CreateRetVoid();
 }
 
 } // unnamed namespace
@@ -192,7 +204,7 @@ bool PartitionExtractor::extract()
         if (currentF->isDeclaration()) {
             continue;
         }
-        llvm::dbgs() << "extract " << currentF->getName() << "\n";
+        //llvm::dbgs() << "extract " << currentF->getName() << "\n";
         //if (currentF->getName() == "main") {
         //    m_logger.warn("Function main in the partition. Can not slice main away");
         //    continue;
@@ -232,10 +244,10 @@ bool PartitionExtractor::changeFunctionUses(llvm::Function* originalF, llvm::Fun
 void PartitionExtractor::createModule(const std::unordered_set<std::string>& function_names)
 {
     llvm::ValueToValueMapTy value_to_value_map;
-    llvm::dbgs() << "Clone module for functions\n";
-    for (const auto& f : function_names) {
-        llvm::dbgs() << f << "\n";
-    }
+    //llvm::dbgs() << "Clone module for functions\n";
+    //for (const auto& f : function_names) {
+    //    llvm::dbgs() << f << "\n";
+    //}
     m_slicedModule =  llvm::CloneModule(m_module, value_to_value_map,
                 [&function_names] (const llvm::GlobalValue* glob) {
                     return function_names.find(glob->getName()) != function_names.end();
@@ -295,7 +307,7 @@ bool PartitionExtractorPass::sliceForPartition(Logger& logger, llvm::Module& M, 
                                                                 prefixName, logger);
 
     globalsExtractionHelper->instrumentForGlobals();
-    bool modified = false;
+    bool modified = true;
     /*
     const auto& globalSetter = globalsExtractionHelper->getGlobalVariablesSetters();
     m_extractor.reset(new PartitionExtractor(&M, partition, logger));
