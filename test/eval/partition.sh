@@ -13,6 +13,7 @@ partition() {
     bitcode=$1
     annots=$2
     optimization=$3
+    echo "Run for $bitcode with optimization $optimization"
     echo "opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -json-annotations=$annots -outfile=$outfile"
     opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -optimize="$optimization" -json-annotations=$annots -partition-stats 
 }
@@ -37,7 +38,7 @@ run-optimization() {
 }
 
 optimization=$1
-optimizations=('' 'kl' 'local' 'static-analysis')
+optimizations=('' 'kl' 'local' 'static-analysis' 'ilp')
 if [ "$optimization" == "all" ]; then
     for opt in "${optimizations[@]}"
     do

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Partition.h"
+#include "CallGraph.h"
 
 #include "llvm/Pass.h"
 #include "PDG/PDG/PDG.h"
@@ -28,16 +29,16 @@ class Logger;
 class ProgramPartition
 {
 public:
-    class PartitionStatistics;
-
-public:
     // TODO: what is partition does not only include functions but for example also global variables?
     using Annotations = std::vector<Annotation>;
     using PDGType = std::shared_ptr<pdg::PDG>;
     using LoopInfoGetter = std::function<llvm::LoopInfo* (llvm::Function*)>;
 
 public:
-    ProgramPartition(llvm::Module& M, PDGType pdg, const llvm::CallGraph& callGraph, Logger& logger);
+    ProgramPartition(llvm::Module& M, PDGType pdg,
+                     const llvm::CallGraph& callGraph,
+                     const LoopInfoGetter& loopInfoGetter,
+                     Logger& logger);
 
     ProgramPartition(const ProgramPartition& ) = delete;
     ProgramPartition(ProgramPartition&& ) = delete;
@@ -49,7 +50,6 @@ public:
     void partition(const Annotations& annotations);
     void optimize(auto optimizations);
 
-    void setLoopInfoGetter(const LoopInfoGetter& loopInfoGetter);
     const Partition& getSecurePartition() const
     {
         return m_securePartition;
@@ -77,9 +77,9 @@ public:
 private:
     llvm::Module& m_module;
     PDGType m_pdg;
-    const llvm::CallGraph& m_callgraph;
+    CallGraph m_callgraph;
+    const LoopInfoGetter& m_loopInfoGetter;
     Logger& m_logger;
-    LoopInfoGetter m_loopInfoGetter;
     Partition m_securePartition;
     Partition m_insecurePartition;
 }; // class ProgramPartition

@@ -125,7 +125,7 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
       std::stringstream label;
       label << node->getFunction()->getName().str();
       if (node->getWeight().hasFactor(vazgen::WeightFactor::SIZE)) {
-        label << " size " << std::to_string(node->getWeight().getFactor(vazgen::WeightFactor::SIZE).getValue());
+        label << " size " << std::to_string((int)node->getWeight().getFactor(vazgen::WeightFactor::SIZE).getValue());
       }
       if (node->getWeight().hasFactor(vazgen::WeightFactor::SENSITIVE_RELATED)) {
         auto value = node->getWeight().getFactor(vazgen::WeightFactor::SENSITIVE_RELATED).getValue();
@@ -470,8 +470,8 @@ WeightAssigningHelper::collectFunctionCallSiteData()
             llvm::Function* caller = callSite.getCaller();
             llvm::LoopInfo* loop = m_loopInfoGetter(caller);
             if (loop && loop->getLoopFor(callSite.getParent())) {
-                fCallSiteData[caller] = Double::POS_INFINITY;
-                //LOOP_COST;
+                //fCallSiteData[caller] = Double::POS_INFINITY;
+                fCallSiteData[caller] = LOOP_COST;
             } else if (!fCallSiteData[caller].isPosInfinity()) {
                 ++fCallSiteData[caller];
             }

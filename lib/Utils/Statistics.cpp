@@ -31,6 +31,11 @@ public:
         write(k, value);
     }
 
+    void write_entry(const Statistics::key& k, int value) final
+    {
+        write(k, value);
+    }
+
     void write_entry(const Statistics::key& k, const std::string& value) final
     {
         write(k, value);
@@ -90,6 +95,11 @@ void Statistics::write_entry(const key& key, double value)
 }
 
 void Statistics::write_entry(const key& key, unsigned value)
+{
+    m_writer->write_entry(key, value);
+}
+
+void Statistics::write_entry(const key& key, int value)
 {
     m_writer->write_entry(key, value);
 }

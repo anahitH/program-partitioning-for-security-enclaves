@@ -29,6 +29,7 @@ public:
         virtual void flush() = 0;
         virtual void write_entry(const Statistics::key& k, double value) = 0;
         virtual void write_entry(const Statistics::key& k, unsigned value) = 0;
+        virtual void write_entry(const Statistics::key& k, int value) = 0;
         virtual void write_entry(const Statistics::key& k, const std::string& value) = 0;
         virtual void write_entry(const Statistics::key& k, const std::vector<std::string>& value) = 0;
 
@@ -53,6 +54,7 @@ public:
 protected:
     void write_entry(const key& key, double value);
     void write_entry(const key& key, unsigned value);
+    void write_entry(const key& key, int value);
     void write_entry(const key& key, const std::string& value);
     void write_entry(const key& key, const std::vector<std::string>& value);
 

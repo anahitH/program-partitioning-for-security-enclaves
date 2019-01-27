@@ -6,10 +6,17 @@ STAT_DIR="/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/t
 STAT_FILE="partition_stats.json"
 TEX_OUT_FOLDER='tables'
 PARTITION_PERCENT_KEY="partition%"
+CONTEXT_SWITCHES_KEY="context_switches"
+TCB_SIZE_KEY="TCB"
+ARGS_PASSED_KEY="args_passed"
 
 programs = []
 optimizations = []
 partition_percentage = {}
+context_switches = {}
+tcb = {}
+args_passed = {}
+
 
 def get_bitcode_name_from_path(dir_name):
     return os.path.basename(os.path.normpath(dir_name))
@@ -28,11 +35,24 @@ def parse_statistics(program, stat_dir, opt_name):
         optimizations.append(opt_name)
     if program not in partition_percentage:
         partition_percentage[program] = {}
+    if program not in context_switches:
+        context_switches[program] = {}
+    if program not in tcb:
+        tcb[program] = {}
+    if program not in args_passed:
+        args_passed[program] = {}
+
     if not os.path.isfile(stat_file):
         partition_percentage[program][opt_name] = "N/A"
+        context_switches[program][opt_name] = "N/A"
+        tcb[program][opt_name] = "N/A"
+        args_passed[program][opt_name] = "N/A"
         return
     stats = json.load(open(stat_file))
     partition_percentage[program][opt_name] = stats["program_partition"][PARTITION_PERCENT_KEY]
+    context_switches[program][opt_name] = stats["program_partition"][CONTEXT_SWITCHES_KEY]
+    tcb[program][opt_name] = stats["program_partition"][TCB_SIZE_KEY]
+    args_passed[program][opt_name] = stats["program_partition"][ARGS_PASSED_KEY]
 
 
 def parse_data():
@@ -56,14 +76,33 @@ def dump_tables():
             table_headers.append(opt + "[Baseline]")
         else:
             table_headers.append(opt)
+        table_headers.append("")
+        table_headers.append("")
+        table_headers.append("")
 
     for program in programs:
         line = []
         line.append(program)
+        data_line = []
+        isFirst = True
         for opt in optimizations:
-            line.append(partition_percentage[program][opt])
+            line.append("enclave%")
+            line.append("Context Switches")
+            line.append("TCB")
+            line.append("Arguments")
+            if isFirst:
+                data_line.append("")
+                data_line.append(partition_percentage[program][opt])
+            else:
+                data_line.append(partition_percentage[program][opt])
+            data_line.append(context_switches[program][opt])
+            data_line.append(tcb[program][opt])
+            data_line.append(args_passed[program][opt])
+            isFirst = False
         print (line)
+        print (data_line)
         table_data.append(line)
+        table_data.append(data_line)
 
     latex_table = tabulate(table_data,headers=table_headers,tablefmt="latex")
     table_file = os.path.join(TEX_OUT_FOLDER, "partitions.tex")
