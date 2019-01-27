@@ -18,8 +18,12 @@ class Partition;
 class PartitionExtractor
 {
 public:
+    using FunctionSet = std::unordered_set<llvm::Function*>;
+
+public:
     PartitionExtractor(llvm::Module* M,
                        const Partition& partition,
+                       const FunctionSet& additionalFunctions,
                        Logger& logger);
 
     PartitionExtractor(const PartitionExtractor& ) = delete;
@@ -43,12 +47,16 @@ private:
 private:
     llvm::Module* m_module;
     const Partition& m_partition;
+    const FunctionSet& m_additionalFunctions;
     std::unique_ptr<llvm::Module> m_slicedModule;
     Logger& m_logger;
 }; //class PartitionExtractor
 
 class PartitionExtractorPass : public llvm::ModulePass
 {
+public:
+    using FunctionSet = std::unordered_set<llvm::Function*>;
+
 public:
     static char ID;
 
@@ -62,7 +70,8 @@ public:
     bool runOnModule(llvm::Module& M) override;
 
 private:
-    bool sliceForPartition(Logger& logger, llvm::Module& M, bool enclave);
+    FunctionSet getGlobalSetters(llvm::Module& M, Logger& logger, bool isEnclave);
+    bool extractPartition(Logger& logger, llvm::Module& M, const FunctionSet& globalSetters, bool enclave);
 
 private:
     std::unique_ptr<PartitionExtractor> m_extractor;

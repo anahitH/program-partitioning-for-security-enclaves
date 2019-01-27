@@ -55,7 +55,6 @@ public:
     GlobalVariableExtractorHelper(llvm::Module* M,
                                   const pdg::PDG& pdg,
                                   const Partition& partition,
-                                  const Partition& complementPart,
                                   const std::string& prefix,
                                   Logger& logger);
 
@@ -67,6 +66,15 @@ public:
 
     void instrumentForGlobals();
 
+    std::unordered_set<llvm::Function*> getGlobalSetters() const
+    {
+        std::unordered_set<llvm::Function*> setters;
+        for (const auto& [g, f] : m_globalSetter) {
+            setters.insert(f);
+        }
+        return setters;
+    }
+
 private:
     void addGlobalSetter(llvm::GlobalVariable* global);
     void addGlobalSetterAfter(llvm::Instruction* instr, llvm::GlobalVariable* global);
@@ -76,7 +84,6 @@ private:
     llvm::Module* m_module;
     const pdg::PDG& m_pdg;
     const Partition& m_partition;
-    const Partition& m_complementPartition;
     std::unordered_map<llvm::GlobalVariable*, llvm::Function*> m_globalSetter;
     const std::string& m_prefix;
     Logger& m_logger;
@@ -85,13 +92,11 @@ private:
 GlobalVariableExtractorHelper::GlobalVariableExtractorHelper(llvm::Module* M,
                                                              const pdg::PDG& pdg,
                                                              const Partition& partition,
-                                                             const Partition& complementPart,
                                                              const std::string& prefix,
                                                              Logger& logger)
     : m_module(M)
     , m_pdg(pdg)
     , m_partition(partition)
-    , m_complementPartition(complementPart)
     , m_prefix(prefix)
     , m_logger(logger)
 {
@@ -184,9 +189,11 @@ void GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVaria
 
 PartitionExtractor::PartitionExtractor(llvm::Module* M,
                                        const Partition& partition,
+                                       const FunctionSet& additionalFunctions,
                                        Logger& logger)
     : m_module(M)
     , m_partition(partition)
+    , m_additionalFunctions(additionalFunctions)
     , m_slicedModule(nullptr)
     , m_logger(logger)
 {
@@ -201,7 +208,7 @@ bool PartitionExtractor::extract()
         if (!currentF) {
             continue;
         }
-        if (currentF->isDeclaration()) {
+        if (currentF->isDeclaration() || currentF->isIntrinsic()) {
             continue;
         }
         //llvm::dbgs() << "extract " << currentF->getName() << "\n";
@@ -211,6 +218,10 @@ bool PartitionExtractor::extract()
         //}
         modified = true;
         function_names.insert(currentF->getName());
+    }
+    modified |= !m_additionalFunctions.empty();
+    for (const auto& F : m_additionalFunctions) {
+        function_names.insert(F->getName());
     }
     if (!modified) {
         return modified;
@@ -278,39 +289,50 @@ bool PartitionExtractorPass::runOnModule(llvm::Module& M)
     Logger logger("program-partitioning");
     logger.setLevel(vazgen::Logger::INFO);
 
-    bool modified = sliceForPartition(logger, M, true);
-    modified |= sliceForPartition(logger, M, false);
+    const auto& enclaveGloabalSetters = getGlobalSetters(M, logger, true);
+    const auto& appGloabalSetters = getGlobalSetters(M, logger, false);
+    bool modified = extractPartition(logger, M, enclaveGloabalSetters, true);
+    modified |= extractPartition(logger, M, appGloabalSetters, false);
     return modified;
 }
 
-bool PartitionExtractorPass::sliceForPartition(Logger& logger, llvm::Module& M, bool enclave)
+PartitionExtractorPass::FunctionSet
+PartitionExtractorPass::getGlobalSetters(llvm::Module& M, Logger& logger, bool isEnclave)
 {
     Partition partition;
-    Partition complementPart;
-    std::string sliceName;
     std::string prefixName;
+    auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
+    if (isEnclave) {
+        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
+        prefixName = "enclave";
+    } else {
+        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+        prefixName = "app";
+    }
+    GlobalVariableExtractorHelper globalsExtractionHelper(&M, *pdg, partition,
+                                                          prefixName, logger);
+
+    globalsExtractionHelper.instrumentForGlobals();
+    return globalsExtractionHelper.getGlobalSetters();
+}
+
+bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
+                                              const FunctionSet& globalSetters,
+                                              bool enclave)
+{
+    Partition partition;
+    std::string sliceName;
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     GlobalVariableExtractorHelper* globalsExtractionHelper;
     if (enclave) {
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
-        complementPart = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
         sliceName = "enclave_partition.bc";
-        prefixName = "app";
     } else {
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
-        complementPart = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
         sliceName = "app_partition.bc";
-        prefixName = "enclave";
     }
-    globalsExtractionHelper = new GlobalVariableExtractorHelper(&M, *pdg, partition,
-                                                                complementPart,
-                                                                prefixName, logger);
-
-    globalsExtractionHelper->instrumentForGlobals();
-    bool modified = true;
-    /*
-    const auto& globalSetter = globalsExtractionHelper->getGlobalVariablesSetters();
-    m_extractor.reset(new PartitionExtractor(&M, partition, logger));
+    
+    m_extractor.reset(new PartitionExtractor(&M, partition, globalSetters, logger));
     bool modified = m_extractor->extract();
     if (modified) {
         logger.info("Extraction done\n");
@@ -318,7 +340,6 @@ bool PartitionExtractorPass::sliceForPartition(Logger& logger, llvm::Module& M, 
     } else {
         logger.info("No extraction\n");
     }
-    */
     delete globalsExtractionHelper;
     return modified;
 }
