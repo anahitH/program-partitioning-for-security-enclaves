@@ -19,17 +19,24 @@ public:
     void write();
 
 private:
-    void beginProtoFile(const ProtoFile& file);
-    void writeProtoMessage(const ProtoMessage& msg);
-    void writeProtoService(const ProtoMessage& msg);
+    void beginProtoFile();
+
     void writeProtoVersion(const std::string& version);
     void writeProtoPackage(const std::string& package);
     void writeProtoImports(const ProtoFile::Imports& imports);
     void writeProtoImport(const ProtoFile::Import& import);
+
+    void writeProtoMessages(const ProtoFile::Messages& msg);
+    void writeProtoMessage(const ProtoMessage& msg);
     void beginProtoMessage(const ProtoMessage& msg);
     void writeMessageFields(const ProtoMessage::Fields& fields);
     void writeMessageField(const ProtoMessage::Field& fields);
+    void endProtoMessage();
+
+    void writeProtoServices(const ProtoFile::Services& service);
     void beginProtoService(const ProtoService& service);
+    void writeProtoService(const ProtoService& service);
+    void endProtoService();
     void writeServiceRpcs(const ProtoService::RPCs& rpcs);
     void writeServiceRpc(const ProtoService::RPC& rpcs);
 
