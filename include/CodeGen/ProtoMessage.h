@@ -13,7 +13,7 @@ public:
         std::string m_attribute;
         std::string m_type;
         std::string m_name;
-        std::string m_number;
+        int m_number = 1;
     };
     
     using Fields = std::vector<Field>;
