@@ -9,8 +9,8 @@ template <typename T>
 class NumberType
 {
 public:
-    static constexpr T POS_INFINITY = std::numeric_limits<T>::max();
-    static constexpr T NEG_INFINITY = std::numeric_limits<T>::min();
+    static constexpr T POS_INFINITY = 100000; //std::numeric_limits<T>::max();
+    static constexpr T NEG_INFINITY = -100000; //std::numeric_limits<T>::min();
 
     NumberType(T value = T())
         : m_value(value)
@@ -74,16 +74,16 @@ NumberType<T> operator *(const NumberType<T>& i1, const NumberType<T>& i2);
 template <typename T>
 T safe_sum(const NumberType<T>& i1, const NumberType<T>& i2)
 {
-    if ((i1.isPosInfinity() && !i2.isNegInfinity())
-            || (i2.isPosInfinity() && !i1.isNegInfinity())) {
+    if ((i1.isPosInfinity() && i2 >= 0)
+            || (i2.isPosInfinity() && i1 >= 0)) {
         return NumberType<T>::POS_INFINITY;
     }
     if ((i1.isPosInfinity() && i2.isNegInfinity())
             || i2.isPosInfinity() && i1.isNegInfinity()) {
         return 0;
     }
-    if ((i1.isNegInfinity() && !i2.isPosInfinity())
-            || (i2.isNegInfinity() && !i1.isPosInfinity())) {
+    if ((i1.isNegInfinity() && i2 <= 0)
+            || (i2.isNegInfinity() && i1 <= 0)) {
         return NumberType<T>::NEG_INFINITY;
     }
     T sum = (T)i1 + (T)i2;

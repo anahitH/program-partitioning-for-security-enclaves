@@ -65,7 +65,12 @@ public:
         m_coeff = coef;
     }
 
-    Double getValue() const
+    const Double& getValue() const
+    {
+        return m_value;
+    }
+
+    Double& getValue()
     {
         return m_value;
     }

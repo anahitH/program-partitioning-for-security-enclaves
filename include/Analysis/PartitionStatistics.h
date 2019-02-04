@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utils/Statistics.h"
+#include "Analysis/Numbers.h"
 
 #include <fstream>
 
@@ -34,8 +35,8 @@ private:
     void reportSizeOfTCB();
     void repotArgsPassedAccrossPartition();
 
-    int getCtxSwitchesInFunction(llvm::Function* F);
-    int getArgNumPassedFromFunction(llvm::Function* F);
+    Double getCtxSwitchesInFunction(llvm::Function* F);
+    Double getArgNumPassedFromFunction(llvm::Function* F);
 
 private:
     const Partition& m_partition;

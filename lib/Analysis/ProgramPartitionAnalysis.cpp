@@ -39,7 +39,7 @@ auto getOptimizations(const std::string& optName, Logger& logger)
     } else if (optName == "local") {
         opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
         opts.push_back(PartitionOptimizer::GLOBALS_MOVE_TO);
-        opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
+        //opts.push_back(PartitionOptimizer::DUPLICATE_FUNCTIONS);
     } else if (optName == "function-move") {
         opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);
     } else if (optName == "global-move") {
@@ -69,7 +69,6 @@ ProgramPartition::ProgramPartition(llvm::Module& M,
     , m_loopInfoGetter(loopInfoGetter)
     , m_logger(logger)
 {
-    m_callgraph.assignWeights(m_securePartition, m_insecurePartition, m_pdg.get(), m_loopInfoGetter);
 }
 
 void ProgramPartition::partition(const Annotations& annotations)
@@ -78,6 +77,7 @@ void ProgramPartition::partition(const Annotations& annotations)
     partitioner.partition(annotations);
     m_securePartition = partitioner.getSecurePartition();
     m_insecurePartition = partitioner.getInsecurePartition();
+    m_callgraph.assignWeights(m_securePartition, m_insecurePartition, m_pdg.get(), m_loopInfoGetter);
 }
 
 void ProgramPartition::optimize(auto optimizations)

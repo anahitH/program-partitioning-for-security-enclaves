@@ -41,3 +41,4 @@ build/
 test/partitioner
 test/liveness
 test/slicer
+test/eval/*

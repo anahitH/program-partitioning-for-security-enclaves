@@ -304,6 +304,7 @@ private:
     void assignArgWeights();
     void assignRetValueWeights();
     CallSiteData collectFunctionCallSiteData();
+    void normalizeWeight();
 
 private:
     CallGraph& m_callGraph;
@@ -311,6 +312,7 @@ private:
     const Partition& m_insecurePartition;
     const pdg::PDG* m_pdg;
     const LoopInfoGetter& m_loopInfoGetter;
+    std::vector<Double*> m_allWeights;
 }; // class WeightAssigningHelper
 
 WeightAssigningHelper::WeightAssigningHelper(CallGraph& callGraph,
@@ -330,6 +332,7 @@ void WeightAssigningHelper::assignWeights()
 {
     assignNodeWeights();
     assignEdgeWeights();
+    normalizeWeight();
 }
 
 void WeightAssigningHelper::assignNodeWeights()
@@ -342,11 +345,12 @@ void WeightAssigningHelper::assignNodeWeights()
 void WeightAssigningHelper::assignSensitiveNodeWeights()
 {
     WeightFactor factor(WeightFactor::SENSITIVE);
-    factor.setValue(1);
+    factor.setValue(Double::POS_INFINITY);
     for (llvm::Function* F : m_securePartition.getPartition()) {
         auto* Fnode = m_callGraph.getFunctionNode(F);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
+        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE).getValue());
     }
 }
 
@@ -359,6 +363,7 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
         auto* Fnode = m_callGraph.getFunctionNode(function);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
+        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE_RELATED).getValue());
     }
 }
 
@@ -372,6 +377,7 @@ void WeightAssigningHelper::assignNodeSizeWeights()
         sizeFactor.setValue(Fsize);
         Weight& nodeWeight = it->second->getWeight();
         nodeWeight.addFactor(sizeFactor);
+        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SIZE).getValue());
     }
 }
 
@@ -401,6 +407,7 @@ void WeightAssigningHelper::assignCallNumWeights()
              Weight& edgeWeight = edge_it->getWeight();
              callNumFactor.setValue(calls);
              edgeWeight.addFactor(callNumFactor);
+             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
         }
     }
 
@@ -442,6 +449,8 @@ void WeightAssigningHelper::assignArgWeights()
              Weight& edgeWeight = edge_it->getWeight();
              edgeWeight.addFactor(argNumFactor);
              edgeWeight.addFactor(argComplexityFactor);
+             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::ARG_NUM).getValue());
+             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::ARG_COMPLEXITY).getValue());
         }
     }
 }
@@ -456,6 +465,7 @@ void WeightAssigningHelper::assignRetValueWeights()
                 ++edge_it) {
             Weight& edgeWeight = edge_it->getWeight();
             edgeWeight.addFactor(factor);
+            m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::RET_COMPLEXITY).getValue());
         }
     }
 }
@@ -478,6 +488,24 @@ WeightAssigningHelper::collectFunctionCallSiteData()
         }
     }
     return callSiteData;
+}
+
+void WeightAssigningHelper::normalizeWeight()
+{
+    // TODO:
+//    Double minNonInfinityWeigth;
+//    Double maxNonInfinityWeight;
+//    for (const auto& weight : m_allWeights) {
+//        if (minNonInfinityWeigth > *weight && !weight->isNegInfinity()) {
+//            minNonInfinityWeigth = *weight;
+//        }
+//        if (maxNonInfinityWeight < *weight && !weight->isPosInfinity()) {
+//            maxNonInfinityWeight = *weight;
+//        }
+//    }
+//    for (const auto& weight : m_allWeights) {
+//        if (*weight > )
+//    }
 }
 
 /**********************************************************/

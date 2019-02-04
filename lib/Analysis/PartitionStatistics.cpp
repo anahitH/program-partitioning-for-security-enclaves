@@ -51,7 +51,7 @@ void PartitionStatistics::reportSecurityRelatedFunctions()
     std::vector<std::string> staticAnalysisFs;
     staticAnalysisFs.reserve(m_partition.getRelatedFunctions().size());
     std::transform(m_partition.getRelatedFunctions().begin(), m_partition.getRelatedFunctions().end(), std::back_inserter(staticAnalysisFs),
-            [] (const auto& pair) { return pair.first->getName().str() + std::to_string(pair.second);});
+            [] (const auto& pair) { return pair.first->getName().str() + "  " + std::to_string(pair.second);});
     write_entry({"program_partition", "security_related_functions"}, staticAnalysisFs);
     write_entry({"program_partition", "security_related_functions_size"}, (unsigned) staticAnalysisFs.size());
     double security_related_portion = (m_partition.getRelatedFunctions().size() * 100.0) / m_module.size();
@@ -96,16 +96,16 @@ void PartitionStatistics::reportGlobals()
 
 void PartitionStatistics::reportNumOfContextSwitches()
 {
-    int ctxSwitchN = 0;
+    Double ctxSwitchN;
     for (const auto& F : m_partition.getPartition()) {
         ctxSwitchN += getCtxSwitchesInFunction(F);
     }
-    write_entry({"program_partition", "context_switches"}, ctxSwitchN);
+    write_entry({"program_partition", "context_switches"}, (double) ctxSwitchN);
 }
 
 void PartitionStatistics::reportSizeOfTCB()
 {
-    int tcbSize = 0;
+    Double tcbSize = 0;
     for (const auto& F : m_partition.getPartition()) {
         if (!m_callgraph.hasFunctionNode(F)) {
             continue;
@@ -114,24 +114,24 @@ void PartitionStatistics::reportSizeOfTCB()
         if (!Fnode->getWeight().hasFactor(WeightFactor::SIZE)) {
             tcbSize += Utils::getFunctionSize(F);
         } else {
-            tcbSize += (int) Fnode->getWeight().getFactor(WeightFactor::SIZE).getValue();
+            tcbSize += Fnode->getWeight().getFactor(WeightFactor::SIZE).getValue();
         }
     }
-    write_entry({"program_partition", "TCB"}, tcbSize);
+    write_entry({"program_partition", "TCB"}, (double) tcbSize);
 }
 
 void PartitionStatistics::repotArgsPassedAccrossPartition()
 {
-    int argNum = 0;
+    Double argNum = 0;
     for (const auto& F : m_partition.getPartition()) {
         argNum += getArgNumPassedFromFunction(F);
     }
-    write_entry({"program_partition", "args_passed"}, argNum);
+    write_entry({"program_partition", "args_passed"}, (double) argNum);
 }
 
-int PartitionStatistics::getCtxSwitchesInFunction(llvm::Function* F)
+Double PartitionStatistics::getCtxSwitchesInFunction(llvm::Function* F)
 {
-    int ctxSwitchN = 0;
+    Double ctxSwitchN = 0;
     if (!m_callgraph.hasFunctionNode(F)) {
         return ctxSwitchN;
     }
@@ -140,22 +140,22 @@ int PartitionStatistics::getCtxSwitchesInFunction(llvm::Function* F)
         auto* sourceF = it->getSource()->getFunction();
         if (!m_partition.contains(sourceF)) {
             const auto& callNum = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-            ctxSwitchN += (int) callNum;
+            ctxSwitchN += callNum;
         }
     }
     for (auto it = Fnode->outEdgesBegin(); it != Fnode->outEdgesEnd(); ++it) {
         auto* sinkF = it->getSink()->getFunction();
         if (!m_partition.contains(sinkF)) {
             const auto& callNum = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-            ctxSwitchN += (int) callNum;
+            ctxSwitchN += callNum;
         }
     }
     return ctxSwitchN;
 }
 
-int PartitionStatistics::getArgNumPassedFromFunction(llvm::Function* F)
+Double PartitionStatistics::getArgNumPassedFromFunction(llvm::Function* F)
 {
-    int argNum = 0;
+    Double argNum = 0;
     if (!m_callgraph.hasFunctionNode(F)) {
         return argNum;
     }
@@ -165,8 +165,8 @@ int PartitionStatistics::getArgNumPassedFromFunction(llvm::Function* F)
         if (m_partition.contains(sourceF)) {
             continue;
         }
-        int callNum = (int) it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-        int argsPassed = (int) it->getWeight().getFactor(WeightFactor::ARG_NUM).getValue();
+        const auto& callNum = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
+        const auto& argsPassed = it->getWeight().getFactor(WeightFactor::ARG_NUM).getValue();
         argNum += callNum * argsPassed;
     }
     for (auto it = Fnode->outEdgesBegin(); it != Fnode->outEdgesEnd(); ++it) {
@@ -174,8 +174,8 @@ int PartitionStatistics::getArgNumPassedFromFunction(llvm::Function* F)
         if (m_partition.contains(sinkF)) {
             continue;
         }
-        int callNum = (int) it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
-        int argsPassed = (int) it->getWeight().getFactor(WeightFactor::ARG_NUM).getValue();
+        const auto& callNum = it->getWeight().getFactor(WeightFactor::CALL_NUM).getValue();
+        const auto& argsPassed = it->getWeight().getFactor(WeightFactor::ARG_NUM).getValue();
         argNum += callNum * argsPassed;
     }
     return argNum;

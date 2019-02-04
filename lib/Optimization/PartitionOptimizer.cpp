@@ -94,6 +94,10 @@ void PartitionOptimizer::apply()
     for (auto opt : m_optimizations) {
         opt->apply();
     }
+    for (auto* F : m_securePartition.getPartition()) {
+        m_insecurePartition.removeFromPartition(F);
+        m_securePartition.removeRelatedFunction(F);
+    }
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));

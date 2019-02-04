@@ -53,6 +53,8 @@ add_library(program_partitioning MODULE
         lib/Optimization/KLOptimizationPass.cpp
         lib/Optimization/ILPOptimization.cpp
         lib/Transforms/PartitionExtractor.cpp
+        lib/CodeGen/FileWriter.cpp
+        lib/CodeGen/ProtoFileWriter.cpp
 )
 
 add_library(debug-program_partitioning MODULE
