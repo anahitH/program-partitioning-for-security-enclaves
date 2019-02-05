@@ -19,6 +19,8 @@
 
 namespace vazgen {
 
+char ProtoGeneratorPass::ID = 0;
+
 void ProtoGeneratorPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 {
     AU.addRequired<ProgramPartitionAnalysis>();

@@ -15,8 +15,16 @@ public:
         std::string m_name;
         int m_number = 1;
     };
+
+    struct Enum
+    {
+        std::string m_name;
+        using Value = std::pair<std::string, int>;
+        std::vector<Value> m_values;
+    };
     
     using Fields = std::vector<Field>;
+    using Enums = std::vector<Enum>;
 
 public:
     ProtoMessage() = default;
@@ -46,6 +54,11 @@ public:
         return m_fields;
     }
 
+    const Enums& getEnums() const
+    {
+        return m_enums;
+    }
+
     void setName(const std::string& name)
     {
         m_name = name;
@@ -61,6 +74,16 @@ public:
         m_fields = std::move(fields);
     }
 
+    void setEnums(const Enums& enums)
+    {
+        m_enums = enums;
+    }
+
+    void setFields(Enums&& enums)
+    {
+        m_enums = std::move(enums);
+    }
+
     void addField(const Field& f)
     {
         m_fields.push_back(f);
@@ -71,10 +94,20 @@ public:
         m_fields.push_back(std::move(f));
     }
 
+    void addEnum(const Enum& e)
+    {
+        m_enums.push_back(e);
+    }
+
+    void addEnum(Enum&& e)
+    {
+        m_enums.push_back(std::move(e));
+    }
 
 private:
     std::string m_name;
     Fields m_fields;
+    Enums m_enums;
 }; // class ProtoMessage
 
 } // namespace vazgen

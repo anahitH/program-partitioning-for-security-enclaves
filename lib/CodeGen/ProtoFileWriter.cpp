@@ -58,6 +58,7 @@ void ProtoFileWriter::writeProtoMessage(const ProtoMessage& msg)
 {
     beginProtoMessage(msg);
     writeMessageFields(msg.getFields());
+    writeMessageEnums(msg.getEnums());
     endProtoMessage();
 }
 
@@ -81,6 +82,26 @@ void ProtoFileWriter::writeMessageField(const ProtoMessage::Field& field)
     m_writer.write(" = ");
     m_writer.write(field.m_number);
     m_writer.write(";");
+}
+
+void ProtoFileWriter::writeMessageEnums(const ProtoMessage::Enums& enums)
+{
+    for (const auto& en : enums) {
+        writeMessageEnum(en);
+    }
+}
+
+void ProtoFileWriter::writeMessageEnum(const ProtoMessage::Enum& enum_)
+{
+    m_writer.write("enum " + enum_.m_name + " {");
+    for (const auto& val : enum_.m_values) {
+        if (val.second == -1) {
+            m_writer.write(val.first + ";");
+        } else {
+            m_writer.write(val.first + " = " + std::to_string(val.second) + ";");
+        }
+    }
+    m_writer.write("}");
 }
 
 void ProtoFileWriter::endProtoMessage()
@@ -107,6 +128,10 @@ void ProtoFileWriter::beginProtoService(const ProtoService& service)
     m_writer.write("service " + service.getName() + " {");
 }
 
+void ProtoFileWriter::endProtoService()
+{
+    m_writer.write("}");
+}
 
 void ProtoFileWriter::writeServiceRpcs(const ProtoService::RPCs& rpcs)
 {

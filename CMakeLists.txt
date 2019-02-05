@@ -23,13 +23,68 @@ set (CP_LIB "libcp.a")
 # Needed to use dg
 add_definitions(-DHAVE_LLVM)
 add_definitions(-DENABLE_CFG)
+add_definitions(${LLVM_DEFINITIONS})
 find_package(Boost REQUIRED)
+
+set(LLVM_LINK_COMPONENTS support)
 
 #message("Boost" ${Boost_INCLUDE_DIRS})
 #message("aaa" ${pdg_FOUND})
 #message(STATUS "pdg_INCLUDE_DIR:= ${pdg_INCLUDE_DIRS}")
 #message(STATUS "pdg_LIBRARY:= ${pdg_LIBRARY}")
 #message(STATUS "pdg_LIBRARIES:= ${pdg_LIBRARIES}")
+
+add_executable(proto-file-gen
+                lib/ClangTools/ProtoFileGeneratorTool.cpp
+                lib/ClangTools/ProtoFileGenerator.cpp
+                lib/CodeGen/ProtoFileWriter.cpp
+                lib/CodeGen/FileWriter.cpp)
+
+target_include_directories(proto-file-gen PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LLVM_INCLUDE_DIRS}
+)
+
+#message ("llvm libs" ${LLVM_AVAILABLE_LIBS})
+target_link_libraries(proto-file-gen
+                      PRIVATE
+                      clangTooling
+                      clangDriver
+                      clangFrontend
+                      clangParse
+                      clangSerialization
+                      clangSema
+                      clangAST
+                      clangEdit
+                      clangLex
+                      clangBasic
+                      clangAnalysis
+                      #clangCodeGen
+                      #clangDynamicASTMatchers
+                      clangFormat
+                      #clangFrontendTool
+                      #clangHandleCXX
+                      #clangIndex
+                      #clangRewrite
+                      #clangRewriteFrontend
+                      #clangRewriteFrontend
+                      #clangStaticAnalyzerFrontend
+                      #clangStaticAnalyzerCheckers
+                      #clangStaticAnalyzerCore
+                      clangASTMatchers
+                      #clangToolingASTDiff
+                      clangToolingCore
+                      #clangToolingRefactor
+                      LLVMSupport
+                      LLVMCore
+                      LLVMMC
+                      LLVMCodeGen
+                      LLVMOption
+                      #${LLVM_AVAILABLE_LIBS}
+)
 
 add_library(program_partitioning MODULE
         lib/Utils/Annotation.cpp
@@ -127,4 +182,7 @@ target_compile_options(program_partitioning PRIVATE -fno-rtti -g -DIL_STD -DNDEB
 
 target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
+
+target_compile_features(proto-file-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
+target_compile_options(proto-file-gen PRIVATE -fno-rtti -g)
 

@@ -31,6 +31,8 @@ private:
     void beginProtoMessage(const ProtoMessage& msg);
     void writeMessageFields(const ProtoMessage::Fields& fields);
     void writeMessageField(const ProtoMessage::Field& fields);
+    void writeMessageEnums(const ProtoMessage::Enums& enums);
+    void writeMessageEnum(const ProtoMessage::Enum& enum_);
     void endProtoMessage();
 
     void writeProtoServices(const ProtoFile::Services& service);
