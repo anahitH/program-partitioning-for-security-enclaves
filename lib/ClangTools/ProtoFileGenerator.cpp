@@ -97,7 +97,7 @@ void ProtoFileGenerator::generateMessages()
 void ProtoFileGenerator::generateRPCMessages()
 {
     for (auto* F : m_functions) {
-        llvm::dbgs() << "Creating RPC message for function " << F->getName() << "\n";
+        //llvm::dbgs() << "Creating RPC message for function " << F->getName() << "\n";
         ProtoMessage msg(F->getName().str() + "_INPUT");
         for (unsigned i = 0; i < F->getNumParams(); ++i) {
             auto* paramDecl = F->getParamDecl(i);
@@ -105,7 +105,6 @@ void ProtoFileGenerator::generateRPCMessages()
         }
         m_functionInputMessages.insert(std::make_pair(F, msg));
         m_protoFile.addMessage(msg);
-        llvm::dbgs() << "created\n";
     }
 }
 
@@ -126,7 +125,6 @@ void ProtoFileGenerator::generateMessagesForFunction(clang::FunctionDecl* F)
     }
     for (unsigned i = 0; i < F->getNumParams(); ++i) {
         clang::QualType t = F->getParamDecl(i)->getType();
-        llvm::dbgs() << t.getCanonicalType().getAsString() << "\n";
         generateMessageForType(&*F->getParamDecl(i)->getType());
     }
 }
@@ -169,7 +167,7 @@ void ProtoFileGenerator::generateMessageForArrayType(const clang::Type* elementT
 
 void ProtoFileGenerator::generateMessageFields(const clang::Type* type, ProtoMessage& msg)
 {
-    llvm::dbgs() << "Create fields for " << msg.getName() << "\n";
+    //llvm::dbgs() << "Create fields for " << msg.getName() << "\n";
     const auto& structFields = m_structs.find(msg.getName());
     if (structFields == m_structs.end()) {
         msg.addField(ProtoMessage::Field{"struct", "type not found", "fill manually"});

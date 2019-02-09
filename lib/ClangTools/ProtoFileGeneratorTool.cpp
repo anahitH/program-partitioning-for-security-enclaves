@@ -30,6 +30,7 @@ std::unordered_set<std::string> parseFunctions(const std::string& fileName)
     return functions;
 }
 
+const std::string FILE_DELIM = "/";
 DeclarationMatcher functionMatcher = functionDecl().bind("functionDecl");
 DeclarationMatcher structMatcher = recordDecl().bind("recordDecl");
 DeclarationMatcher enumMatcher = enumDecl().bind("enumDecl");
@@ -38,11 +39,46 @@ static llvm::cl::OptionCategory ProtoFileGenTool("proto-gen options");
 static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp("\nMore help text...\n");
 static llvm::cl::opt<std::string> functionFile("functions", llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::list<std::string> Files("files", llvm::cl::OneOrMore, llvm::cl::cat(ProtoFileGenTool));
+
+class MatcherInFiles
+{
+public:
+    using Files = std::unordered_set<std::string>;
+
+public:
+    MatcherInFiles(const Files& files)
+        : m_files(files)
+    {
+    }
+
+protected:
+    bool isInFiles(const clang::SourceLocation& loc, const ASTContext* context)
+    {
+        const SourceManager &srcMgr = context->getSourceManager();
+        std::string src = srcMgr.getFilename(loc).str();
+        auto pos = src.find_last_of(FILE_DELIM);
+        if (pos != std::string::npos) {
+            src = src.substr(pos + 1);
+        }
+        return (m_files.find(src) != m_files.end());
+    }
+
+private:
+    const Files& m_files;
+};
 
 class StructFinder : public MatchFinder::MatchCallback
+                   , public MatcherInFiles
 {
 public:
     using Structs = ProtoFileGenerator::Structs;
+
+public:
+    StructFinder(const Files& files)
+        : MatcherInFiles(files)
+    {
+    }
 
 public:
     const Structs& getStructs() const
@@ -57,24 +93,18 @@ public:
         if (!decl) {
             return;
         }
-        SourceManager &srcMgr = Result.Context->getSourceManager();
-        const std::string src = srcMgr.getFilename(decl->getLocation()).str();
-        // TODO: check for files given to the tool
-        if (src != "/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/test/proto-generator/snake/snake.h") {
+        if (!isInFiles(decl->getLocation(), Result.Context)) {
             return;
         }
         if (!decl->isStruct()) {
             return;
         }
-        //llvm::dbgs() << "Record Decl " << *decl << "\n";
         ProtoFileGenerator::Struct decl_struct;
         std::string structName;
         auto* typedefdecl = decl->getTypedefNameForAnonDecl();
         if (typedefdecl) {
-            //llvm::dbgs() << "name at typedef " << *typedefdecl << "\n";
             structName = typedefdecl->getName();
         } else {
-            //llvm::dbgs() << "Is named here\n";
             structName = decl->getName();
         }
         decl_struct.m_name = structName;
@@ -93,9 +123,16 @@ private:
 };
 
 class EnumFinder : public MatchFinder::MatchCallback
+                 , public MatcherInFiles
 {
 public:
     using Enums = ProtoFileGenerator::Enums;
+
+public:
+    EnumFinder(const Files& files)
+        : MatcherInFiles(files)
+    {
+    }
 
 public:
     const Enums& getEnums() const
@@ -111,18 +148,14 @@ public:
         if (!decl) {
             return;
         }
-        SourceManager &srcMgr = Result.Context->getSourceManager();
-        const std::string src = srcMgr.getFilename(decl->getLocation()).str();
-        if (src != "/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/test/proto-generator/snake/snake.h") {
+        if (!isInFiles(decl->getLocation(), Result.Context)) {
             return;
         }
         auto* typedefdecl = decl->getTypedefNameForAnonDecl();
         std::string enumName;
         if (typedefdecl) {
-            llvm::dbgs() << "name at typedef " << *typedefdecl << "\n";
             enumName = typedefdecl->getName();
         } else {
-            llvm::dbgs() << "Is named here\n";
             enumName = decl->getName();
         }
         ProtoFileGenerator::Enum enumDecl;
@@ -174,15 +207,18 @@ private:
 
 int main(int argc, const char* argv[])
 {
-    std::cout << "Start\n";
     CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
     ClangTool Tool(OptionsParser.getCompilations(),
                  OptionsParser.getSourcePathList());
     const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
+    std::unordered_set<std::string> files;
+    for (const auto& F : vazgen::Files) {
+        files.insert(F);
+    }
 
     vazgen::FunctionFinder functionFinder(functions);
-    vazgen::StructFinder structFinder;
-    vazgen::EnumFinder enumFinder;
+    vazgen::StructFinder structFinder(files);
+    vazgen::EnumFinder enumFinder(files);
     //vazgen::TypedefFinder typedefFinder;
     MatchFinder matchFinder;
     matchFinder.addMatcher(vazgen::functionMatcher, &functionFinder);
