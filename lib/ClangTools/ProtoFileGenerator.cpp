@@ -10,21 +10,45 @@ namespace {
 
 std::string getEnumType(const clang::EnumType* type)
 {
-    auto* enumDecl = llvm::dyn_cast<clang::EnumDecl>(type->getDecl());
-    return enumDecl->getName();
+    return  type->getCanonicalTypeInternal().getAsString();
 }
 
 std::string getScalarType(const clang::Type* type)
 {
-    if (type->isSignedIntegerType()) {
-        return "int";
+    // The order is important
+    if (type->isCharType()) {
+        return "int32";
     }
-    if (type->isUnsignedIntegerType()) {
-        return "unsigned";
+    if (auto* builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
+        if (builtin->getKind() == clang::BuiltinType::Bool) {
+            return "bool";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Float) {
+            return "float";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Double) {
+            return "double";
+        }
+        if (builtin->getKind() == clang::BuiltinType::UInt) {
+            return "uint32";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Int) {
+            return "int32";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Long) {
+            return "int64";
+        }
+        if (builtin->getKind() == clang::BuiltinType::ULong) {
+            return "uint64";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Short) {
+            return "int32";
+        }
+        if (builtin->getKind() == clang::BuiltinType::UShort) {
+            return "uint32";
+        }
     }
-    if (type->isFloatingType()) {
-        return "float";
-    }
+    return "FILL";
 }
 
 std::string getMessageNameForType(const clang::Type* type)
@@ -32,10 +56,23 @@ std::string getMessageNameForType(const clang::Type* type)
     return type->getCanonicalTypeInternal().getAsString();
 }
 
+std::string getMessageNameForArrayType(const clang::Type* type)
+{
+    if (auto* arrayType = llvm::dyn_cast<clang::ArrayType>(type)) {
+        return getMessageNameForArrayType(&*arrayType->getElementType());
+    }
+    return getMessageNameForType(type)+"Array";
 }
 
-ProtoFileGenerator::ProtoFileGenerator(const Functions& functions, const std::string& protoName)
+}
+
+ProtoFileGenerator::ProtoFileGenerator(const Functions& functions,
+                                       const Structs& structs,
+                                       const Enums& enums,
+                                       const std::string& protoName)
     : m_functions(functions)
+    , m_structs(structs)
+    , m_enums(enums)
     , m_protoName(protoName)
 {
 }
@@ -60,13 +97,15 @@ void ProtoFileGenerator::generateMessages()
 void ProtoFileGenerator::generateRPCMessages()
 {
     for (auto* F : m_functions) {
-        ProtoMessage msg(F->getName());
+        llvm::dbgs() << "Creating RPC message for function " << F->getName() << "\n";
+        ProtoMessage msg(F->getName().str() + "_INPUT");
         for (unsigned i = 0; i < F->getNumParams(); ++i) {
             auto* paramDecl = F->getParamDecl(i);
             msg.addField(generateMessageField(&*paramDecl->getType(), paramDecl->getName(), (i+1)));
         }
         m_functionInputMessages.insert(std::make_pair(F, msg));
         m_protoFile.addMessage(msg);
+        llvm::dbgs() << "created\n";
     }
 }
 
@@ -81,7 +120,10 @@ void ProtoFileGenerator::generateService()
 
 void ProtoFileGenerator::generateMessagesForFunction(clang::FunctionDecl* F)
 {
-    generateMessageForType(&*F->getReturnType());
+    auto* returnType = &*F->getReturnType();
+    if (!returnType->isVoidType()) {
+        generateMessageForType(returnType);
+    }
     for (unsigned i = 0; i < F->getNumParams(); ++i) {
         clang::QualType t = F->getParamDecl(i)->getType();
         llvm::dbgs() << t.getCanonicalType().getAsString() << "\n";
@@ -91,9 +133,6 @@ void ProtoFileGenerator::generateMessagesForFunction(clang::FunctionDecl* F)
 
 void ProtoFileGenerator::generateMessageForType(const clang::Type* type)
 {
-    if (m_typeMessages.find(type) != m_typeMessages.end()) {
-        return;
-    }
     if (auto* ptrType = llvm::dyn_cast<clang::PointerType>(type)) {
         generateMessageForType(&*ptrType->getPointeeType());
     }
@@ -101,55 +140,64 @@ void ProtoFileGenerator::generateMessageForType(const clang::Type* type)
     if (type->isScalarType() || type->isArrayType()) {
         return;
     }
+    const auto& typeName = getMessageNameForType(type);
+    if (m_typeMessages.find(getMessageNameForType(type)) != m_typeMessages.end()) {
+        return;
+    }
     ProtoMessage msg;
-    msg.setName(getMessageNameForType(type));
+    msg.setName(typeName);
     generateMessageFields(type, msg);
-    m_typeMessages.insert(std::make_pair(type, msg));
+    m_typeMessages.insert(std::make_pair(typeName, msg));
+    m_protoFile.addMessage(msg);
+}
+
+void ProtoFileGenerator::generateMessageForArrayType(const clang::Type* elementType)
+{
+    if (auto* ptrType = llvm::dyn_cast<clang::PointerType>(elementType)) {
+        elementType = &*ptrType->getPointeeType();
+    }
+    ProtoMessage msg;
+    const std::string name = getMessageNameForArrayType(elementType);
+    if (m_typeMessages.find(name) != m_typeMessages.end()) {
+        return;
+    }
+    msg.setName(name);
+    msg.addField(generateMessageField(elementType, "element", 1));
+    m_typeMessages.insert(std::make_pair(name, msg));
     m_protoFile.addMessage(msg);
 }
 
 void ProtoFileGenerator::generateMessageFields(const clang::Type* type, ProtoMessage& msg)
 {
     llvm::dbgs() << "Create fields for " << msg.getName() << "\n";
-    clang::RecordDecl* recordDecl;
-    if (auto* elaboratedType = llvm::dyn_cast<clang::ElaboratedType>(type)) {
-        elaboratedType->getNamedType()->dump();
-        elaboratedType->desugar()->dump();
-        llvm::dbgs() << elaboratedType->getAsTagDecl()->getName() << "\n";
-        generateMessageFields(&*elaboratedType->getNamedType(), msg);
-    }
-    if (auto* recordType = llvm::dyn_cast<clang::RecordType>(type)) {
-        recordDecl = recordType->getDecl()->getDefinition();
-    } else if (type->isStructureType()) {
-        recordDecl = type->getAsStructureType()->getDecl();
-    } else {
+    const auto& structFields = m_structs.find(msg.getName());
+    if (structFields == m_structs.end()) {
+        msg.addField(ProtoMessage::Field{"struct", "type not found", "fill manually"});
         return;
     }
-    if (recordDecl->field_empty()) {
-        llvm::dbgs() << "bo\n";
-    }
     int i  = 0;
-    for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); ++it) {
-        const std::string& fieldName = it->getName().str();
-        if (it->getType()->isEnumeralType()) {
-            msg.addEnum(generateMessageEnum(&*it->getType()));
+    for (const auto& field : structFields->second.m_fields) {
+        const std::string& fieldName = field.m_name;
+        if (field.m_type->isEnumeralType()) {
+            msg.addEnum(generateMessageEnum(&*field.m_type));
         }
-        msg.addField(generateMessageField(&*it->getType(), fieldName, ++i));
+        msg.addField(generateMessageField(&*field.m_type, fieldName, ++i));
     }
 }
 
 ProtoMessage::Enum ProtoFileGenerator::generateMessageEnum(const clang::Type* type)
 {
-    auto* enumType = llvm::dyn_cast<clang::EnumType>(type);
-    auto* enumDecl = llvm::dyn_cast<clang::EnumDecl>(enumType->getDecl());
     ProtoMessage::Enum msgEnum;
-    msgEnum.m_name = enumDecl->getName();
-    for (auto it = enumDecl->enumerator_begin(); it != enumDecl->enumerator_end(); ++it) {
-        if (it->getInitExpr()) {
-            msgEnum.m_values.push_back(std::make_pair(it->getName(), it->getInitVal().getExtValue()));
-        } else {
-            msgEnum.m_values.push_back(std::make_pair(it->getName(), -1));
-        }
+    const std::string& enumName = getMessageNameForType(type);
+    const auto& enum_pos = m_enums.find(enumName);
+    if (enum_pos == m_enums.end()) {
+        msgEnum.m_name = "FILL IN";
+        return msgEnum;
+    }
+    msgEnum.m_name = enumName; //enumDecl->getName();
+    const auto& enumEntries = enum_pos->second.m_entries;
+    for (const auto& entry : enumEntries) {
+        msgEnum.m_values.push_back(std::make_pair(entry.m_name, entry.m_value));
     }
     return msgEnum;
 }
@@ -159,29 +207,41 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
     if (auto* ptrType = llvm::dyn_cast<clang::PointerType>(type)) {
         return generateMessageField(&*ptrType->getPointeeType(), name, fieldNum);
     }
+    if (auto* decayedType = llvm::dyn_cast<clang::DecayedType>(type)) {
+        return generateMessageField(&*decayedType->getOriginalType(), name, fieldNum);
+    }
+
     ProtoMessage::Field field;
     field.m_number = fieldNum;
     field.m_name = name;
+
+    if (type->isEnumeralType()) {
+        field.m_type = getMessageNameForType(type);
+        return field;
+    }
     if (type->isScalarType()) {
         field.m_type = getScalarType(type);
         return field;
     }
-    if (type->isEnumeralType()) {
-        field.m_attribute = "FILL ENUM";
-        field.m_type = getEnumType(llvm::dyn_cast<clang::EnumType>(type));
-        return field;
-    }
     if (auto* arrayType = llvm::dyn_cast<clang::ArrayType>(type)) {
+        auto* elementType = &*arrayType->getElementType();
+        if (elementType->isArrayType()) {
+            generateMessageForArrayType(elementType);
+            auto pos = m_typeMessages.find(getMessageNameForArrayType(elementType));
+            field.m_attribute = "repeated";
+            field.m_type = pos->second.getName();
+            return field;
+        }
         field = generateMessageField(&*arrayType->getElementType(), name, fieldNum);
         field.m_attribute = "repeated";
         return field;
     }
     // Composite types left
-    auto pos = m_typeMessages.find(type);
-    if (pos == m_typeMessages.find(type)) {
+    auto pos = m_typeMessages.find(getMessageNameForType(type));
+    if (pos == m_typeMessages.end()) {
         generateMessageForType(type);
+        pos = m_typeMessages.find(getMessageNameForType(type));
     }
-    pos = m_typeMessages.find(type);
     field.m_type = pos->second.getName();
     return field;
 }
@@ -191,11 +251,17 @@ ProtoService::RPC ProtoFileGenerator::generateRPC(const clang::FunctionDecl* F)
     ProtoService::RPC rpc;
     rpc.m_name = F->getName();
     rpc.m_input = m_functionInputMessages.find(F)->second;
+
+    ProtoMessage outputMsg;
+    outputMsg.setName(rpc.m_name + "_OUT");
+    // In ideal case will add only fields wich where pointer types
+    outputMsg.setFields(rpc.m_input.getFields());
+    outputMsg.setEnums(rpc.m_input.getEnums());
     auto* returnType = &*F->getReturnType();
-    if (auto* arrayType = llvm::dyn_cast<clang::ArrayType>(returnType)) {
-        returnType = &*arrayType->getElementType();
+    if (!returnType->isVoidType()) {
+        outputMsg.addField(generateMessageField(returnType, "returnVal", outputMsg.getFields().size()));
     }
-    rpc.m_output = m_typeMessages.find(returnType)->second;
+    rpc.m_output = outputMsg;
     return rpc;
 }
 

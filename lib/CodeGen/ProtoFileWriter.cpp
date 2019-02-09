@@ -1,5 +1,7 @@
 #include "CodeGen/ProtoFileWriter.h"
 
+#include <sstream>
+
 namespace vazgen {
 
 ProtoFileWriter::ProtoFileWriter(const std::string& name,
@@ -57,14 +59,14 @@ void ProtoFileWriter::writeProtoMessages(const ProtoFile::Messages& msgs)
 void ProtoFileWriter::writeProtoMessage(const ProtoMessage& msg)
 {
     beginProtoMessage(msg);
-    writeMessageFields(msg.getFields());
     writeMessageEnums(msg.getEnums());
+    writeMessageFields(msg.getFields());
     endProtoMessage();
 }
 
 void ProtoFileWriter::beginProtoMessage(const ProtoMessage& msg)
 {
-    m_writer.write("message " + msg.getName() + " {\n");
+    m_writer.write("message " + msg.getName() + " {");
 }
 
 void ProtoFileWriter::writeMessageFields(const ProtoMessage::Fields& fields)
@@ -76,12 +78,12 @@ void ProtoFileWriter::writeMessageFields(const ProtoMessage::Fields& fields)
 
 void ProtoFileWriter::writeMessageField(const ProtoMessage::Field& field)
 {
-    m_writer.write(field.m_attribute + " ");
-    m_writer.write(field.m_type + " ");
-    m_writer.write(field.m_name + " ");
-    m_writer.write(" = ");
-    m_writer.write(field.m_number);
-    m_writer.write(";");
+    std::stringstream strStrm;
+    strStrm << field.m_attribute << " "
+            << field.m_type << " "
+            << field.m_name << " "
+            << "=" << field.m_number << ";";
+    m_writer.write(strStrm.str());
 }
 
 void ProtoFileWriter::writeMessageEnums(const ProtoMessage::Enums& enums)
@@ -93,6 +95,7 @@ void ProtoFileWriter::writeMessageEnums(const ProtoMessage::Enums& enums)
 
 void ProtoFileWriter::writeMessageEnum(const ProtoMessage::Enum& enum_)
 {
+    std::stringstream strStrm;
     m_writer.write("enum " + enum_.m_name + " {");
     for (const auto& val : enum_.m_values) {
         if (val.second == -1) {
@@ -106,7 +109,7 @@ void ProtoFileWriter::writeMessageEnum(const ProtoMessage::Enum& enum_)
 
 void ProtoFileWriter::endProtoMessage()
 {
-    m_writer.write("}");
+    m_writer.write("}\n");
 }
 
 void ProtoFileWriter::writeProtoServices(const ProtoFile::Services& services)
@@ -142,10 +145,11 @@ void ProtoFileWriter::writeServiceRpcs(const ProtoService::RPCs& rpcs)
 
 void ProtoFileWriter::writeServiceRpc(const ProtoService::RPC& rpc)
 {
-    m_writer.write("rpc ");
-    m_writer.write(rpc.m_name + " ");
-    m_writer.write("(" + rpc.m_input.getName() + ") ");
-    m_writer.write("return (" + rpc.m_output.getName() + ") {}");
+    std::stringstream strStrm;
+    strStrm << "rpc " << rpc.m_name << "( "
+            << rpc.m_input.getName() << ") "
+            << " returns (" << rpc.m_output.getName() << ") {}";
+    m_writer.write(strStrm.str());
 }
 
 } // namespace vazgen
