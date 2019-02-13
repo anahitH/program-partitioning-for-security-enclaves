@@ -178,7 +178,7 @@ if ($ENV{CLION_IDE})
 endif ()
 
 target_compile_features(program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
-target_compile_options(program_partitioning PRIVATE -fno-rtti -g -DIL_STD -DNDEBUG)
+target_compile_options(program_partitioning PRIVATE -fno-rtti -g -DIL_STD) #-DNDEBUG)
 
 target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)

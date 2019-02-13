@@ -82,8 +82,9 @@ protected:
     virtual bool canPartition() const = 0;
     virtual void traverse() = 0;
 
-    int getFunctionLevel(pdg::PDGLLVMNode* node);
-    int getFunctionLevel(llvm::Function* F);
+    void updateFunctionLevel(llvm::Function* currentF, llvm::Function* newF);
+    void addRelatedFunction(llvm::Function* F);
+    bool processNode(pdg::FunctionPDG::PDGNodeTy node) const;
 
 protected:
     llvm::Module& m_module;
@@ -91,6 +92,8 @@ protected:
     PDGType m_pdg;
     Partition m_partition;
     Logger& m_logger;
+    using FunctionLevels = std::unordered_map<llvm::Function*, int>;
+    FunctionLevels m_functionLevels;
 }; // PartitionForAnnotation
 
 /// Implementation of ProgramPartition for annotated function
@@ -133,6 +136,7 @@ private:
     virtual void traverse() final;
 
     void traverseForArgument(llvm::Argument* arg);
+
     template <typename Container>
     void traverseForward(pdg::FunctionPDG::PDGNodeTy formalArgNode, Container& result);
 
@@ -202,45 +206,43 @@ Partition PartitionForAnnotation::partition()
     return m_partition;
 }
 
-int PartitionForAnnotation::getFunctionLevel(pdg::PDGLLVMNode* node)
+void PartitionForAnnotation::updateFunctionLevel(llvm::Function* currentF, llvm::Function* newF)
 {
-    if (!node) {
-        return -1;
+    if (!newF) {
+        //m_logger.error("New function is null");
+        return;
     }
-    if (!node->getNodeValue()) {
-        return -1;
+    if (!currentF) {
+        //m_logger.error("Current function is null");
+        return;
     }
-    llvm::Function* F = nullptr;
-
-    if (auto* instr = llvm::dyn_cast<llvm::Instruction>(node->getNodeValue())) {
-        F = instr->getFunction();
-    } else if (auto* block = llvm::dyn_cast<llvm::BasicBlock>(node->getNodeValue())) {
-        F = block->getParent();
+    auto pos = m_functionLevels.find(currentF);
+    if (pos == m_functionLevels.end()) {
+        m_logger.error("No entry for current parent " + currentF->getName().str());
+        return;
     }
-    if (!F) {
-        return -1;
+    int level = (newF == currentF) ? pos->second : pos->second + 1;
+    auto [insert_pos, inserted] = m_functionLevels.insert(std::make_pair(newF, level));
+    if (!inserted) {
+        insert_pos->second = std::min(level, insert_pos->second);
     }
-    if (m_partition.contains(F)) {
-        return 0;
-    }
-    int level = m_partition.getFunctionRelationLevel(F);
-    if (level < 0) {
-        m_logger.error("Function " + F->getName().str() + " is not added to partition related functions");
-        return level;
-    }
-    return level;
 }
 
-int PartitionForAnnotation::getFunctionLevel(llvm::Function* F)
+void PartitionForAnnotation::addRelatedFunction(llvm::Function* F)
 {
-    if (m_partition.contains(F)) {
-        return 0;
+    auto level = m_functionLevels.find(F);
+    if (level == m_functionLevels.end()) {
+        m_logger.error("No level for function " + F->getName().str());
+        assert(false);
+    } else {
+        m_partition.addRelatedFunction(F, level->second);
     }
-    int level = m_partition.getFunctionRelationLevel(F);
-    if (level < 0) {
-        m_logger.error("Function " + F->getName().str() + " is not added to partition related functions");
-    }
-    return level;
+}
+
+bool PartitionForAnnotation::processNode(pdg::FunctionPDG::PDGNodeTy node) const
+{
+    return !llvm::isa<pdg::PDGLLVMConstantNode>(node.get())
+        && !llvm::isa<pdg::PDGNullNode>(node.get());
 }
 
 bool PartitionForArguments::canPartition() const
@@ -286,21 +288,21 @@ void PartitionForArguments::traverseForArgument(llvm::Argument* arg)
     std::list<pdg::FunctionPDG::PDGNodeTy> backwardWorkingList;
     auto formalArgNode = Fpdg->getFormalArgNode(arg);
     traverseForward(formalArgNode, backwardWorkingList);
-
     traverseBackward(backwardWorkingList);
 }
 
 template <typename Container>
-void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalArgNode, Container& result)
+void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalArgNode,
+                                            Container& result)
 {
     auto Fpdg = m_pdg->getFunctionPDG(m_annotation.getFunction());
+    m_functionLevels.insert(std::make_pair(formalArgNode->getParent(), 0));
     std::list<pdg::FunctionPDG::PDGNodeTy> forwardWorkingList;
     std::unordered_set<llvm::Value*> processed_values;
     forwardWorkingList.push_back(formalArgNode);
-    pdg::PDGNode* prevNode = nullptr;
     pdg::PDGNode* currentNode = nullptr;
+
     while (!forwardWorkingList.empty()) {
-        prevNode = currentNode;
         currentNode = forwardWorkingList.back().get();
         forwardWorkingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
@@ -324,13 +326,7 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
                 if (F == m_annotation.getFunction()) {
                     continue;
                 }
-                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
-                if (level >= 0) {
-                    m_partition.addRelatedFunction(F, level + 1);
-                } else {
-                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
-                }
-
+                addRelatedFunction(F);
             }
             // Stop traversal here
             // TODO: should we stop here or continue for other function calls?
@@ -346,10 +342,16 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
                 result.push_back(Fpdg->getNode(valueOp));
             }
         }
+        auto* currentParent = currentNode->getParent();
         for (auto out_it = currentNode->outEdgesBegin();
                 out_it != currentNode->outEdgesEnd();
                 ++out_it) {
-            forwardWorkingList.push_front((*out_it)->getDestination());
+            auto destNode = (*out_it)->getDestination();
+            if (!processNode(destNode)) {
+                continue;
+            }
+            forwardWorkingList.push_front(destNode);
+            updateFunctionLevel(currentParent, destNode->getParent());
         }
     }
 }
@@ -358,10 +360,8 @@ template <typename Container>
 void PartitionForArguments::traverseBackward(Container& workingList)
 {
     std::unordered_set<llvm::Value*> processed_values;
-    pdg::PDGNode* prevNode = nullptr;
     pdg::PDGNode* currentNode = nullptr;
     while (!workingList.empty()) {
-        prevNode = currentNode;
         currentNode = workingList.back().get();
         workingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
@@ -385,21 +385,22 @@ void PartitionForArguments::traverseBackward(Container& workingList)
                 continue;
             }
             if (!F->isDeclaration()) {
-                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
-                if (level >= 0) {
-                    m_partition.addRelatedFunction(F, level + 1);
-                } else {
-                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
-                }
-
+                addRelatedFunction(F);
             }
             // Stop traversal here
             continue;
         }
+        auto* currentParent = currentNode->getParent();
         for (auto in_it = currentNode->inEdgesBegin();
                 in_it != currentNode->inEdgesEnd();
                 ++in_it) {
-            workingList.push_front((*in_it)->getSource());
+            auto sourceNode = (*in_it)->getSource();
+            if (!processNode(sourceNode)) {
+                continue;
+            }
+            //llvm::dbgs() << "source node " << sourceNode->getNodeAsString() << "\n";
+            workingList.push_front(sourceNode);
+            updateFunctionLevel(currentParent, sourceNode->getParent());
         }
     }
 }
@@ -414,6 +415,7 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
     }
     const int argIdx = actualArgNode.getArgIndex();
 
+    llvm::Function* currentF = actualArgNode.getParent();
     for (auto it = actualArgNode.outEdgesBegin(); it != actualArgNode.outEdgesEnd(); ++it) {
         auto destNode = (*it)->getDestination();
         if (auto* formalArgNode = llvm::dyn_cast<pdg::PDGLLVMFormalArgumentNode>(destNode.get())) {
@@ -422,13 +424,8 @@ void PartitionForArguments::collectNodesForActualArg(pdg::PDGLLVMActualArgumentN
                 continue;
             }
             if (!F->isDeclaration()) {
-                int level = getFunctionLevel(actualArgNode.getCallSite().getCaller());
-                if (level >= 0) {
-                    m_partition.addRelatedFunction(F, level + 1);
-                } else {
-                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
-                }
-
+                updateFunctionLevel(currentF, F);
+                addRelatedFunction(F);
             }
             forwardWorkingList.push_front(destNode);
         }
@@ -455,6 +452,7 @@ void PartitionForReturnValue::traverse()
     m_logger.info("Partitioning for sensitive return values");
     // TODO: do we need to include new functions in the curse of backward traversal?
     llvm::Function* F = m_annotation.getFunction();
+    m_functionLevels.insert(std::make_pair(F, 0));
     auto Fpdg = m_pdg->getFunctionPDG(F);
     m_partition.addToPartition(F);
 
@@ -462,10 +460,8 @@ void PartitionForReturnValue::traverse()
     collectFunctionReturnNodes(F, *Fpdg, workingList);
     std::unordered_set<llvm::Value*> processed_values;
 
-    pdg::PDGNode* prevNode = nullptr;
     pdg::PDGNode* currentNode = nullptr;
     while (!workingList.empty()) {
-        prevNode = currentNode;
         currentNode = workingList.back().get();
         workingList.pop_back();
         auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
@@ -486,19 +482,20 @@ void PartitionForReturnValue::traverse()
                 continue;
             }
             if (!F->isDeclaration()) {
-                int level = prevNode ? getFunctionLevel(llvm::dyn_cast<pdg::PDGLLVMNode>(prevNode)) : 0;
-                if (level >= 0) {
-                    m_partition.addRelatedFunction(F, level + 1);
-                } else {
-                    m_logger.error("Negative level for " + F->getName().str() + ". Does not add to partition related functions");
-                }
+                addRelatedFunction(F);
             }
             continue;
         }
+        auto* currentParent = currentNode->getParent();
         for (auto in_it = currentNode->inEdgesBegin();
                 in_it != currentNode->inEdgesEnd();
                 ++in_it) {
-            workingList.push_front((*in_it)->getSource());
+            auto sourceNode = (*in_it)->getSource();
+            if (!processNode(sourceNode)) {
+                continue;
+            }
+            workingList.push_front(sourceNode);
+            updateFunctionLevel(currentParent, sourceNode->getParent());
         }
     }
 }
