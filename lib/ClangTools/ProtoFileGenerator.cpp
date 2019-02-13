@@ -48,11 +48,21 @@ std::string getScalarType(const clang::Type* type)
             return "uint32";
         }
     }
+    if (auto* typedefType = llvm::dyn_cast<clang::TypedefType>(type)) {
+        auto* decl = typedefType->getDecl();
+        return getScalarType(&*decl->getUnderlyingType());
+    }
     return "FILL";
 }
 
 std::string getMessageNameForType(const clang::Type* type)
 {
+    if (auto* typedefType = llvm::dyn_cast<clang::TypedefType>(type)) {
+        return type->getCanonicalTypeInternal().getAsString();
+    }
+    if (auto* recordType = type->getAsStructureType()) {
+        return recordType->getDecl()->getName();
+    }
     return type->getCanonicalTypeInternal().getAsString();
 }
 
@@ -139,7 +149,7 @@ void ProtoFileGenerator::generateMessageForType(const clang::Type* type)
         return;
     }
     const auto& typeName = getMessageNameForType(type);
-    if (m_typeMessages.find(getMessageNameForType(type)) != m_typeMessages.end()) {
+    if (m_typeMessages.find(typeName) != m_typeMessages.end()) {
         return;
     }
     ProtoMessage msg;
@@ -211,14 +221,15 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
 
     ProtoMessage::Field field;
     field.m_number = fieldNum;
-    field.m_name = name;
 
     if (type->isEnumeralType()) {
         field.m_type = getMessageNameForType(type);
+        field.m_name = name == field.m_type ? name + "_var" : name;
         return field;
     }
     if (type->isScalarType()) {
         field.m_type = getScalarType(type);
+        field.m_name = name == field.m_type ? name + "_var" : name;
         return field;
     }
     if (auto* arrayType = llvm::dyn_cast<clang::ArrayType>(type)) {
@@ -228,9 +239,10 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
             auto pos = m_typeMessages.find(getMessageNameForArrayType(elementType));
             field.m_attribute = "repeated";
             field.m_type = pos->second.getName();
+            field.m_name = name == field.m_type ? name + "_var" : name;
             return field;
         }
-        field = generateMessageField(&*arrayType->getElementType(), name, fieldNum);
+        field = generateMessageField(elementType, name, fieldNum);
         field.m_attribute = "repeated";
         return field;
     }
@@ -241,6 +253,7 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
         pos = m_typeMessages.find(getMessageNameForType(type));
     }
     field.m_type = pos->second.getName();
+    field.m_name = name == field.m_type ? name + "_var" : name;
     return field;
 }
 
@@ -259,6 +272,7 @@ ProtoService::RPC ProtoFileGenerator::generateRPC(const clang::FunctionDecl* F)
     if (!returnType->isVoidType()) {
         outputMsg.addField(generateMessageField(returnType, "returnVal", outputMsg.getFields().size()));
     }
+    m_protoFile.addMessage(outputMsg);
     rpc.m_output = outputMsg;
     return rpc;
 }

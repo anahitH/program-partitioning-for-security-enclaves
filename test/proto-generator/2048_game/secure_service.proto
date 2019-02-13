@@ -1,0 +1,81 @@
+syntax = "proto3";
+package secure_service;
+message intArray {
+repeated int32 element =1;
+}
+
+message game {
+ int32 turns =1;
+ int32 score =2;
+repeated intArray board =3;
+}
+
+message move_down_INPUT {
+ game game_var =1;
+}
+
+message deflate_left_INPUT {
+repeated int32 row =1;
+}
+
+message rotate_clockwise_INPUT {
+ game game_var =1;
+}
+
+message combine_left_INPUT {
+ game game_var =1;
+repeated int32 row =2;
+}
+
+message move_up_INPUT {
+ game game_var =1;
+}
+
+message move_left_INPUT {
+ game game_var =1;
+}
+
+message move_right_INPUT {
+ game game_var =1;
+}
+
+message move_down_OUT {
+ game game_var =1;
+}
+
+message deflate_left_OUT {
+repeated int32 row =1;
+ int32 returnVal =1;
+}
+
+message rotate_clockwise_OUT {
+ game game_var =1;
+}
+
+message combine_left_OUT {
+ game game_var =1;
+repeated int32 row =2;
+ int32 returnVal =2;
+}
+
+message move_up_OUT {
+ game game_var =1;
+}
+
+message move_left_OUT {
+ game game_var =1;
+}
+
+message move_right_OUT {
+ game game_var =1;
+}
+
+service secure_service {
+rpc move_down( move_down_INPUT)  returns (move_down_OUT) {}
+rpc deflate_left( deflate_left_INPUT)  returns (deflate_left_OUT) {}
+rpc rotate_clockwise( rotate_clockwise_INPUT)  returns (rotate_clockwise_OUT) {}
+rpc combine_left( combine_left_INPUT)  returns (combine_left_OUT) {}
+rpc move_up( move_up_INPUT)  returns (move_up_OUT) {}
+rpc move_left( move_left_INPUT)  returns (move_left_OUT) {}
+rpc move_right( move_right_INPUT)  returns (move_right_OUT) {}
+}

@@ -39,7 +39,7 @@ static llvm::cl::OptionCategory ProtoFileGenTool("proto-gen options");
 static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp("\nMore help text...\n");
 static llvm::cl::opt<std::string> functionFile("functions", llvm::cl::cat(ProtoFileGenTool));
-static llvm::cl::list<std::string> Files("files", llvm::cl::OneOrMore, llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::list<std::string> Files("files", llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
 
 class MatcherInFiles
 {
@@ -55,6 +55,9 @@ public:
 protected:
     bool isInFiles(const clang::SourceLocation& loc, const ASTContext* context)
     {
+        if (m_files.empty()) {
+            return true;
+        }
         const SourceManager &srcMgr = context->getSourceManager();
         std::string src = srcMgr.getFilename(loc).str();
         auto pos = src.find_last_of(FILE_DELIM);
@@ -108,12 +111,12 @@ public:
             structName = decl->getName();
         }
         decl_struct.m_name = structName;
+        //llvm::dbgs() << "Found struct " << structName << "\n";
         auto* structDecl = llvm::dyn_cast<RecordDecl>(decl);
         for (auto it = structDecl->field_begin(); it != structDecl->field_end(); ++it) {
             ProtoFileGenerator::Struct::Field field = {&*it->getType(), it->getName().str()};
             decl_struct.m_fields.push_back(field);
-            //const std::string& fieldName = it->getName().str();
-            //llvm::dbgs() << "Field " << fieldName << "\n";
+            const std::string& fieldName = it->getName().str();
         }
         m_structs.insert(std::make_pair(structName, decl_struct));
     }
