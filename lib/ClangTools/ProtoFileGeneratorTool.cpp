@@ -114,9 +114,10 @@ public:
         //llvm::dbgs() << "Found struct " << structName << "\n";
         auto* structDecl = llvm::dyn_cast<RecordDecl>(decl);
         for (auto it = structDecl->field_begin(); it != structDecl->field_end(); ++it) {
-            ProtoFileGenerator::Struct::Field field = {&*it->getType(), it->getName().str()};
-            decl_struct.m_fields.push_back(field);
             const std::string& fieldName = it->getName().str();
+            ProtoFileGenerator::Struct::Field field = {&*it->getType(), fieldName};
+            decl_struct.m_fields.push_back(field);
+            //llvm::dbgs() << "   Field: " << fieldName << "\n";
         }
         m_structs.insert(std::make_pair(structName, decl_struct));
     }
@@ -196,12 +197,17 @@ public:
             return;
         }
         if (m_functions.find(decl->getNameInfo().getName().getAsString()) != m_functions.end()) {
+            if (!decl->isThisDeclarationADefinition()) {
+                return;
+            }
+            m_functions.erase(decl->getNameInfo().getName().getAsString());
+            const auto& loc = decl->getLocation();
             m_foundFunctions.insert(decl);
         }
     }
 
 private:
-    const std::unordered_set<std::string>& m_functions;
+    std::unordered_set<std::string> m_functions;
     std::unordered_set<const FunctionDecl*> m_foundFunctions;
 }; // class FunctionFinder
 
@@ -211,32 +217,39 @@ private:
 int main(int argc, const char* argv[])
 {
     CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
-    ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getSourcePathList());
-    const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
-    std::unordered_set<std::string> files;
-    for (const auto& F : vazgen::Files) {
-        files.insert(F);
+    vazgen::ProtoFileGenerator protoFileGen;
+    protoFileGen.setProtoName("secure_service");
+    for (const auto& srcFile : OptionsParser.getSourcePathList()) {
+        ClangTool Tool(OptionsParser.getCompilations(),
+                       {srcFile});
+        const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
+        std::unordered_set<std::string> files;
+        for (const auto& F : vazgen::Files) {
+            files.insert(F);
+        }
+
+        vazgen::FunctionFinder functionFinder(functions);
+        vazgen::StructFinder structFinder(files);
+        vazgen::EnumFinder enumFinder(files);
+        //vazgen::TypedefFinder typedefFinder;
+        MatchFinder matchFinder;
+        matchFinder.addMatcher(vazgen::functionMatcher, &functionFinder);
+        matchFinder.addMatcher(vazgen::structMatcher, &structFinder);
+        matchFinder.addMatcher(vazgen::enumMatcher, &enumFinder);
+        //matchFinder.addMatcher(vazgen::typedefMatcher, &typedefFinder);
+
+        Tool.run(newFrontendActionFactory(&matchFinder).get());
+
+
+        const auto& functionDecls = functionFinder.getFunctions();
+        const auto& structs = structFinder.getStructs();
+        const auto& enums = enumFinder.getEnums();
+        protoFileGen.setFunctions(functionDecls);
+        protoFileGen.setStructs(structs);
+        protoFileGen.setEnums(enums);
+        //vazgen::ProtoFileGenerator protoFileGen(functionDecls, structs, enums, "secure_service");
+        protoFileGen.generate();
     }
-
-    vazgen::FunctionFinder functionFinder(functions);
-    vazgen::StructFinder structFinder(files);
-    vazgen::EnumFinder enumFinder(files);
-    //vazgen::TypedefFinder typedefFinder;
-    MatchFinder matchFinder;
-    matchFinder.addMatcher(vazgen::functionMatcher, &functionFinder);
-    matchFinder.addMatcher(vazgen::structMatcher, &structFinder);
-    matchFinder.addMatcher(vazgen::enumMatcher, &enumFinder);
-    //matchFinder.addMatcher(vazgen::typedefMatcher, &typedefFinder);
-
-    Tool.run(newFrontendActionFactory(&matchFinder).get());
-
-
-    const auto& functionDecls = functionFinder.getFunctions();
-    const auto& structs = structFinder.getStructs();
-    const auto& enums = enumFinder.getEnums();
-    vazgen::ProtoFileGenerator protoFileGen(functionDecls, structs, enums, "secure_service");
-    protoFileGen.generate();
 
     vazgen::ProtoFileWriter protoWriter("secure_service.proto", protoFileGen.getProtoFile());
     protoWriter.write();

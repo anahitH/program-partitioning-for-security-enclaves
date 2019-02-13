@@ -43,6 +43,7 @@ public:
     using Functions = std::unordered_set<const clang::FunctionDecl*>;
 
 public:
+    ProtoFileGenerator() = default;
     ProtoFileGenerator(const Functions& function,
                        const Structs& structs,
                        const Enums& enums,
@@ -54,6 +55,26 @@ public:
     ProtoFileGenerator& operator =(ProtoFileGenerator&& ) = delete;
 
 public:
+    void setFunctions(const Functions& functions)
+    {
+        m_functions = functions;
+    }
+
+    void setStructs(const Structs& structs)
+    {
+        m_structs = structs;
+    }
+
+    void setEnums(const Enums& enums)
+    {
+        m_enums = enums;
+    }
+
+    void setProtoName(const std::string& protoName)
+    {
+        m_protoName = protoName;
+    }
+
     void generate();
 
     const ProtoFile& getProtoFile() const
@@ -77,7 +98,7 @@ private:
     Functions m_functions;
     Structs m_structs;
     Enums m_enums;
-    const std::string& m_protoName;
+    std::string m_protoName;
     ProtoFile m_protoFile;
     std::unordered_map<std::string, ProtoMessage> m_typeMessages;
     std::unordered_map<const clang::FunctionDecl*, ProtoMessage> m_functionInputMessages;

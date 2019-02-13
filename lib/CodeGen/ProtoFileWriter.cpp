@@ -114,7 +114,7 @@ void ProtoFileWriter::endProtoMessage()
 
 void ProtoFileWriter::writeProtoServices(const ProtoFile::Services& services)
 {
-    for (const auto& service : services) {
+    for (const auto& [name, service] : services) {
         writeProtoService(service);
     }
 }

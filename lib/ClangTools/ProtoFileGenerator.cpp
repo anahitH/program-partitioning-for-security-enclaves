@@ -120,15 +120,19 @@ void ProtoFileGenerator::generateRPCMessages()
 
 void ProtoFileGenerator::generateService()
 {
-    ProtoService service(m_protoName);
+    if (!m_protoFile.hasService(m_protoName)) {
+        m_protoFile.addService(ProtoService(m_protoName));
+    }
+    ProtoService& service = m_protoFile.getService(m_protoName); 
     for (auto* F : m_functions) {
         service.addRPC(generateRPC(F));
     }
-    m_protoFile.addService(service);
+    //m_protoFile.addService(service);
 }
 
 void ProtoFileGenerator::generateMessagesForFunction(clang::FunctionDecl* F)
 {
+    //llvm::dbgs() << "Create Message for function " << F->getName() << "\n";
     auto* returnType = &*F->getReturnType();
     if (!returnType->isVoidType()) {
         generateMessageForType(returnType);
@@ -186,6 +190,7 @@ void ProtoFileGenerator::generateMessageFields(const clang::Type* type, ProtoMes
     int i  = 0;
     for (const auto& field : structFields->second.m_fields) {
         const std::string& fieldName = field.m_name;
+        field.m_type->dump();
         if (field.m_type->isEnumeralType()) {
             msg.addEnum(generateMessageEnum(&*field.m_type));
         }

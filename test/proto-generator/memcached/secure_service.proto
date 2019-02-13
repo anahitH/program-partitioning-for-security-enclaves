@@ -1,0 +1,1546 @@
+syntax = "proto3";
+package secure_service;
+message struct _stritem {
+struct type not found fill manually =1;
+}
+
+message assoc_insert_INPUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+}
+
+message assoc_delete_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+}
+
+message assoc_find_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+}
+
+message _hashitem_before_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+}
+
+message assoc_insert_OUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+ int32 returnVal =2;
+}
+
+message assoc_delete_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+}
+
+message assoc_find_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+ struct _stritem returnVal =3;
+}
+
+message _hashitem_before_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+ struct _stritem returnVal =3;
+}
+
+message bipbuf_t {
+ uint64 size =1;
+ uint32 a_start =2;
+ uint32 a_end =3;
+ uint32 b_end =4;
+ int32 b_inuse =5;
+repeated int32 data =6;
+}
+
+message bipbuf_push_INPUT {
+ bipbuf_t me =1;
+ int32 size =2;
+}
+
+message bipbuf_unused_INPUT {
+ bipbuf_t me =1;
+}
+
+message __check_for_switch_to_b_INPUT {
+ bipbuf_t me =1;
+}
+
+message bipbuf_push_OUT {
+ bipbuf_t me =1;
+ int32 size =2;
+ int32 returnVal =2;
+}
+
+message bipbuf_unused_OUT {
+ bipbuf_t me =1;
+ int32 returnVal =1;
+}
+
+message __check_for_switch_to_b_OUT {
+ bipbuf_t me =1;
+}
+
+message void {
+struct type not found fill manually =1;
+}
+
+message struct (anonymous) {
+struct type not found fill manually =1;
+}
+
+message struct (anonymous at /home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/test/proto-generator/memcached/cache.h:48:9) {
+struct type not found fill manually =1;
+}
+
+message do_cache_alloc_INPUT {
+ struct (anonymous at /home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/test/proto-generator/memcached/cache.h:48:9) cache =1;
+}
+
+message do_cache_alloc_OUT {
+ struct (anonymous at /home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/test/proto-generator/memcached/cache.h:48:9) cache =1;
+ void returnVal =1;
+}
+
+message struct _crawler_module_t {
+struct type not found fill manually =1;
+}
+
+message lru_crawler_crawl_INPUT {
+ int32 slabs =1;
+ enum crawler_run_type type =2;
+ void c =3;
+ int32 sfd =4;
+ uint32 remaining =5;
+}
+
+message lru_crawler_start_INPUT {
+ int32 ids =1;
+ uint32 remaining =2;
+ enum crawler_run_type type =3;
+ void data =4;
+ void c =5;
+ int32 sfd =6;
+}
+
+message lru_crawler_set_client_INPUT {
+ struct _crawler_module_t cm =1;
+ void c =2;
+ int32 sfd =3;
+}
+
+message do_lru_crawler_start_INPUT {
+ uint32 id =1;
+ uint32 remaining =2;
+}
+
+message stop_item_crawler_thread_INPUT {
+}
+
+message start_item_crawler_thread_INPUT {
+}
+
+message lru_crawler_crawl_OUT {
+ int32 slabs =1;
+ enum crawler_run_type type =2;
+ void c =3;
+ int32 sfd =4;
+ uint32 remaining =5;
+ enum crawler_result_type returnVal =5;
+}
+
+message lru_crawler_start_OUT {
+ int32 ids =1;
+ uint32 remaining =2;
+ enum crawler_run_type type =3;
+ void data =4;
+ void c =5;
+ int32 sfd =6;
+ int32 returnVal =6;
+}
+
+message lru_crawler_set_client_OUT {
+ struct _crawler_module_t cm =1;
+ void c =2;
+ int32 sfd =3;
+ int32 returnVal =3;
+}
+
+message do_lru_crawler_start_OUT {
+ uint32 id =1;
+ uint32 remaining =2;
+ int32 returnVal =2;
+}
+
+message stop_item_crawler_thread_OUT {
+ int32 returnVal =0;
+}
+
+message start_item_crawler_thread_OUT {
+ int32 returnVal =0;
+}
+
+message struct _lru_bump_buf {
+struct type not found fill manually =1;
+}
+
+message struct conn {
+struct type not found fill manually =1;
+}
+
+message lru_bump_async_INPUT {
+ struct _lru_bump_buf b =1;
+ struct _stritem it =2;
+ uint32 hv =3;
+}
+
+message do_item_get_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+ struct conn c =4;
+ int32 do_update =5;
+}
+
+message item_stats_sizes_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_stats_sizes_remove_INPUT {
+ struct _stritem it =1;
+}
+
+message item_stats_sizes_add_INPUT {
+ struct _stritem it =1;
+}
+
+message item_stats_sizes_disable_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message do_item_touch_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 exptime =3;
+ uint32 hv =4;
+ struct conn c =5;
+}
+
+message item_stats_sizes_enable_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_stats_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_link_q_INPUT {
+ struct _stritem it =1;
+}
+
+message item_unlink_q_INPUT {
+ struct _stritem it =1;
+}
+
+message item_free_INPUT {
+ struct _stritem it =1;
+}
+
+message do_item_link_q_INPUT {
+ struct _stritem it =1;
+}
+
+message item_is_flushed_INPUT {
+ struct _stritem it =1;
+}
+
+message do_item_alloc_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 flags =3;
+ uint32 exptime =4;
+ int32 nbytes =5;
+}
+
+message item_cachedump_INPUT {
+ uint32 slabs_clsid =1;
+ uint32 limit =2;
+ uint32 bytes =3;
+}
+
+message do_get_lru_size_INPUT {
+ uint32 id =1;
+}
+
+message do_item_link_INPUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+}
+
+message do_item_unlink_q_INPUT {
+ struct _stritem it =1;
+}
+
+message do_item_unlink_INPUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+}
+
+message do_item_remove_INPUT {
+ struct _stritem it =1;
+}
+
+message do_item_update_INPUT {
+ struct _stritem it =1;
+}
+
+message do_item_replace_INPUT {
+ struct _stritem it =1;
+ struct _stritem new_it =2;
+ uint32 hv =3;
+}
+
+message item_link_q_warm_INPUT {
+ struct _stritem it =1;
+}
+
+message item_stats_totals_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message lru_bump_async_OUT {
+ struct _lru_bump_buf b =1;
+ struct _stritem it =2;
+ uint32 hv =3;
+ int32 returnVal =3;
+}
+
+message do_item_get_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 hv =3;
+ struct conn c =4;
+ int32 do_update =5;
+ struct _stritem returnVal =5;
+}
+
+message item_stats_sizes_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_stats_sizes_remove_OUT {
+ struct _stritem it =1;
+}
+
+message item_stats_sizes_add_OUT {
+ struct _stritem it =1;
+}
+
+message item_stats_sizes_disable_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message do_item_touch_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 exptime =3;
+ uint32 hv =4;
+ struct conn c =5;
+ struct _stritem returnVal =5;
+}
+
+message item_stats_sizes_enable_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_stats_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message item_link_q_OUT {
+ struct _stritem it =1;
+}
+
+message item_unlink_q_OUT {
+ struct _stritem it =1;
+}
+
+message item_free_OUT {
+ struct _stritem it =1;
+}
+
+message do_item_link_q_OUT {
+ struct _stritem it =1;
+}
+
+message item_is_flushed_OUT {
+ struct _stritem it =1;
+ int32 returnVal =1;
+}
+
+message do_item_alloc_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 flags =3;
+ uint32 exptime =4;
+ int32 nbytes =5;
+ struct _stritem returnVal =5;
+}
+
+message item_cachedump_OUT {
+ uint32 slabs_clsid =1;
+ uint32 limit =2;
+ uint32 bytes =3;
+ int32 returnVal =3;
+}
+
+message do_get_lru_size_OUT {
+ uint32 id =1;
+ uint32 returnVal =1;
+}
+
+message do_item_link_OUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+ int32 returnVal =2;
+}
+
+message do_item_unlink_q_OUT {
+ struct _stritem it =1;
+}
+
+message do_item_unlink_OUT {
+ struct _stritem it =1;
+ uint32 hv =2;
+}
+
+message do_item_remove_OUT {
+ struct _stritem it =1;
+}
+
+message do_item_update_OUT {
+ struct _stritem it =1;
+}
+
+message do_item_replace_OUT {
+ struct _stritem it =1;
+ struct _stritem new_it =2;
+ uint32 hv =3;
+ int32 returnVal =3;
+}
+
+message item_link_q_warm_OUT {
+ struct _stritem it =1;
+}
+
+message item_stats_totals_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message itoa_u64_INPUT {
+ uint64 u =1;
+ int32 p =2;
+}
+
+message itoa_u32_INPUT {
+ uint32 u =1;
+ int32 p =2;
+}
+
+message itoa_INPUT {
+ uint32 u =1;
+ int32 p =2;
+ int32 d =3;
+ int32 n =4;
+}
+
+message digits_INPUT {
+ uint32 u =1;
+ uint32 k =2;
+ int32 d =3;
+ int32 p =4;
+ int32 n =5;
+}
+
+message out2_INPUT {
+ int32 d =1;
+ int32 p =2;
+}
+
+message out1_INPUT {
+ int32 in =1;
+ int32 p =2;
+}
+
+message itoa_u64_OUT {
+ uint64 u =1;
+ int32 p =2;
+ int32 returnVal =2;
+}
+
+message itoa_u32_OUT {
+ uint32 u =1;
+ int32 p =2;
+ int32 returnVal =2;
+}
+
+message itoa_OUT {
+ uint32 u =1;
+ int32 p =2;
+ int32 d =3;
+ int32 n =4;
+ int32 returnVal =4;
+}
+
+message digits_OUT {
+ uint32 u =1;
+ uint32 k =2;
+ int32 d =3;
+ int32 p =4;
+ int32 n =5;
+ int32 returnVal =5;
+}
+
+message out2_OUT {
+ int32 d =1;
+ int32 p =2;
+ int32 returnVal =2;
+}
+
+message out1_OUT {
+ int32 in =1;
+ int32 p =2;
+ int32 returnVal =2;
+}
+
+message struct _logger {
+struct type not found fill manually =1;
+}
+
+message logger_add_watcher_INPUT {
+ void c =1;
+ int32 sfd =2;
+ uint32 f =3;
+}
+
+message logger_log_INPUT {
+ struct _logger l =1;
+ enum log_entry_type event =2;
+ void entry =3;
+}
+
+message logger_add_watcher_OUT {
+ void c =1;
+ int32 sfd =2;
+ uint32 f =3;
+ enum logger_add_watcher_ret returnVal =3;
+}
+
+message logger_log_OUT {
+ struct _logger l =1;
+ enum log_entry_type event =2;
+ void entry =3;
+ enum logger_ret_type returnVal =3;
+}
+
+message struct token_s {
+struct type not found fill manually =1;
+}
+
+message process_command_INPUT {
+ struct conn c =1;
+ int32 command =2;
+}
+
+message process_watch_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_bin_stats_INPUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ struct conn c =5;
+}
+
+message process_stat_settings_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message add_bin_header_INPUT {
+ struct conn c =1;
+ uint32 err =2;
+ int32 hdr_len =3;
+ uint32 key_len =4;
+ uint32 body_len =5;
+}
+
+message process_memlimit_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message grow_stats_buf_INPUT {
+ struct conn c =1;
+ int32 needed =2;
+}
+
+message process_lru_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message process_verbosity_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_ascii_stats_INPUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ struct conn c =5;
+}
+
+message add_chunked_item_iovs_INPUT {
+ struct conn c =1;
+ struct _stritem it =2;
+ int32 len =3;
+}
+
+message add_msghdr_INPUT {
+ struct conn c =1;
+}
+
+message make_ascii_get_suffix_INPUT {
+ int32 suffix =1;
+ struct _stritem it =2;
+ int32 return_cas =3;
+ int32 nbytes =4;
+}
+
+message _ascii_get_expand_ilist_INPUT {
+ struct conn c =1;
+ int32 i =2;
+}
+
+message write_and_free_INPUT {
+ struct conn c =1;
+ int32 buf =2;
+ int32 bytes =3;
+}
+
+message do_add_delta_INPUT {
+ struct conn c =1;
+ int32 key =2;
+ int32 nkey =3;
+ int32 incr =4;
+ int64 delta =5;
+ int32 buf =6;
+ uint64 cas =7;
+ uint32 hv =8;
+}
+
+message conn_set_state_INPUT {
+ struct conn c =1;
+ enum conn_states state =2;
+}
+
+message stats_reset_INPUT {
+}
+
+message build_udp_headers_INPUT {
+ struct conn c =1;
+}
+
+message process_stats_detail_INPUT {
+ struct conn c =1;
+ int32 command =2;
+}
+
+message write_bin_error_INPUT {
+ struct conn c =1;
+ protocol_binary_response_status err =2;
+ int32 errstr =3;
+ int32 swallow =4;
+}
+
+message add_iov_INPUT {
+ struct conn c =1;
+ void buf =2;
+ int32 len =3;
+}
+
+message ensure_iov_space_INPUT {
+ struct conn c =1;
+}
+
+message out_of_memory_INPUT {
+ struct conn c =1;
+ int32 ascii_error =2;
+}
+
+message process_touch_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_stats_INPUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ void cookie =5;
+}
+
+message set_noreply_maybe_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_stat_INPUT {
+ int32 name =1;
+ FILL add_stats =2;
+ struct conn c =3;
+ int32 fmt =4;
+}
+
+message process_slabs_automove_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message server_stats_INPUT {
+ FILL add_stats =1;
+ struct conn c =2;
+}
+
+message process_stat_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message process_update_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 comm =4;
+ int32 handle_cas =5;
+}
+
+message process_stats_conns_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message realtime_INPUT {
+ int64 exptime =1;
+}
+
+message limited_get_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ struct conn c =3;
+ uint32 exptime =4;
+ int32 should_touch =5;
+}
+
+message out_string_INPUT {
+ struct conn c =1;
+ int32 str =2;
+}
+
+message _ascii_get_suffix_buf_INPUT {
+ struct conn c =1;
+ int32 i =2;
+}
+
+message conn_release_items_INPUT {
+ struct conn c =1;
+}
+
+message process_get_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 return_cas =4;
+ int32 should_touch =5;
+}
+
+message tokenize_command_INPUT {
+ int32 command =1;
+ struct token_s tokens =2;
+ int32 max_tokens =3;
+}
+
+message process_arithmetic_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 incr =4;
+}
+
+message process_delete_command_INPUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message process_command_OUT {
+ struct conn c =1;
+ int32 command =2;
+}
+
+message process_watch_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_bin_stats_OUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ struct conn c =5;
+}
+
+message process_stat_settings_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message add_bin_header_OUT {
+ struct conn c =1;
+ uint32 err =2;
+ int32 hdr_len =3;
+ uint32 key_len =4;
+ uint32 body_len =5;
+}
+
+message process_memlimit_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message grow_stats_buf_OUT {
+ struct conn c =1;
+ int32 needed =2;
+ int32 returnVal =2;
+}
+
+message process_lru_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message process_verbosity_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_ascii_stats_OUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ struct conn c =5;
+}
+
+message add_chunked_item_iovs_OUT {
+ struct conn c =1;
+ struct _stritem it =2;
+ int32 len =3;
+ int32 returnVal =3;
+}
+
+message add_msghdr_OUT {
+ struct conn c =1;
+ int32 returnVal =1;
+}
+
+message make_ascii_get_suffix_OUT {
+ int32 suffix =1;
+ struct _stritem it =2;
+ int32 return_cas =3;
+ int32 nbytes =4;
+ int32 returnVal =4;
+}
+
+message _ascii_get_expand_ilist_OUT {
+ struct conn c =1;
+ int32 i =2;
+ int32 returnVal =2;
+}
+
+message write_and_free_OUT {
+ struct conn c =1;
+ int32 buf =2;
+ int32 bytes =3;
+}
+
+message do_add_delta_OUT {
+ struct conn c =1;
+ int32 key =2;
+ int32 nkey =3;
+ int32 incr =4;
+ int64 delta =5;
+ int32 buf =6;
+ uint64 cas =7;
+ uint32 hv =8;
+ enum delta_result_type returnVal =8;
+}
+
+message conn_set_state_OUT {
+ struct conn c =1;
+ enum conn_states state =2;
+}
+
+message stats_reset_OUT {
+}
+
+message build_udp_headers_OUT {
+ struct conn c =1;
+ int32 returnVal =1;
+}
+
+message process_stats_detail_OUT {
+ struct conn c =1;
+ int32 command =2;
+}
+
+message write_bin_error_OUT {
+ struct conn c =1;
+ protocol_binary_response_status err =2;
+ int32 errstr =3;
+ int32 swallow =4;
+}
+
+message add_iov_OUT {
+ struct conn c =1;
+ void buf =2;
+ int32 len =3;
+ int32 returnVal =3;
+}
+
+message ensure_iov_space_OUT {
+ struct conn c =1;
+ int32 returnVal =1;
+}
+
+message out_of_memory_OUT {
+ struct conn c =1;
+ int32 ascii_error =2;
+}
+
+message process_touch_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message append_stats_OUT {
+ int32 key =1;
+ uint32 klen =2;
+ int32 val =3;
+ uint32 vlen =4;
+ void cookie =5;
+}
+
+message set_noreply_maybe_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 returnVal =3;
+}
+
+message append_stat_OUT {
+ int32 name =1;
+ FILL add_stats =2;
+ struct conn c =3;
+ int32 fmt =4;
+}
+
+message process_slabs_automove_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message server_stats_OUT {
+ FILL add_stats =1;
+ struct conn c =2;
+}
+
+message process_stat_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message process_update_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 comm =4;
+ int32 handle_cas =5;
+}
+
+message process_stats_conns_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message realtime_OUT {
+ int64 exptime =1;
+ uint32 returnVal =1;
+}
+
+message limited_get_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ struct conn c =3;
+ uint32 exptime =4;
+ int32 should_touch =5;
+ struct _stritem returnVal =5;
+}
+
+message out_string_OUT {
+ struct conn c =1;
+ int32 str =2;
+}
+
+message _ascii_get_suffix_buf_OUT {
+ struct conn c =1;
+ int32 i =2;
+ int32 returnVal =2;
+}
+
+message conn_release_items_OUT {
+ struct conn c =1;
+}
+
+message process_get_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 return_cas =4;
+ int32 should_touch =5;
+}
+
+message tokenize_command_OUT {
+ int32 command =1;
+ struct token_s tokens =2;
+ int32 max_tokens =3;
+ int32 returnVal =3;
+}
+
+message process_arithmetic_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+ int32 incr =4;
+}
+
+message process_delete_command_OUT {
+ struct conn c =1;
+ struct token_s tokens =2;
+ int32 ntokens =3;
+}
+
+message MurmurHash3_x86_32_INPUT {
+ void key =1;
+ int32 length =2;
+}
+
+message MurmurHash3_x86_32_OUT {
+ void key =1;
+ int32 length =2;
+ uint32 returnVal =2;
+}
+
+message slabs_reassign_INPUT {
+ int32 src =1;
+ int32 dst =2;
+}
+
+message slabs_reassign_pick_any_INPUT {
+ int32 dst =1;
+}
+
+message slabs_stats_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message do_slabs_free_INPUT {
+ void ptr =1;
+ int32 size =2;
+ uint32 id =3;
+}
+
+message do_slabs_free_chunked_INPUT {
+ struct _stritem it =1;
+ int32 size =2;
+}
+
+message do_slabs_reassign_INPUT {
+ int32 src =1;
+ int32 dst =2;
+}
+
+message nz_strcmp_INPUT {
+ int32 nzlength =1;
+ int32 nz =2;
+ int32 z =3;
+}
+
+message get_stats_INPUT {
+ int32 stat_type =1;
+ int32 nkey =2;
+ FILL add_stats =3;
+ void c =4;
+}
+
+message do_slabs_stats_INPUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message slabs_free_INPUT {
+ void ptr =1;
+ int32 size =2;
+ uint32 id =3;
+}
+
+message slabs_reassign_OUT {
+ int32 src =1;
+ int32 dst =2;
+ enum reassign_result_type returnVal =2;
+}
+
+message slabs_reassign_pick_any_OUT {
+ int32 dst =1;
+ int32 returnVal =1;
+}
+
+message slabs_stats_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message do_slabs_free_OUT {
+ void ptr =1;
+ int32 size =2;
+ uint32 id =3;
+}
+
+message do_slabs_free_chunked_OUT {
+ struct _stritem it =1;
+ int32 size =2;
+}
+
+message do_slabs_reassign_OUT {
+ int32 src =1;
+ int32 dst =2;
+ enum reassign_result_type returnVal =2;
+}
+
+message nz_strcmp_OUT {
+ int32 nzlength =1;
+ int32 nz =2;
+ int32 z =3;
+ int32 returnVal =3;
+}
+
+message get_stats_OUT {
+ int32 stat_type =1;
+ int32 nkey =2;
+ FILL add_stats =3;
+ void c =4;
+ int32 returnVal =4;
+}
+
+message do_slabs_stats_OUT {
+ FILL add_stats =1;
+ void c =2;
+}
+
+message slabs_free_OUT {
+ void ptr =1;
+ int32 size =2;
+ uint32 id =3;
+}
+
+message struct _prefix_stats {
+struct type not found fill manually =1;
+}
+
+message stats_prefix_record_delete_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+}
+
+message stats_prefix_dump_INPUT {
+ int32 length =1;
+}
+
+message stats_prefix_find_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+}
+
+message stats_prefix_record_get_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ int32 is_hit =3;
+}
+
+message stats_prefix_record_delete_OUT {
+ int32 key =1;
+ int32 nkey =2;
+}
+
+message stats_prefix_dump_OUT {
+ int32 length =1;
+ int32 returnVal =1;
+}
+
+message stats_prefix_find_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ struct _prefix_stats returnVal =2;
+}
+
+message stats_prefix_record_get_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ int32 is_hit =3;
+}
+
+message STATS_UNLOCK_INPUT {
+}
+
+message add_delta_INPUT {
+ struct conn c =1;
+ int32 key =2;
+ int32 nkey =3;
+ int32 incr =4;
+ int64 delta =5;
+ int32 buf =6;
+ uint64 cas =7;
+}
+
+message item_unlink_INPUT {
+ struct _stritem item =1;
+}
+
+message item_unlock_INPUT {
+ uint32 hv =1;
+}
+
+message item_lock_INPUT {
+ uint32 hv =1;
+}
+
+message item_get_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ struct conn c =3;
+ int32 do_update =4;
+}
+
+message STATS_LOCK_INPUT {
+}
+
+message item_replace_INPUT {
+ struct _stritem old_it =1;
+ struct _stritem new_it =2;
+ uint32 hv =3;
+}
+
+message item_touch_INPUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 exptime =3;
+ struct conn c =4;
+}
+
+message item_remove_INPUT {
+ struct _stritem item =1;
+}
+
+message STATS_UNLOCK_OUT {
+}
+
+message add_delta_OUT {
+ struct conn c =1;
+ int32 key =2;
+ int32 nkey =3;
+ int32 incr =4;
+ int64 delta =5;
+ int32 buf =6;
+ uint64 cas =7;
+ enum delta_result_type returnVal =7;
+}
+
+message item_unlink_OUT {
+ struct _stritem item =1;
+}
+
+message item_unlock_OUT {
+ uint32 hv =1;
+}
+
+message item_lock_OUT {
+ uint32 hv =1;
+}
+
+message item_get_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ struct conn c =3;
+ int32 do_update =4;
+ struct _stritem returnVal =4;
+}
+
+message STATS_LOCK_OUT {
+}
+
+message item_replace_OUT {
+ struct _stritem old_it =1;
+ struct _stritem new_it =2;
+ uint32 hv =3;
+ int32 returnVal =3;
+}
+
+message item_touch_OUT {
+ int32 key =1;
+ int32 nkey =2;
+ uint32 exptime =3;
+ struct conn c =4;
+ struct _stritem returnVal =4;
+}
+
+message item_remove_OUT {
+ struct _stritem item =1;
+}
+
+message mc_swap64_INPUT {
+ uint64 in =1;
+}
+
+message htonll_INPUT {
+ uint64 val =1;
+}
+
+message safe_strtod_INPUT {
+ int32 str =1;
+ double out =2;
+}
+
+message safe_strtol_INPUT {
+ int32 str =1;
+ int32 out =2;
+}
+
+message safe_strtoull_INPUT {
+ int32 str =1;
+ uint64 out =2;
+}
+
+message safe_strtoul_INPUT {
+ int32 str =1;
+ uint32 out =2;
+}
+
+message mc_swap64_OUT {
+ uint64 in =1;
+ uint64 returnVal =1;
+}
+
+message htonll_OUT {
+ uint64 val =1;
+ uint64 returnVal =1;
+}
+
+message safe_strtod_OUT {
+ int32 str =1;
+ double out =2;
+ int32 returnVal =2;
+}
+
+message safe_strtol_OUT {
+ int32 str =1;
+ int32 out =2;
+ int32 returnVal =2;
+}
+
+message safe_strtoull_OUT {
+ int32 str =1;
+ uint64 out =2;
+ int32 returnVal =2;
+}
+
+message safe_strtoul_OUT {
+ int32 str =1;
+ uint32 out =2;
+ int32 returnVal =2;
+}
+
+service secure_service {
+rpc assoc_insert( assoc_insert_INPUT)  returns (assoc_insert_OUT) {}
+rpc assoc_delete( assoc_delete_INPUT)  returns (assoc_delete_OUT) {}
+rpc assoc_find( assoc_find_INPUT)  returns (assoc_find_OUT) {}
+rpc _hashitem_before( _hashitem_before_INPUT)  returns (_hashitem_before_OUT) {}
+rpc bipbuf_push( bipbuf_push_INPUT)  returns (bipbuf_push_OUT) {}
+rpc bipbuf_unused( bipbuf_unused_INPUT)  returns (bipbuf_unused_OUT) {}
+rpc __check_for_switch_to_b( __check_for_switch_to_b_INPUT)  returns (__check_for_switch_to_b_OUT) {}
+rpc do_cache_alloc( do_cache_alloc_INPUT)  returns (do_cache_alloc_OUT) {}
+rpc lru_crawler_crawl( lru_crawler_crawl_INPUT)  returns (lru_crawler_crawl_OUT) {}
+rpc lru_crawler_start( lru_crawler_start_INPUT)  returns (lru_crawler_start_OUT) {}
+rpc lru_crawler_set_client( lru_crawler_set_client_INPUT)  returns (lru_crawler_set_client_OUT) {}
+rpc do_lru_crawler_start( do_lru_crawler_start_INPUT)  returns (do_lru_crawler_start_OUT) {}
+rpc stop_item_crawler_thread( stop_item_crawler_thread_INPUT)  returns (stop_item_crawler_thread_OUT) {}
+rpc start_item_crawler_thread( start_item_crawler_thread_INPUT)  returns (start_item_crawler_thread_OUT) {}
+rpc lru_bump_async( lru_bump_async_INPUT)  returns (lru_bump_async_OUT) {}
+rpc do_item_get( do_item_get_INPUT)  returns (do_item_get_OUT) {}
+rpc item_stats_sizes( item_stats_sizes_INPUT)  returns (item_stats_sizes_OUT) {}
+rpc item_stats_sizes_remove( item_stats_sizes_remove_INPUT)  returns (item_stats_sizes_remove_OUT) {}
+rpc item_stats_sizes_add( item_stats_sizes_add_INPUT)  returns (item_stats_sizes_add_OUT) {}
+rpc item_stats_sizes_disable( item_stats_sizes_disable_INPUT)  returns (item_stats_sizes_disable_OUT) {}
+rpc do_item_touch( do_item_touch_INPUT)  returns (do_item_touch_OUT) {}
+rpc item_stats_sizes_enable( item_stats_sizes_enable_INPUT)  returns (item_stats_sizes_enable_OUT) {}
+rpc item_stats( item_stats_INPUT)  returns (item_stats_OUT) {}
+rpc item_link_q( item_link_q_INPUT)  returns (item_link_q_OUT) {}
+rpc item_unlink_q( item_unlink_q_INPUT)  returns (item_unlink_q_OUT) {}
+rpc item_free( item_free_INPUT)  returns (item_free_OUT) {}
+rpc do_item_link_q( do_item_link_q_INPUT)  returns (do_item_link_q_OUT) {}
+rpc item_is_flushed( item_is_flushed_INPUT)  returns (item_is_flushed_OUT) {}
+rpc do_item_alloc( do_item_alloc_INPUT)  returns (do_item_alloc_OUT) {}
+rpc item_cachedump( item_cachedump_INPUT)  returns (item_cachedump_OUT) {}
+rpc do_get_lru_size( do_get_lru_size_INPUT)  returns (do_get_lru_size_OUT) {}
+rpc do_item_link( do_item_link_INPUT)  returns (do_item_link_OUT) {}
+rpc do_item_unlink_q( do_item_unlink_q_INPUT)  returns (do_item_unlink_q_OUT) {}
+rpc do_item_unlink( do_item_unlink_INPUT)  returns (do_item_unlink_OUT) {}
+rpc do_item_remove( do_item_remove_INPUT)  returns (do_item_remove_OUT) {}
+rpc do_item_update( do_item_update_INPUT)  returns (do_item_update_OUT) {}
+rpc do_item_replace( do_item_replace_INPUT)  returns (do_item_replace_OUT) {}
+rpc item_link_q_warm( item_link_q_warm_INPUT)  returns (item_link_q_warm_OUT) {}
+rpc item_stats_totals( item_stats_totals_INPUT)  returns (item_stats_totals_OUT) {}
+rpc itoa_u64( itoa_u64_INPUT)  returns (itoa_u64_OUT) {}
+rpc itoa_u32( itoa_u32_INPUT)  returns (itoa_u32_OUT) {}
+rpc itoa( itoa_INPUT)  returns (itoa_OUT) {}
+rpc digits( digits_INPUT)  returns (digits_OUT) {}
+rpc out2( out2_INPUT)  returns (out2_OUT) {}
+rpc out1( out1_INPUT)  returns (out1_OUT) {}
+rpc logger_add_watcher( logger_add_watcher_INPUT)  returns (logger_add_watcher_OUT) {}
+rpc logger_log( logger_log_INPUT)  returns (logger_log_OUT) {}
+rpc process_command( process_command_INPUT)  returns (process_command_OUT) {}
+rpc process_watch_command( process_watch_command_INPUT)  returns (process_watch_command_OUT) {}
+rpc append_bin_stats( append_bin_stats_INPUT)  returns (append_bin_stats_OUT) {}
+rpc process_stat_settings( process_stat_settings_INPUT)  returns (process_stat_settings_OUT) {}
+rpc add_bin_header( add_bin_header_INPUT)  returns (add_bin_header_OUT) {}
+rpc process_memlimit_command( process_memlimit_command_INPUT)  returns (process_memlimit_command_OUT) {}
+rpc grow_stats_buf( grow_stats_buf_INPUT)  returns (grow_stats_buf_OUT) {}
+rpc process_lru_command( process_lru_command_INPUT)  returns (process_lru_command_OUT) {}
+rpc process_verbosity_command( process_verbosity_command_INPUT)  returns (process_verbosity_command_OUT) {}
+rpc append_ascii_stats( append_ascii_stats_INPUT)  returns (append_ascii_stats_OUT) {}
+rpc add_chunked_item_iovs( add_chunked_item_iovs_INPUT)  returns (add_chunked_item_iovs_OUT) {}
+rpc add_msghdr( add_msghdr_INPUT)  returns (add_msghdr_OUT) {}
+rpc make_ascii_get_suffix( make_ascii_get_suffix_INPUT)  returns (make_ascii_get_suffix_OUT) {}
+rpc _ascii_get_expand_ilist( _ascii_get_expand_ilist_INPUT)  returns (_ascii_get_expand_ilist_OUT) {}
+rpc write_and_free( write_and_free_INPUT)  returns (write_and_free_OUT) {}
+rpc do_add_delta( do_add_delta_INPUT)  returns (do_add_delta_OUT) {}
+rpc conn_set_state( conn_set_state_INPUT)  returns (conn_set_state_OUT) {}
+rpc stats_reset( stats_reset_INPUT)  returns (stats_reset_OUT) {}
+rpc build_udp_headers( build_udp_headers_INPUT)  returns (build_udp_headers_OUT) {}
+rpc process_stats_detail( process_stats_detail_INPUT)  returns (process_stats_detail_OUT) {}
+rpc write_bin_error( write_bin_error_INPUT)  returns (write_bin_error_OUT) {}
+rpc add_iov( add_iov_INPUT)  returns (add_iov_OUT) {}
+rpc ensure_iov_space( ensure_iov_space_INPUT)  returns (ensure_iov_space_OUT) {}
+rpc out_of_memory( out_of_memory_INPUT)  returns (out_of_memory_OUT) {}
+rpc process_touch_command( process_touch_command_INPUT)  returns (process_touch_command_OUT) {}
+rpc append_stats( append_stats_INPUT)  returns (append_stats_OUT) {}
+rpc set_noreply_maybe( set_noreply_maybe_INPUT)  returns (set_noreply_maybe_OUT) {}
+rpc append_stat( append_stat_INPUT)  returns (append_stat_OUT) {}
+rpc process_slabs_automove_command( process_slabs_automove_command_INPUT)  returns (process_slabs_automove_command_OUT) {}
+rpc server_stats( server_stats_INPUT)  returns (server_stats_OUT) {}
+rpc process_stat( process_stat_INPUT)  returns (process_stat_OUT) {}
+rpc process_update_command( process_update_command_INPUT)  returns (process_update_command_OUT) {}
+rpc process_stats_conns( process_stats_conns_INPUT)  returns (process_stats_conns_OUT) {}
+rpc realtime( realtime_INPUT)  returns (realtime_OUT) {}
+rpc limited_get( limited_get_INPUT)  returns (limited_get_OUT) {}
+rpc out_string( out_string_INPUT)  returns (out_string_OUT) {}
+rpc _ascii_get_suffix_buf( _ascii_get_suffix_buf_INPUT)  returns (_ascii_get_suffix_buf_OUT) {}
+rpc conn_release_items( conn_release_items_INPUT)  returns (conn_release_items_OUT) {}
+rpc process_get_command( process_get_command_INPUT)  returns (process_get_command_OUT) {}
+rpc tokenize_command( tokenize_command_INPUT)  returns (tokenize_command_OUT) {}
+rpc process_arithmetic_command( process_arithmetic_command_INPUT)  returns (process_arithmetic_command_OUT) {}
+rpc process_delete_command( process_delete_command_INPUT)  returns (process_delete_command_OUT) {}
+rpc MurmurHash3_x86_32( MurmurHash3_x86_32_INPUT)  returns (MurmurHash3_x86_32_OUT) {}
+rpc slabs_reassign( slabs_reassign_INPUT)  returns (slabs_reassign_OUT) {}
+rpc slabs_reassign_pick_any( slabs_reassign_pick_any_INPUT)  returns (slabs_reassign_pick_any_OUT) {}
+rpc slabs_stats( slabs_stats_INPUT)  returns (slabs_stats_OUT) {}
+rpc do_slabs_free( do_slabs_free_INPUT)  returns (do_slabs_free_OUT) {}
+rpc do_slabs_free_chunked( do_slabs_free_chunked_INPUT)  returns (do_slabs_free_chunked_OUT) {}
+rpc do_slabs_reassign( do_slabs_reassign_INPUT)  returns (do_slabs_reassign_OUT) {}
+rpc nz_strcmp( nz_strcmp_INPUT)  returns (nz_strcmp_OUT) {}
+rpc get_stats( get_stats_INPUT)  returns (get_stats_OUT) {}
+rpc do_slabs_stats( do_slabs_stats_INPUT)  returns (do_slabs_stats_OUT) {}
+rpc slabs_free( slabs_free_INPUT)  returns (slabs_free_OUT) {}
+rpc stats_prefix_record_delete( stats_prefix_record_delete_INPUT)  returns (stats_prefix_record_delete_OUT) {}
+rpc stats_prefix_dump( stats_prefix_dump_INPUT)  returns (stats_prefix_dump_OUT) {}
+rpc stats_prefix_find( stats_prefix_find_INPUT)  returns (stats_prefix_find_OUT) {}
+rpc stats_prefix_record_get( stats_prefix_record_get_INPUT)  returns (stats_prefix_record_get_OUT) {}
+rpc STATS_UNLOCK( STATS_UNLOCK_INPUT)  returns (STATS_UNLOCK_OUT) {}
+rpc add_delta( add_delta_INPUT)  returns (add_delta_OUT) {}
+rpc item_unlink( item_unlink_INPUT)  returns (item_unlink_OUT) {}
+rpc item_unlock( item_unlock_INPUT)  returns (item_unlock_OUT) {}
+rpc item_lock( item_lock_INPUT)  returns (item_lock_OUT) {}
+rpc item_get( item_get_INPUT)  returns (item_get_OUT) {}
+rpc STATS_LOCK( STATS_LOCK_INPUT)  returns (STATS_LOCK_OUT) {}
+rpc item_replace( item_replace_INPUT)  returns (item_replace_OUT) {}
+rpc item_touch( item_touch_INPUT)  returns (item_touch_OUT) {}
+rpc item_remove( item_remove_INPUT)  returns (item_remove_OUT) {}
+rpc mc_swap64( mc_swap64_INPUT)  returns (mc_swap64_OUT) {}
+rpc htonll( htonll_INPUT)  returns (htonll_OUT) {}
+rpc safe_strtod( safe_strtod_INPUT)  returns (safe_strtod_OUT) {}
+rpc safe_strtol( safe_strtol_INPUT)  returns (safe_strtol_OUT) {}
+rpc safe_strtoull( safe_strtoull_INPUT)  returns (safe_strtoull_OUT) {}
+rpc safe_strtoul( safe_strtoul_INPUT)  returns (safe_strtoul_OUT) {}
+}

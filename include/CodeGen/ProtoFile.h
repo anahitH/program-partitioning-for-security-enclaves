@@ -4,6 +4,7 @@
 #include "CodeGen/ProtoMessage.h"
 
 #include <vector>
+#include <unordered_map>
 
 namespace vazgen {
 
@@ -16,7 +17,7 @@ public:
     };
 
     using Imports = std::vector<Import>;
-    using Services = std::vector<ProtoService>;
+    using Services = std::unordered_map<std::string, ProtoService>;
     using Messages = std::vector<ProtoMessage>;
 
 public:
@@ -52,6 +53,22 @@ public:
     {
         return m_services;
     }
+
+    bool hasService(const std::string& name) const
+    {
+        return m_services.find(name) != m_services.end();
+    }
+
+    ProtoService& getService(const std::string& name)
+    {
+        return m_services.find(name)->second;
+    }
+
+    const ProtoService& getService(const std::string& name) const
+    {
+        return m_services.find(name)->second;
+    }
+
 
     const Messages& getMessages() const
     {
@@ -110,12 +127,12 @@ public:
 
     void addService(const ProtoService& service)
     {
-        m_services.push_back(service);
+        m_services.insert(std::make_pair(service.getName(), service));
     }
 
     void addService(ProtoService&& service)
     {
-        m_services.push_back(std::move(service));
+        m_services.insert(std::make_pair(service.getName(), std::move(service)));
     }
 
     void addMessage(const ProtoMessage& message)
@@ -132,8 +149,8 @@ private:
     std::string m_version;
     std::string m_package;
     std::vector<Import> m_imports;
-    std::vector<ProtoService> m_services;
-    std::vector<ProtoMessage> m_messages;
+    Services m_services;
+    Messages m_messages;
 }; // class ProtoFile
 
 } // namespace vazgen

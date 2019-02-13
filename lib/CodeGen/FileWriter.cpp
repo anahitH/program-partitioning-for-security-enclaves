@@ -3,7 +3,7 @@
 namespace vazgen {
 
 FileWriter::FileWriter(const std::string& name)
-    : m_stream(name, std::ios::out)
+    : m_stream(name, std::ios::app)
 {
 }
 
