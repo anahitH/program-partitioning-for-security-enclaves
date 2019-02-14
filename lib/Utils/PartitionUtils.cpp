@@ -30,7 +30,7 @@ PartitionUtils::computeInInterface(const FunctionSet& functions,
         for (const auto& callSite : callSites) {
             auto* caller = callSite.getCaller();
             if (functions.find(caller) == functions.end()) {
-                inInterface.insert(caller);
+                inInterface.insert(F);
                 break;
             }
         }
