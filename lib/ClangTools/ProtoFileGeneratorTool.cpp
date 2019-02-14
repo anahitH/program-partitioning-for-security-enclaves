@@ -7,6 +7,9 @@
 
 #include "ClangTools/ProtoFileGenerator.h"
 #include "CodeGen/ProtoFileWriter.h"
+#include "Utils/Logger.h"
+
+#include "nlohmann/json.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -19,7 +22,9 @@ using namespace clang::tooling;
 
 namespace vazgen {
 
-std::unordered_set<std::string> parseFunctions(const std::string& fileName)
+using Functions =  std::unordered_set<std::string>;
+
+Functions parseFunctions(const std::string& fileName)
 {
     std::unordered_set<std::string> functions;
     std::ifstream fileStream(fileName);
@@ -28,6 +33,23 @@ std::unordered_set<std::string> parseFunctions(const std::string& fileName)
         functions.insert(function);
     }
     return functions;
+}
+
+std::pair<Functions, Functions> parseFunctionsFromStats(const std::string& statsFile, Logger& logger)
+{
+    using namespace nlohmann;
+    std::pair<Functions, Functions> result;
+    std::ifstream ifs (statsFile, std::ifstream::in);
+    if (!ifs.is_open()) {
+        logger.error("Could not open annotations' json file " + statsFile + "\n");
+        return result;
+    }
+    json stats;
+    ifs >> stats;
+    const auto& secureFunctions = stats["partition"]["secure_partition"]["in_interface"];
+    result.first.insert(secureFunctions.begin(), secureFunctions.end());
+    const auto& insecureFunctions = stats["partition"]["insecure_partition"]["in_interface"];
+    result.second.insert(insecureFunctions.begin(), insecureFunctions.end());
 }
 
 const std::string FILE_DELIM = "/";
@@ -39,16 +61,24 @@ DeclarationMatcher typedefMatcher = typedefDecl().bind("typedefDecl");
 static llvm::cl::OptionCategory ProtoFileGenTool("proto-gen options");
 static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp("\nMore help text...\n");
-static llvm::cl::opt<std::string> functionFile("functions", llvm::cl::cat(ProtoFileGenTool));
-static llvm::cl::opt<std::string> protoName("proto", llvm::cl::cat(ProtoFileGenTool));
-static llvm::cl::list<std::string> Files("files", llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::opt<std::string> functionStats("function-stats",
+                                                llvm::cl::desc("Statistics json file containing functions to create proto file for."),
+                                                llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::opt<std::string> functionFile("functions",
+                                               llvm::cl::desc("Text file containing functions to create proto file for."),
+                                               llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::opt<std::string> protoName("proto-name",
+                                            llvm::cl::desc("Name for proto file and the service"),
+                                            llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
 
+// TODO: remove
 class MatcherInFiles
 {
 public:
     using Files = std::unordered_set<std::string>;
 
 public:
+    MatcherInFiles() = default;
     MatcherInFiles(const Files& files)
         : m_files(files)
     {
@@ -74,16 +104,12 @@ private:
 };
 
 class StructFinder : public MatchFinder::MatchCallback
-                   , public MatcherInFiles
 {
 public:
     using Structs = ProtoFileGenerator::Structs;
 
 public:
-    StructFinder(const Files& files)
-        : MatcherInFiles(files)
-    {
-    }
+    StructFinder() = default;
 
 public:
     const Structs& getStructs() const
@@ -96,9 +122,6 @@ public:
     {
         const auto* decl = Result.Nodes.getNodeAs<clang::RecordDecl>("recordDecl");
         if (!decl) {
-            return;
-        }
-        if (!isInFiles(decl->getLocation(), Result.Context)) {
             return;
         }
         if (!decl->isStruct()) {
@@ -129,16 +152,12 @@ private:
 };
 
 class EnumFinder : public MatchFinder::MatchCallback
-                 , public MatcherInFiles
 {
 public:
     using Enums = ProtoFileGenerator::Enums;
 
 public:
-    EnumFinder(const Files& files)
-        : MatcherInFiles(files)
-    {
-    }
+    EnumFinder() = default;
 
 public:
     const Enums& getEnums() const
@@ -152,9 +171,6 @@ public:
         // TODO: collect structs defined in given source code only
         const auto* decl = Result.Nodes.getNodeAs<clang::EnumDecl>("enumDecl");
         if (!decl) {
-            return;
-        }
-        if (!isInFiles(decl->getLocation(), Result.Context)) {
             return;
         }
         auto* typedefdecl = decl->getTypedefNameForAnonDecl();
@@ -186,9 +202,12 @@ public:
     {
     }
 
-    const std::unordered_set<const FunctionDecl*>& getFunctions()
+    std::unordered_set<const FunctionDecl*> getFunctions()
     {
-        return m_foundFunctions;
+        std::unordered_set<const FunctionDecl*> functions;
+        std::transform(m_functionDecls.begin(), m_functionDecls.end(), std::inserter(functions, functions.begin()),
+            [] (const auto& pair) { return pair.second; });
+        return functions;
     }
 
 public:
@@ -199,40 +218,45 @@ public:
             return;
         }
         if (m_functions.find(decl->getNameInfo().getName().getAsString()) != m_functions.end()) {
-            if (!decl->isThisDeclarationADefinition()) {
+            // TODO: test this with memcached
+            if (decl->isDefined() && !decl->isThisDeclarationADefinition()) {
                 return;
             }
-            m_functions.erase(decl->getNameInfo().getName().getAsString());
+            if (decl->isDefined()) {
+                m_functions.erase(decl->getNameInfo().getName().getAsString());
+            } else {
+                //auto pos = m_functionDecls.find(decl->getName());
+                //if (pos != m_functionDecls.end()) {
+                //    m_foundFunctions.erase(pos->second);
+                //}
+            }
+            m_functionDecls[decl->getName()] = decl;
             const auto& loc = decl->getLocation();
-            m_foundFunctions.insert(decl);
+            //m_foundFunctions.insert(decl);
         }
     }
 
 private:
     std::unordered_set<std::string> m_functions;
     std::unordered_set<const FunctionDecl*> m_foundFunctions;
+    std::unordered_map<std::string, const FunctionDecl*> m_functionDecls;
 }; // class FunctionFinder
 
 
 } // namespace vazgen
 
-int main(int argc, const char* argv[])
+void run(CommonOptionsParser& OptionsParser,
+         const std::unordered_set<std::string>& functions,
+         const std::string& protoName)
 {
-    CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
     vazgen::ProtoFileGenerator protoFileGen;
-    protoFileGen.setProtoName(vazgen::protoName);
-    for (const auto& srcFile : OptionsParser.getSourcePathList()) {
-        ClangTool Tool(OptionsParser.getCompilations(),
-                       {srcFile});
-        const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
-        std::unordered_set<std::string> files;
-        for (const auto& F : vazgen::Files) {
-            files.insert(F);
-        }
+    protoFileGen.setProtoName(protoName);
 
+    for (const auto& srcFile : OptionsParser.getSourcePathList()) {
+        ClangTool Tool(OptionsParser.getCompilations(), {srcFile});
         vazgen::FunctionFinder functionFinder(functions);
-        vazgen::StructFinder structFinder(files);
-        vazgen::EnumFinder enumFinder(files);
+        vazgen::StructFinder structFinder;
+        vazgen::EnumFinder enumFinder;
         //vazgen::TypedefFinder typedefFinder;
         MatchFinder matchFinder;
         matchFinder.addMatcher(vazgen::functionMatcher, &functionFinder);
@@ -253,9 +277,27 @@ int main(int argc, const char* argv[])
         protoFileGen.generate();
     }
 
-    vazgen::ProtoFileWriter protoWriter("secure_service.proto", protoFileGen.getProtoFile());
+    vazgen::ProtoFileWriter protoWriter(protoName + ".proto", protoFileGen.getProtoFile());
     protoWriter.write();
+}
 
+int main(int argc, const char* argv[])
+{
+    CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
+    vazgen::Logger logger("clang-tool");
+    logger.setLevel(vazgen::Logger::ERR);
+    
+    if (!vazgen::functionFile.empty()) {
+        const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
+        run(OptionsParser, functions, vazgen::protoName.empty() ? "partition_proto" : vazgen::protoName.getValue());
+    } else if (!vazgen::functionStats.empty()) {
+        const auto& [secureFunctions, insecureFunctions] = vazgen::parseFunctionsFromStats(vazgen::functionStats.getValue(), logger);
+        run(OptionsParser, secureFunctions, "secure_enclave");
+        run(OptionsParser, insecureFunctions, "insecure_app");
+    } else {
+        logger.error("No file is specified for functions");
+        return 0;
+    }
     return 0;
 }
 

@@ -38,7 +38,8 @@ add_executable(proto-file-gen
                 lib/ClangTools/ProtoFileGeneratorTool.cpp
                 lib/ClangTools/ProtoFileGenerator.cpp
                 lib/CodeGen/ProtoFileWriter.cpp
-                lib/CodeGen/FileWriter.cpp)
+                lib/CodeGen/FileWriter.cpp
+                lib/Utils/Logger.cpp)
 
 target_include_directories(proto-file-gen PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -184,5 +185,5 @@ target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_aut
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 
 target_compile_features(proto-file-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
-target_compile_options(proto-file-gen PRIVATE -fno-rtti -g -DNDEBUG)
+target_compile_options(proto-file-gen PRIVATE -fno-rtti -g) #-DNDEBUG)
 
