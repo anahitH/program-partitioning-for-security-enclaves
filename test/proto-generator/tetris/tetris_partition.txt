@@ -1,6 +1,0 @@
-fits_in
-next_shape
-Partition functions-----------
-place
-Static analyser output--------
-update
