@@ -35,10 +35,12 @@ DeclarationMatcher functionMatcher = functionDecl().bind("functionDecl");
 DeclarationMatcher structMatcher = recordDecl().bind("recordDecl");
 DeclarationMatcher enumMatcher = enumDecl().bind("enumDecl");
 DeclarationMatcher typedefMatcher = typedefDecl().bind("typedefDecl");
+
 static llvm::cl::OptionCategory ProtoFileGenTool("proto-gen options");
 static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp("\nMore help text...\n");
 static llvm::cl::opt<std::string> functionFile("functions", llvm::cl::cat(ProtoFileGenTool));
+static llvm::cl::opt<std::string> protoName("proto", llvm::cl::cat(ProtoFileGenTool));
 static llvm::cl::list<std::string> Files("files", llvm::cl::ZeroOrMore, llvm::cl::cat(ProtoFileGenTool));
 
 class MatcherInFiles
@@ -218,7 +220,7 @@ int main(int argc, const char* argv[])
 {
     CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
     vazgen::ProtoFileGenerator protoFileGen;
-    protoFileGen.setProtoName("secure_service");
+    protoFileGen.setProtoName(vazgen::protoName);
     for (const auto& srcFile : OptionsParser.getSourcePathList()) {
         ClangTool Tool(OptionsParser.getCompilations(),
                        {srcFile});
