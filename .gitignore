@@ -42,3 +42,4 @@ test/partitioner
 test/liveness
 test/slicer
 test/eval
+test/proto-generator

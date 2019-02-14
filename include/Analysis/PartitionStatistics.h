@@ -19,27 +19,31 @@ class PartitionStatistics : public Statistics
 {
 public:
     PartitionStatistics(std::ofstream& strm,
-                        const Partition& partition,
+                        const Partition& securePartition,
+                        const Partition& insecurePartition,
                         const CallGraph& callgraph,
                         llvm::Module& M);
 
     void report() final;
 
 private:
-    void reportPartitionFunctions();
-    void reportSecurityRelatedFunctions();
-    void reportInInterface();
-    void reportOutInterface();
-    void reportGlobals();
-    void reportNumOfContextSwitches();
-    void reportSizeOfTCB();
-    void repotArgsPassedAccrossPartition();
+    void report(const Partition& partition);
+    void reportPartitionFunctions(const Partition& partition);
+    void reportSecurityRelatedFunctions(const Partition& partition);
+    void reportInInterface(const Partition& partition);
+    void reportOutInterface(const Partition& partition);
+    void reportGlobals(const Partition& partition);
+    void reportNumOfContextSwitches(const Partition& partition);
+    void reportSizeOfTCB(const Partition& partition);
+    void repotArgsPassedAccrossPartition(const Partition& partition);
 
-    Double getCtxSwitchesInFunction(llvm::Function* F);
-    Double getArgNumPassedFromFunction(llvm::Function* F);
+    Double getCtxSwitchesInFunction(llvm::Function* F, const Partition& partition);
+    Double getArgNumPassedFromFunction(llvm::Function* F, const Partition& partition);
 
 private:
-    const Partition& m_partition;
+    std::string m_partitionName;
+    const Partition& m_securePartition;
+    const Partition& m_insecurePartition;
     const CallGraph& m_callgraph;
     llvm::Module& m_module;
 }; // class PartitionStatistics

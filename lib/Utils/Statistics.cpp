@@ -66,7 +66,7 @@ void JsonWriter::write(const Statistics::key& k, const ValueTy& value)
         return;
     }
     // TODO: fix this for any size of k
-    m_root[k[0]][k[1]] = value;
+    m_root[k[0]][k[1]][k[2]] = value;
 
     //nlohmann::json obj;
     //obj[k.back()] = value;

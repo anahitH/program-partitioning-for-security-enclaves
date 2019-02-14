@@ -112,12 +112,13 @@ void ProgramPartition::dump(const std::string& outFile) const
 void ProgramPartition::dumpStats(const std::string& statsFile) const
 {
     std::ofstream strm;
+    // TODO: append
     if (statsFile.empty()) {
         strm.open("partition_stats.json");
     } else {
         strm.open(statsFile);
     }
-    PartitionStatistics stats(strm, m_securePartition, m_callgraph, m_module);
+    PartitionStatistics stats(strm, m_securePartition, m_insecurePartition, m_callgraph, m_module);
     stats.report();
 }
 
