@@ -206,7 +206,7 @@ public:
     {
         std::unordered_set<const FunctionDecl*> functions;
         std::transform(m_functionDecls.begin(), m_functionDecls.end(), std::inserter(functions, functions.begin()),
-            [] (const auto& pair) { return pair.second; });
+            [] (const auto& item ) {return item.second; });
         return functions;
     }
 
@@ -218,6 +218,13 @@ public:
             return;
         }
         if (m_functions.find(decl->getNameInfo().getName().getAsString()) != m_functions.end()) {
+            //if (!decl->isDefined()) {
+            //    llvm::dbgs() << decl->getName() << " is not defined\n";
+            //    const SourceManager &srcMgr = Result.Context->getSourceManager();
+            //    std::string src = srcMgr.getFilename(decl->getLocation()).str();
+            //    llvm::dbgs() << src << "\n";
+            //    decl->dump();
+            //}
             // TODO: test this with memcached
             if (decl->isDefined() && !decl->isThisDeclarationADefinition()) {
                 return;
@@ -266,14 +273,13 @@ void run(CommonOptionsParser& OptionsParser,
 
         Tool.run(newFrontendActionFactory(&matchFinder).get());
 
-
         const auto& functionDecls = functionFinder.getFunctions();
         const auto& structs = structFinder.getStructs();
         const auto& enums = enumFinder.getEnums();
         protoFileGen.setFunctions(functionDecls);
         protoFileGen.setStructs(structs);
         protoFileGen.setEnums(enums);
-        //vazgen::ProtoFileGenerator protoFileGen(functionDecls, structs, enums, "secure_service");
+        vazgen::ProtoFileGenerator protoFileGen(functionDecls, structs, enums, protoName + "_service");
         protoFileGen.generate();
     }
 

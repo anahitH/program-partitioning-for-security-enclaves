@@ -185,5 +185,5 @@ target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_aut
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 
 target_compile_features(proto-file-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
-target_compile_options(proto-file-gen PRIVATE -fno-rtti -g) #-DNDEBUG)
+target_compile_options(proto-file-gen PRIVATE -fno-rtti -g -DNDEBUG)
 

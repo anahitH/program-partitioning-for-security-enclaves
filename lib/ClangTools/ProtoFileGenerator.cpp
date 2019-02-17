@@ -99,7 +99,6 @@ void ProtoFileGenerator::generate()
 
 void ProtoFileGenerator::generateMessages()
 {
-    //llvm::dbgs() << "Gen messages " << m_functions.size() << "\n";
     for (auto* F : m_functions) {
         generateMessagesForFunction(const_cast<clang::FunctionDecl*>(F));
     }
@@ -107,7 +106,6 @@ void ProtoFileGenerator::generateMessages()
 
 void ProtoFileGenerator::generateRPCMessages()
 {
-    //llvm::dbgs() << "Gen rpc messages\n";
     for (auto* F : m_functions) {
         //llvm::dbgs() << "Creating RPC message for function " << F->getName() << "\n";
         ProtoMessage msg(F->getName().str() + "_INPUT");
@@ -122,7 +120,6 @@ void ProtoFileGenerator::generateRPCMessages()
 
 void ProtoFileGenerator::generateService()
 {
-    //llvm::dbgs() << "Gen service\n";
     if (!m_protoFile.hasService(m_protoName)) {
         m_protoFile.addService(ProtoService(m_protoName));
     }
@@ -148,7 +145,6 @@ void ProtoFileGenerator::generateMessagesForFunction(clang::FunctionDecl* F)
 
 void ProtoFileGenerator::generateMessageForType(const clang::Type* type)
 {
-    //llvm::dbgs() << "Create message for type\n";
     if (auto* ptrType = llvm::dyn_cast<clang::PointerType>(type)) {
         generateMessageForType(&*ptrType->getPointeeType());
     }
@@ -194,7 +190,6 @@ void ProtoFileGenerator::generateMessageFields(const clang::Type* type, ProtoMes
     int i  = 0;
     for (const auto& field : structFields->second.m_fields) {
         const std::string& fieldName = field.m_name;
-        //llvm::dbgs() << "Field " << fieldName << "\n";
         if (field.m_type->isEnumeralType()) {
             msg.addEnum(generateMessageEnum(&*field.m_type));
         }
