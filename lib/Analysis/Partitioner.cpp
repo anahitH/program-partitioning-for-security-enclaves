@@ -515,18 +515,16 @@ void PartitionGlobals::partition()
          for (auto in_it = globalNode->inEdgesBegin();
               in_it != globalNode->inEdgesEnd();
               ++in_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
-                 continue;
+             if (m_partition.contains((*in_it)->getSource()->getParent())) {
+                 m_referencedGlobals.insert(&*glob_it);
              }
-             m_referencedGlobals.insert(&*glob_it);
          }
          for (auto out_it = globalNode->outEdgesBegin();
               out_it != globalNode->outEdgesEnd();
               ++out_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
-                 continue;
+             if (m_partition.contains((*out_it)->getDestination()->getParent())) {
+                 m_referencedGlobals.insert(&*glob_it);
              }
-             m_referencedGlobals.insert(&*glob_it);
          }
     }
 }

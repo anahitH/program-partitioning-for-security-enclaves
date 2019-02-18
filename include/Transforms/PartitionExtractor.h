@@ -71,10 +71,15 @@ public:
 
 private:
     FunctionSet getGlobalSetters(llvm::Module& M, Logger& logger, bool isEnclave);
-    bool extractPartition(Logger& logger, llvm::Module& M, const FunctionSet& globalSetters, bool enclave);
+    bool extractPartition(Logger& logger, llvm::Module& M,
+                          const FunctionSet& globalSetters,
+                          bool enclave);
+    void renameAppMain();
 
 private:
     std::unique_ptr<PartitionExtractor> m_extractor;
+    llvm::Module* m_enclaveModule;
+    llvm::Module* m_appModule;
 }; // class PartitionExtractorPass
 
 } // namespace vazgen
