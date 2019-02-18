@@ -45,6 +45,7 @@ private:
 private:
     const ProtoFile& m_protoFile;
     FileWriter m_writer;
+    int m_indent;
 }; // class ProtoFileWriter
 
 } // namespace vazgen

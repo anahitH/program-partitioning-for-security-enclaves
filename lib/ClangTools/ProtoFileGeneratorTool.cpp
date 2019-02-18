@@ -257,7 +257,7 @@ void run(CommonOptionsParser& OptionsParser,
          const std::string& protoName)
 {
     vazgen::ProtoFileGenerator protoFileGen;
-    protoFileGen.setProtoName(protoName);
+    protoFileGen.setProtoName(protoName + "_service");
 
     for (const auto& srcFile : OptionsParser.getSourcePathList()) {
         ClangTool Tool(OptionsParser.getCompilations(), {srcFile});
@@ -279,7 +279,6 @@ void run(CommonOptionsParser& OptionsParser,
         protoFileGen.setFunctions(functionDecls);
         protoFileGen.setStructs(structs);
         protoFileGen.setEnums(enums);
-        vazgen::ProtoFileGenerator protoFileGen(functionDecls, structs, enums, protoName + "_service");
         protoFileGen.generate();
     }
 
