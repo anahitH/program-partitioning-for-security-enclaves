@@ -22,8 +22,11 @@ public:
 
 public:
     ProtoFile() = default;
-    ProtoFile(const std::string& version, const std::string& packageName)
-        : m_version(version)
+    ProtoFile(const std::string& name,
+              const std::string& version,
+              const std::string& packageName)
+        : m_name(name)
+        , m_version(version)
         , m_package(packageName)
     {
     }
@@ -34,6 +37,11 @@ public:
     ProtoFile& operator =(ProtoFile&& ) = delete;
 
 public:
+    const std::string& getName() const
+    {
+        return m_name;
+    }
+
     const std::string& getVersion() const
     {
         return m_version;
@@ -146,6 +154,7 @@ public:
     }
 
 private:
+    std::string m_name;
     std::string m_version;
     std::string m_package;
     std::vector<Import> m_imports;

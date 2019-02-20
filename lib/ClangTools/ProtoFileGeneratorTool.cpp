@@ -282,7 +282,7 @@ void run(CommonOptionsParser& OptionsParser,
         protoFileGen.generate();
     }
 
-    vazgen::ProtoFileWriter protoWriter(protoName + ".proto", protoFileGen.getProtoFile());
+    vazgen::ProtoFileWriter protoWriter(protoName + "_service.proto", protoFileGen.getProtoFile());
     protoWriter.write();
 }
 

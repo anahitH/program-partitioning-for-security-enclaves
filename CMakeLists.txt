@@ -39,6 +39,10 @@ add_executable(proto-file-gen
                 lib/ClangTools/ProtoFileGenerator.cpp
                 lib/CodeGen/ProtoFileWriter.cpp
                 lib/CodeGen/FileWriter.cpp
+                lib/CodeGen/Function.cpp
+                lib/CodeGen/Class.cpp
+                lib/CodeGen/ServiceImplGenerator.cpp
+                lib/CodeGen/SourceFileWriter.cpp
                 lib/Utils/Logger.cpp)
 
 target_include_directories(proto-file-gen PUBLIC

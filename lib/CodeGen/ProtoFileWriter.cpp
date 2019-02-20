@@ -131,7 +131,7 @@ void ProtoFileWriter::writeProtoService(const ProtoService& service)
     beginProtoService(service);
     ++m_indent;
     writeServiceRpcs(service.getRPCs());
-    ++m_indent;
+    --m_indent;
     endProtoService();
 }
 
