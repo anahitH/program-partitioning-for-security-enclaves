@@ -18,8 +18,8 @@ public:
 
 public:
     using Parents = std::unordered_map<AccessSpecifier, std::string>;
-    using MemberFunctions = std::unordered_map<AccessSpecifier, Function>;
-    using Members = std::unordered_map<AccessSpecifier, Variable>;
+    using MemberFunctions = std::unordered_map<AccessSpecifier, std::vector<Function>>;
+    using Members = std::unordered_map<AccessSpecifier, std::vector<Variable>>;
 
 public:
     Class() = default;
@@ -76,12 +76,27 @@ public:
 
     void addMemberFunction(AccessSpecifier accessSpec, const Function& f)
     {
-        m_memberFunctions.insert(std::make_pair(accessSpec, f));
+        m_memberFunctions[accessSpec].push_back(f);
     }
 
     void addMember(AccessSpecifier accessSpec, const Variable& v)
     {
-        m_members.insert(std::make_pair(accessSpec, v));
+        m_members[accessSpec].push_back(v);
+    }
+
+    bool hasPublicMemberFunctions() const
+    {
+        return m_memberFunctions.find(PUBLIC) != m_memberFunctions.end();
+    }
+
+    bool hasPrivateMemberFunctions() const
+    {
+        return m_memberFunctions.find(PRIVATE) != m_memberFunctions.end();
+    }
+
+    bool hasProtectedMemberFunctions() const
+    {
+        return m_memberFunctions.find(PROTECTED) != m_memberFunctions.end();
     }
 
     std::string getClassDeclarationAsString() const;

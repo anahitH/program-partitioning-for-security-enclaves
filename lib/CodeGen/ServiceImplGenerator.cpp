@@ -1,6 +1,7 @@
 #include "CodeGen/ServiceImplGenerator.h"
 
 #include <sstream>
+#include <iostream>
 
 namespace vazgen {
 
@@ -17,7 +18,9 @@ void ServiceImplGenerator::generateForService(const std::string& serviceName,
     auto& [header, source] = m_serviceFiles[serviceName];
     Class serviceClass(serviceName + "Impl");
     serviceClass.addParent(Class::PUBLIC, serviceName + "::Service");
+    std::cout << "Generate class for service " << serviceName << "\n";
     for (const auto& rpc : service.getRPCs()) {
+        std::cout << "Generate function " << rpc.m_name << "\n";
         Function rpcF(rpc.m_name);
         rpcF.setReturnType({"::grpc::Status", "", false, false});
         Variable serverCtxParam;
@@ -32,14 +35,13 @@ void ServiceImplGenerator::generateForService(const std::string& serviceName,
         outParam.m_name = "output";
         outParam.m_type = {rpc.m_output.getName(), "", true, false};
         rpcF.addParam(outParam);
-        serviceClass.addMemberFunction(Class::PUBLIC, rpcF);
         generateFunctionBody(rpcF, rpc);
+        serviceClass.addMemberFunction(Class::PUBLIC, rpcF);
     }
     header.setName(serviceName + ".h");
     header.setHeader(true);
     header.addMacro("#pragma once");
     header.addInclude("\"" + m_protoFile.getPackage() + ".grpc.pb.h\"");
-    header.addInclude("Utils.h");
     header.addInclude("\"include/grpcpp/grpcpp.h\"");
     header.addInclude("\"include/grpcpp/server.h\"");
     header.setNamespace(m_protoFile.getPackage());
@@ -47,7 +49,8 @@ void ServiceImplGenerator::generateForService(const std::string& serviceName,
 
     source.setName(serviceName + ".cpp");
     source.setHeader(false);
-    source.addInclude("\"" + header.getName() + "\n");
+    source.addInclude("\"" + header.getName() + "\"\n");
+    source.addInclude("\"Utils.h\"");
     source.setNamespace(m_protoFile.getPackage());
     source.addClass(serviceClass);
 }
@@ -58,7 +61,7 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
     std::stringstream body;
     Function actualF(rpc.m_name);
     for (const auto& field : rpc.m_input.getFields()) {
-        F.addBody(field.m_type + " " + field.m_name);
+        F.addBody(field.m_type + " " + field.m_name + ";");
         std::stringstream fCall;
         fCall << "Utils::get_"
               << field.m_name << "(&"
@@ -67,8 +70,9 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
         F.addBody(fCall.str());
     }
     // TODO: insert real call
+    F.addBody("// TODO: add real call");
     for (const auto& field : rpc.m_output.getFields()) {
-        F.addBody(field.m_type + " " + field.m_name);
+        F.addBody(field.m_type + " " + field.m_name + ";");
         std::stringstream fCall;
         fCall << "Utils::set_"
               << field.m_name << "(&"

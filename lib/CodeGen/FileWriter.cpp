@@ -10,6 +10,7 @@ FileWriter::FileWriter(const std::string& name)
 
 FileWriter::~FileWriter()
 {
+    m_stream.flush();
     m_stream.close();
 }
 
@@ -29,6 +30,11 @@ void FileWriter::write(unsigned num, int indent)
 {
     writeIndent(indent);
     m_stream << num << "\n";
+}
+
+void FileWriter::writeNewLine()
+{
+    m_stream << "\n";
 }
 
 void FileWriter::writeIndent(int indent)

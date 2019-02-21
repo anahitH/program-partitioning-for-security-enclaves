@@ -8,7 +8,7 @@ namespace vazgen {
 class SourceFileWriter
 {
 public:
-   SourceFileWriter(const std::string& name, const SourceFile& sourceFile);
+   SourceFileWriter(const SourceFile& sourceFile);
 
    SourceFileWriter(const SourceFileWriter& writer) = delete;
    SourceFileWriter(SourceFileWriter&& writer) = delete;

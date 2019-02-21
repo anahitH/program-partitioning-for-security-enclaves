@@ -19,6 +19,7 @@ public:
     void write(const std::string& string, int indent = 0);
     void write(int num, int indent = 0);
     void write(unsigned num, int indent = 0);
+    void writeNewLine();
     // TODO: add for more types if needed
 
 private:

@@ -8,9 +8,9 @@ std::string Type::getAsString() const
 {
     std::stringstream typeStr;
     typeStr << m_qualifier
-            << m_name;
+            << " " << m_name;
     if (m_isPtr) {
-        typeStr << "* ";
+        typeStr << "*";
     }
     return typeStr.str();
 }
@@ -23,14 +23,18 @@ std::string Variable::getAsString() const
 std::string Function::getDeclarationAsString() const
 {
     std::stringstream declStr;
-    declStr << m_returnType.getAsString();
+    declStr << m_returnType.getAsString() << " ";
     declStr << m_name
             << "(";
+    int i = 0;
     for (const auto& param : m_params) {
-        declStr << param.getAsString() << ",";
+        declStr << param.getAsString();
+        if (i++ != m_params.size() - 1) {
+            declStr << ", ";
+        }
     }
-    declStr.seekp(-1, std::ios_base::end);
     declStr << ");";
+    declStr.seekp(-3, std::ios_base::end);
     return declStr.str();
 }
 
@@ -51,16 +55,16 @@ std::string Function::getDefinitionAsString(const std::string& className) const
 {
     std::stringstream defStr;
     defStr << m_returnType.getAsString()
-           << className << "::";
+           << " " << className << "::";
     defStr << m_name
             << "(";
     for (const auto& param : m_params) {
         defStr << param.getAsString() << ",";
     }
     defStr.seekp(-1, std::ios_base::end);
-    defStr << ") {";
+    defStr << ") \n{\n";
     for (const auto& instr : m_body) {
-        defStr << instr << ";\n";
+        defStr << "   " << instr << "\n";
     }
     defStr << "}";
     return defStr.str();

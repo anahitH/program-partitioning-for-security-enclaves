@@ -7,6 +7,8 @@
 
 #include "ClangTools/ProtoFileGenerator.h"
 #include "CodeGen/ProtoFileWriter.h"
+#include "CodeGen/ServiceImplGenerator.h"
+#include "CodeGen/SourceFileWriter.h"
 #include "Utils/Logger.h"
 
 #include "nlohmann/json.hpp"
@@ -249,27 +251,35 @@ private:
     std::unordered_map<std::string, const FunctionDecl*> m_functionDecls;
 }; // class FunctionFinder
 
+void generateServiceImplFiles(const ProtoFile& protoFile)
+{
+    ServiceImplGenerator serviceImplGen(protoFile);
+    serviceImplGen.generate();
 
-} // namespace vazgen
+    for (const auto& [serviceName, sourceFiles] : serviceImplGen.getServiceImplFiles()) {
+        SourceFileWriter headerWriter(sourceFiles.first);
+        headerWriter.write();
+        SourceFileWriter sourceWriter(sourceFiles.second);
+        sourceWriter.write();
+    }
+}
 
 void run(CommonOptionsParser& OptionsParser,
          const std::unordered_set<std::string>& functions,
          const std::string& protoName)
 {
-    vazgen::ProtoFileGenerator protoFileGen;
+    ProtoFileGenerator protoFileGen;
     protoFileGen.setProtoName(protoName + "_service");
 
     for (const auto& srcFile : OptionsParser.getSourcePathList()) {
         ClangTool Tool(OptionsParser.getCompilations(), {srcFile});
-        vazgen::FunctionFinder functionFinder(functions);
-        vazgen::StructFinder structFinder;
-        vazgen::EnumFinder enumFinder;
-        //vazgen::TypedefFinder typedefFinder;
+        FunctionFinder functionFinder(functions);
+        StructFinder structFinder;
+        EnumFinder enumFinder;
         MatchFinder matchFinder;
-        matchFinder.addMatcher(vazgen::functionMatcher, &functionFinder);
-        matchFinder.addMatcher(vazgen::structMatcher, &structFinder);
-        matchFinder.addMatcher(vazgen::enumMatcher, &enumFinder);
-        //matchFinder.addMatcher(vazgen::typedefMatcher, &typedefFinder);
+        matchFinder.addMatcher(functionMatcher, &functionFinder);
+        matchFinder.addMatcher(structMatcher, &structFinder);
+        matchFinder.addMatcher(enumMatcher, &enumFinder);
 
         Tool.run(newFrontendActionFactory(&matchFinder).get());
 
@@ -282,9 +292,14 @@ void run(CommonOptionsParser& OptionsParser,
         protoFileGen.generate();
     }
 
-    vazgen::ProtoFileWriter protoWriter(protoName + "_service.proto", protoFileGen.getProtoFile());
+    ProtoFileWriter protoWriter(protoName + "_service.proto", protoFileGen.getProtoFile());
     protoWriter.write();
+
+    generateServiceImplFiles(protoFileGen.getProtoFile());
 }
+
+
+} // namespace vazgen
 
 int main(int argc, const char* argv[])
 {
@@ -294,11 +309,11 @@ int main(int argc, const char* argv[])
     
     if (!vazgen::functionFile.empty()) {
         const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
-        run(OptionsParser, functions, vazgen::protoName.empty() ? "partition_proto" : vazgen::protoName.getValue());
+        vazgen::run(OptionsParser, functions, vazgen::protoName.empty() ? "partition_proto" : vazgen::protoName.getValue());
     } else if (!vazgen::functionStats.empty()) {
         const auto& [secureFunctions, insecureFunctions] = vazgen::parseFunctionsFromStats(vazgen::functionStats.getValue(), logger);
-        run(OptionsParser, secureFunctions, "secure_enclave");
-        run(OptionsParser, insecureFunctions, "insecure_app");
+        vazgen::run(OptionsParser, secureFunctions, "secure_enclave");
+        vazgen::run(OptionsParser, insecureFunctions, "insecure_app");
     } else {
         logger.error("No file is specified for functions");
         return 0;

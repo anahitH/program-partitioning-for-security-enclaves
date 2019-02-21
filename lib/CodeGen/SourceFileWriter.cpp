@@ -2,13 +2,14 @@
 
 #include <cassert>
 #include <sstream>
+#include <iostream>
 
 namespace vazgen {
 
-SourceFileWriter::SourceFileWriter(const std::string& name,
-                                   const SourceFile& sourceFile)
-    : m_writer(name)
+SourceFileWriter::SourceFileWriter(const SourceFile& sourceFile)
+    : m_writer(sourceFile.getName())
     , m_sourceFile(sourceFile)
+    , m_indent(0)
 {
 }
 
@@ -27,13 +28,11 @@ void SourceFileWriter::beginFile()
 void SourceFileWriter::beginScope()
 {
     ++m_indent;
-    m_writer.write("{");
 }
 
 void SourceFileWriter::endScope()
 {
     --m_indent;
-    m_writer.write("}");
 }
 
 void SourceFileWriter::writeMacros()
@@ -41,6 +40,7 @@ void SourceFileWriter::writeMacros()
     for (const auto& macro : m_sourceFile.getMacros()) {
         m_writer.write(macro);
     }
+    m_writer.writeNewLine();
 }
 
 void SourceFileWriter::writeIncludes()
@@ -48,23 +48,24 @@ void SourceFileWriter::writeIncludes()
     for (const auto& include : m_sourceFile.getIncludes()) {
         m_writer.write("#include " + include);
     }
+    m_writer.writeNewLine();
 }
 
 void SourceFileWriter::writeNamespace()
 {
     const auto& namespace_ = m_sourceFile.getNamespace();
     if (!namespace_.empty()) {
-        m_writer.write("namespace " + namespace_);
-        beginScope();
+        m_writer.write("namespace " + namespace_ + " {\n");
     }
     writeClasses();
     if (!namespace_.empty()) {
-        endScope();
+        m_writer.write("}");
     }
 }
 
 void SourceFileWriter::writeClasses()
 {
+    std::cout << "writing classes\n";
     if (m_sourceFile.isHeader()) {
         writeClassDeclarations();
     } else {
@@ -88,7 +89,8 @@ void SourceFileWriter::writeClassDefinitions()
 
 void SourceFileWriter::writeClassDeclaration(const Class& class_)
 {
-    m_writer.write(class_.getClassDeclarationAsString() + " {");
+    std::cout << "writing class decl " << class_.getName() << "\n";
+    m_writer.write(class_.getClassDeclarationAsString() + "{");
     beginScope();
     writeClassFunctionsDeclarations(class_);
     writeClassMembers(class_);
@@ -98,39 +100,41 @@ void SourceFileWriter::writeClassDeclaration(const Class& class_)
 
 void SourceFileWriter::writeClassDefinition(const Class& class_)
 {
-    for (const auto& [access, function] : class_.getMemberFunctions()) {
-        m_writer.write(function.getDefinitionAsString(class_.getName()));
+    for (const auto& [access, functions] : class_.getMemberFunctions()) {
+        for (const auto& function : functions) {
+            m_writer.write(function.getDefinitionAsString(class_.getName()), m_indent);
+        }
     }
 }
 
 void SourceFileWriter::writeClassFunctionsDeclarations(const Class& class_)
 {
-    std::stringstream publicFStr;
-    std::stringstream privateFStr;
-    std::stringstream protectedFStr;
-    for (const auto& [access, F] : class_.getMemberFunctions()) {
-        if (access == Class::PUBLIC) {
-            publicFStr << F.getDeclarationAsString();
-        } else if (access == Class::PRIVATE) {
-            privateFStr << F.getDeclarationAsString();
-        } else if (access == Class::PROTECTED) {
-            protectedFStr << F.getDeclarationAsString();
-        } else {
-            assert(false);
+    bool pub = false;
+    bool priv = false;
+    bool prot = false;
+    for (const auto& [access, functions] : class_.getMemberFunctions()) {
+        for (const auto& F : functions) {
+            if (access == Class::PUBLIC) {
+                if (!pub) {
+                    m_writer.write("public");
+                    pub = true;
+                }
+            } else if (access == Class::PRIVATE) {
+                if (!priv) {
+                    m_writer.write("private:");
+                    priv = true;
+                }
+            } else if (access == Class::PROTECTED) {
+                if (!prot) {
+                    m_writer.write("protected:");
+                    prot = true;
+                }
+            } else {
+                assert(false);
+            }
+            m_writer.write(F.getDeclarationAsString(), m_indent);
         }
     }
-    m_writer.write("public:");
-    beginScope();
-    m_writer.write(publicFStr.str());
-    endScope();
-    m_writer.write("protected:");
-    beginScope();
-    m_writer.write(protectedFStr.str());
-    endScope();
-    m_writer.write("private:");
-    beginScope();
-    m_writer.write(privateFStr.str());
-    endScope();
 }
 
 void SourceFileWriter::writeClassMembers(const Class& class_)
@@ -138,29 +142,31 @@ void SourceFileWriter::writeClassMembers(const Class& class_)
     std::stringstream publicFStr;
     std::stringstream privateFStr;
     std::stringstream protectedFStr;
-    for (const auto& [access, mem] : class_.getMembers()) {
-        if (access == Class::PUBLIC) {
-            publicFStr << mem.getAsString();
-        } else if (access == Class::PRIVATE) {
-            privateFStr << mem.getAsString();
-        } else if (access == Class::PROTECTED) {
-            protectedFStr << mem.getAsString();
-        } else {
-            assert(false);
+    for (const auto& [access, mems] : class_.getMembers()) {
+        for (const auto& mem : mems) {
+            if (access == Class::PUBLIC) {
+                publicFStr << mem.getAsString() << "\n";
+            } else if (access == Class::PRIVATE) {
+                privateFStr << mem.getAsString() << "\n";
+            } else if (access == Class::PROTECTED) {
+                protectedFStr << mem.getAsString() << "\n";
+            } else {
+                assert(false);
+            }
         }
     }
-    m_writer.write("public:");
-    beginScope();
-    m_writer.write(publicFStr.str());
-    endScope();
-    m_writer.write("protected:");
-    beginScope();
-    m_writer.write(protectedFStr.str());
-    endScope();
-    m_writer.write("private:");
-    beginScope();
-    m_writer.write(privateFStr.str());
-    endScope();
+    if (!publicFStr.str().empty()) {
+        m_writer.write("public:");
+        m_writer.write(publicFStr.str(), m_indent);
+    }
+    if (!protectedFStr.str().empty()) {
+        m_writer.write("protected:");
+        m_writer.write(protectedFStr.str(), m_indent);
+    }
+    if (!privateFStr.str().empty()) {
+        m_writer.write("private:");
+        m_writer.write(privateFStr.str(), m_indent);
+    }
 }
 
 

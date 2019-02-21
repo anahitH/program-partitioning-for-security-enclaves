@@ -29,7 +29,7 @@ std::string Class::getClassDeclarationAsString() const
     int i = 0;
     for (const auto& [access, parent] : m_parents) {
         if (i == 0) {
-            declStr << ": ";
+            declStr << " : ";
         } else if (i != m_parents.size() - 1) {
             declStr << ",";
         }
