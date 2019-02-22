@@ -7,8 +7,11 @@ namespace vazgen {
 std::string Type::getAsString() const
 {
     std::stringstream typeStr;
-    typeStr << m_qualifier
-            << " " << m_name;
+    typeStr << m_qualifier;
+    if (!m_qualifier.empty()) {
+        typeStr << " ";
+    }
+    typeStr << m_name;
     if (m_isPtr) {
         typeStr << "*";
     }
@@ -59,7 +62,7 @@ std::string Function::getDefinitionAsString(const std::string& className) const
     defStr << m_name
             << "(";
     for (const auto& param : m_params) {
-        defStr << param.getAsString() << ",";
+        defStr << param.getAsString() << ", ";
     }
     defStr.seekp(-1, std::ios_base::end);
     defStr << ") \n{\n";
@@ -74,13 +77,17 @@ std::string Function::getCallAsString(const std::vector<std::string>& arguments)
 {
     std::stringstream callStr;
     callStr << m_name << "(";
+    int i = 0;
     for (const std::string& arg : arguments) {
+        if (m_params[i++].m_type.m_isPtr) {
+            callStr << "&";
+        }
         callStr << arg;
         if (arg != arguments.back()) {
-            callStr << ")";
+            callStr << ", ";
         }
     }
-    callStr << ");\n";
+    callStr << ");";
     return callStr.str();
 }
 

@@ -40,7 +40,9 @@ void SourceFileWriter::writeMacros()
     for (const auto& macro : m_sourceFile.getMacros()) {
         m_writer.write(macro);
     }
-    m_writer.writeNewLine();
+    if (!m_sourceFile.getMacros().empty()) {
+        m_writer.writeNewLine();
+    }
 }
 
 void SourceFileWriter::writeIncludes()
@@ -59,7 +61,7 @@ void SourceFileWriter::writeNamespace()
     }
     writeClasses();
     if (!namespace_.empty()) {
-        m_writer.write("}");
+        m_writer.write("} // namespace " + namespace_);
     }
 }
 
@@ -95,14 +97,14 @@ void SourceFileWriter::writeClassDeclaration(const Class& class_)
     writeClassFunctionsDeclarations(class_);
     writeClassMembers(class_);
     endScope();
-    m_writer.write("};");
+    m_writer.write("}; // class " + class_.getName());
 }
 
 void SourceFileWriter::writeClassDefinition(const Class& class_)
 {
     for (const auto& [access, functions] : class_.getMemberFunctions()) {
         for (const auto& function : functions) {
-            m_writer.write(function.getDefinitionAsString(class_.getName()), m_indent);
+            m_writer.write(function.getDefinitionAsString(class_.getName()) + "\n", m_indent);
         }
     }
 }

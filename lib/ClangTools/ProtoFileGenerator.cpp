@@ -55,6 +55,29 @@ std::string getScalarType(const clang::Type* type)
     return "FILL";
 }
 
+std::string getScalarTypeForC(const clang::Type* type)
+{
+    if (auto* typedefType = llvm::dyn_cast<clang::TypedefType>(type)) {
+        auto* decl = typedefType->getDecl();
+        return getScalarTypeForC(&*decl->getUnderlyingType());
+    }
+    if (auto* builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
+        if (builtin->getKind() == clang::BuiltinType::UInt
+                || builtin->getKind() == clang::BuiltinType::Int
+                || builtin->getKind() == clang::BuiltinType::Short
+                || builtin->getKind() == clang::BuiltinType::UShort) {
+            return getScalarType(type) + "_t";
+        }
+        if (builtin->getKind() == clang::BuiltinType::Long) {
+            return "long";
+        }
+        if (builtin->getKind() == clang::BuiltinType::ULong) {
+            return "unsigned long";
+        }
+    }
+    return getScalarType(type);
+}
+
 std::string getMessageNameForType(const clang::Type* type)
 {
     if (auto* typedefType = llvm::dyn_cast<clang::TypedefType>(type)) {
@@ -111,7 +134,11 @@ void ProtoFileGenerator::generateRPCMessages()
         ProtoMessage msg(F->getName().str() + "_INPUT");
         for (unsigned i = 0; i < F->getNumParams(); ++i) {
             auto* paramDecl = F->getParamDecl(i);
-            msg.addField(generateMessageField(&*paramDecl->getType(), paramDecl->getName(), (i+1)));
+            auto field = generateMessageField(&*paramDecl->getType(), paramDecl->getName(), (i+1));
+            if (llvm::isa<clang::PointerType>(&*paramDecl->getType())) {
+                field.m_isPtr = true;
+            }
+            msg.addField(field);
         }
         m_functionInputMessages.insert(std::make_pair(F, msg));
         m_protoFile.addMessage(msg);
@@ -228,11 +255,13 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
 
     if (type->isEnumeralType()) {
         field.m_type = getMessageNameForType(type);
+        field.m_Ctype = field.m_type;
         field.m_name = name == field.m_type ? name + "_var" : name;
         return field;
     }
     if (type->isScalarType()) {
         field.m_type = getScalarType(type);
+        field.m_Ctype = getScalarTypeForC(type);
         field.m_name = name == field.m_type ? name + "_var" : name;
         return field;
     }
@@ -243,10 +272,12 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
             auto pos = m_typeMessages.find(getMessageNameForArrayType(elementType));
             field.m_attribute = "repeated";
             field.m_type = pos->second.getName();
+            field.m_Ctype = "FILL";
             field.m_name = name == field.m_type ? name + "_var" : name;
             return field;
         }
         field = generateMessageField(elementType, name, fieldNum);
+        field.m_Ctype = "FILL";
         field.m_attribute = "repeated";
         return field;
     }
@@ -257,6 +288,7 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
         pos = m_typeMessages.find(getMessageNameForType(type));
     }
     field.m_type = pos->second.getName();
+    field.m_Ctype = field.m_type;
     field.m_name = name == field.m_type ? name + "_var" : name;
     return field;
 }

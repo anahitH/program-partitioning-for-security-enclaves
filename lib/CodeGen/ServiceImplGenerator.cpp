@@ -51,6 +51,7 @@ void ServiceImplGenerator::generateForService(const std::string& serviceName,
     source.setHeader(false);
     source.addInclude("\"" + header.getName() + "\"\n");
     source.addInclude("\"Utils.h\"");
+    source.addInclude("<cstdint>");
     source.setNamespace(m_protoFile.getPackage());
     source.addClass(serviceClass);
 }
@@ -60,26 +61,43 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
 {
     std::stringstream body;
     Function actualF(rpc.m_name);
+    std::vector<std::string> callArgs;
     for (const auto& field : rpc.m_input.getFields()) {
-        F.addBody(field.m_type + " " + field.m_name + ";");
+        F.addBody(field.m_Ctype + " " + field.m_name + ";");
         std::stringstream fCall;
         fCall << "Utils::get_"
               << field.m_name << "(&"
-              << field.m_name << ","
-              << rpc.m_input.getName() << ");";
+              << field.m_name << ", "
+              << "input);";
         F.addBody(fCall.str());
+        Type type = {field.m_Ctype, "", field.m_isPtr, false};
+        actualF.addParam(Variable{type, field.m_name});
+        callArgs.push_back(field.m_name);
     }
-    // TODO: insert real call
-    F.addBody("// TODO: add real call");
+    // insert real call
+    F.addBody("// real call");
+    // if call returns a value
+    bool hasReturnValue = false;
+    if (rpc.m_output.getFields().size() != rpc.m_input.getFields().size()) {
+        hasReturnValue = true;
+        const auto& returnField = rpc.m_output.getFields().back();
+        F.addBody(returnField.m_Ctype + " " + returnField.m_name + " = " + actualF.getCallAsString(callArgs));
+    } else {
+        F.addBody(actualF.getCallAsString(callArgs));
+    }
+    int i = 0;
     for (const auto& field : rpc.m_output.getFields()) {
-        F.addBody(field.m_type + " " + field.m_name + ";");
+        if (hasReturnValue && i++ != rpc.m_output.getFields().size() - 1) {
+            F.addBody(field.m_Ctype + " " + field.m_name + ";");
+        }
         std::stringstream fCall;
         fCall << "Utils::set_"
               << field.m_name << "(&"
-              << field.m_name << ","
-              << rpc.m_output.getName() << ");";
+              << field.m_name << ", "
+              << "output);";
         F.addBody(fCall.str());
     }
+    // TODO: set for return value
     F.addBody("return ::grpc::Status::OK;");
 }
 

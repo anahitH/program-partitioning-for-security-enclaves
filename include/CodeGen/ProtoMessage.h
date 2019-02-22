@@ -14,6 +14,9 @@ public:
         std::string m_type;
         std::string m_name;
         int m_number = 1;
+        bool m_isPtr = false;
+        // type if C code
+        std::string m_Ctype;
     };
 
     struct Enum
