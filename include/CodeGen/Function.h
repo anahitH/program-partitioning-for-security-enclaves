@@ -34,12 +34,18 @@ public:
     Function() = default;
     Function(std::string name)
         : m_name(name)
+        , m_isStatic(false)
     {
     }
     
     std::string getName() const
     {
         return m_name;
+    }
+
+    bool isStatic() const
+    {
+        return m_isStatic;
     }
 
     Type getReturnType() const
@@ -55,6 +61,11 @@ public:
     void setName(const std::string name)
     {
         m_name = name;
+    }
+
+    void setIsStatic(bool isStatic)
+    {
+        m_isStatic = isStatic;
     }
 
     void setReturnType(const Type& type)
@@ -89,6 +100,7 @@ public:
 
 private:
     std::string m_name;
+    bool m_isStatic;
     Type m_returnType;
     Params m_params;
     Body m_body;

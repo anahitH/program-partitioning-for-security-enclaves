@@ -15,6 +15,7 @@ public:
         std::string m_name;
         int m_number = 1;
         bool m_isPtr = false;
+        bool m_isRepeated;
         // type if C code
         std::string m_Ctype;
     };

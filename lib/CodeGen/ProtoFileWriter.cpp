@@ -53,7 +53,7 @@ void ProtoFileWriter::writeProtoImport(const ProtoFile::Import& import)
 void ProtoFileWriter::writeProtoMessages(const ProtoFile::Messages& msgs)
 {
     for (const auto& msg : msgs) {
-        writeProtoMessage(msg);
+        writeProtoMessage(msg.second);
     }
 }
 

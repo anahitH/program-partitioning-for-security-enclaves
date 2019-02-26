@@ -18,7 +18,7 @@ public:
 
     using Imports = std::vector<Import>;
     using Services = std::unordered_map<std::string, ProtoService>;
-    using Messages = std::vector<ProtoMessage>;
+    using Messages = std::unordered_map<std::string, ProtoMessage>;
 
 public:
     ProtoFile() = default;
@@ -77,10 +77,19 @@ public:
         return m_services.find(name)->second;
     }
 
-
     const Messages& getMessages() const
     {
         return m_messages;
+    }
+
+    bool hasMessage(const std::string& name) const
+    {
+        return m_messages.find(name) != m_messages.end();
+    }
+
+    const ProtoMessage& getMessage(const std::string& name) const
+    {
+        return m_messages.find(name)->second;
     }
 
     void setVersion(const std::string& version)
@@ -145,12 +154,13 @@ public:
 
     void addMessage(const ProtoMessage& message)
     {
-        m_messages.push_back(message);
+        m_messages.insert(std::make_pair(message.getName(), message));
     }
 
     void addMessage(ProtoMessage&& message)
     {
-        m_messages.push_back(std::move(message));
+        std::string name = message.getName();
+        m_messages.insert(std::make_pair(name, std::move(message)));
     }
 
 private:

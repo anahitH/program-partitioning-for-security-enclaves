@@ -26,6 +26,9 @@ std::string Variable::getAsString() const
 std::string Function::getDeclarationAsString() const
 {
     std::stringstream declStr;
+    if (m_isStatic) {
+        declStr << "static ";
+    }
     declStr << m_returnType.getAsString() << " ";
     declStr << m_name
             << "(";
@@ -61,10 +64,13 @@ std::string Function::getDefinitionAsString(const std::string& className) const
            << " " << className << "::";
     defStr << m_name
             << "(";
+    int i = 0;
     for (const auto& param : m_params) {
-        defStr << param.getAsString() << ", ";
+        defStr << param.getAsString();
+        if (i++ != m_params.size() - 1) {
+            defStr << ", ";
+        }
     }
-    defStr.seekp(-1, std::ios_base::end);
     defStr << ") \n{\n";
     for (const auto& instr : m_body) {
         defStr << "   " << instr << "\n";

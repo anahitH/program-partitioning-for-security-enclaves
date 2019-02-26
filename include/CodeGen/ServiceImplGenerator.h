@@ -26,6 +26,17 @@ public:
 private:
     void generateForService(const std::string& serviceName, const ProtoService& service);
     void generateFunctionBody(Function& F, const ProtoService::RPC& rpc);
+    void generateUtilsClass();
+    void generateUtilGetFunctionsForMessage(const ProtoMessage& msg,
+                                            Class& utilsClass);
+    void generateUtilSetFunctionsForMessage(const ProtoMessage& msg,
+                                            Class& utilsClass);
+    void generateUtilGetFunctionsForField(const ProtoMessage::Field& field,
+                                          const ProtoMessage& msg,
+                                          Class& utilsClass);
+    void generateUtilSetFunctionsForField(const ProtoMessage::Field& field,
+                                          const ProtoMessage& msg,
+                                          Class& utilsClass);
 
 private:
     const ProtoFile& m_protoFile;

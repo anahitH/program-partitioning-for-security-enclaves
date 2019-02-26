@@ -61,6 +61,9 @@ std::string getScalarTypeForC(const clang::Type* type)
         auto* decl = typedefType->getDecl();
         return getScalarTypeForC(&*decl->getUnderlyingType());
     }
+    if (type->isCharType()) {
+        return "char";
+    }
     if (auto* builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
         if (builtin->getKind() == clang::BuiltinType::UInt
                 || builtin->getKind() == clang::BuiltinType::Int
@@ -252,6 +255,7 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
 
     ProtoMessage::Field field;
     field.m_number = fieldNum;
+    field.m_isRepeated = false;
 
     if (type->isEnumeralType()) {
         field.m_type = getMessageNameForType(type);
@@ -271,14 +275,17 @@ ProtoMessage::Field ProtoFileGenerator::generateMessageField(const clang::Type* 
             generateMessageForArrayType(elementType);
             auto pos = m_typeMessages.find(getMessageNameForArrayType(elementType));
             field.m_attribute = "repeated";
+            field.m_isRepeated = true;
             field.m_type = pos->second.getName();
             field.m_Ctype = "FILL";
+            field.m_isRepeated = true;
             field.m_name = name == field.m_type ? name + "_var" : name;
             return field;
         }
         field = generateMessageField(elementType, name, fieldNum);
-        field.m_Ctype = "FILL";
+        field.m_Ctype = field.m_Ctype;
         field.m_attribute = "repeated";
+        field.m_isRepeated = true;
         return field;
     }
     // Composite types left

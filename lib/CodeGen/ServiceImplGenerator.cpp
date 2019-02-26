@@ -10,6 +10,7 @@ void ServiceImplGenerator::generate()
     for (const auto& [name, service] : m_protoFile.getServices()) {
         generateForService(name, service);
     }
+    generateUtilsClass();
 }
 
 void ServiceImplGenerator::generateForService(const std::string& serviceName,
@@ -63,14 +64,20 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
     Function actualF(rpc.m_name);
     std::vector<std::string> callArgs;
     for (const auto& field : rpc.m_input.getFields()) {
-        F.addBody(field.m_Ctype + " " + field.m_name + ";");
+        std::stringstream instrStrm;
+        instrStrm << field.m_Ctype;
+        if (field.m_isRepeated) {
+            instrStrm << "[]";
+        }
+        instrStrm << " " << field.m_name << ";";
+        F.addBody(instrStrm.str());
         std::stringstream fCall;
         fCall << "Utils::get_"
               << field.m_name << "(&"
               << field.m_name << ", "
               << "input);";
         F.addBody(fCall.str());
-        Type type = {field.m_Ctype, "", field.m_isPtr, false};
+        Type type = {field.m_Ctype, "", field.m_isPtr, field.m_isRepeated};
         actualF.addParam(Variable{type, field.m_name});
         callArgs.push_back(field.m_name);
     }
@@ -99,6 +106,93 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
     }
     // TODO: set for return value
     F.addBody("return ::grpc::Status::OK;");
+}
+
+void ServiceImplGenerator::generateUtilsClass()
+{
+    Class utils("ServiceUtils");
+    for (const auto& [name, service] : m_protoFile.getServices()) {
+        for (const auto& rpc : service.getRPCs()) {
+            generateUtilGetFunctionsForMessage(rpc.m_input, utils);
+            generateUtilSetFunctionsForMessage(rpc.m_output, utils);
+        }
+    }
+    const auto& name = m_protoFile.getPackage();
+    auto& [header, source] = m_serviceFiles[name + "Utils"];
+    header.setName(name + "Utils.h");
+    header.setHeader(true);
+    header.addMacro("#pragma once");
+    header.addInclude("\"" + m_protoFile.getPackage() + ".grpc.pb.h\"");
+    header.setNamespace(m_protoFile.getPackage());
+    header.addClass(utils);
+
+    source.setName(name + "Utils.cpp");
+    source.setHeader(false);
+    source.addInclude("\"" + header.getName() + "\"\n");
+    source.setNamespace(m_protoFile.getPackage());
+    source.addClass(utils);
+}
+
+void ServiceImplGenerator::generateUtilGetFunctionsForMessage(const ProtoMessage& msg,
+                                                              Class& utilsClass)
+{
+    for (const auto& field : msg.getFields()) {
+        generateUtilGetFunctionsForField(field, msg, utilsClass);
+    }
+}
+
+void ServiceImplGenerator::generateUtilSetFunctionsForMessage(const ProtoMessage& msg,
+                                                              Class& utilsClass)
+{
+    for (const auto& field : msg.getFields()) {
+        generateUtilSetFunctionsForField(field, msg, utilsClass);
+    }
+}
+
+void ServiceImplGenerator::generateUtilGetFunctionsForField(const ProtoMessage::Field& field,
+                                                            const ProtoMessage& msg,
+                                                            Class& utilsClass)
+{
+    Function getF("get_" + field.m_name);
+    getF.setIsStatic(true);
+    getF.setReturnType(Type{"void", "", false, false});
+    Variable fieldParam;
+    fieldParam.m_name = field.m_name;
+    fieldParam.m_type = {field.m_type, "", true, false};
+    getF.addParam(fieldParam);
+    Variable msgParam;
+    msgParam.m_name = "input";
+    msgParam.m_type = Type{msg.getName(), "const", true, false};
+    getF.addParam(msgParam);
+    getF.addBody("// TODO: implement");
+    utilsClass.addMemberFunction(Class::PUBLIC, getF);
+
+    if (m_protoFile.hasMessage(field.m_name)) {
+        generateUtilGetFunctionsForMessage(m_protoFile.getMessage(field.m_name), utilsClass);
+    }
+}
+
+void ServiceImplGenerator::generateUtilSetFunctionsForField(const ProtoMessage::Field& field,
+                                                            const ProtoMessage& msg,
+                                                            Class& utilsClass)
+{
+    Function setF("set_" + field.m_name);
+    setF.setIsStatic(true);
+    setF.setReturnType(Type{"void", "", false, false});
+    Variable fieldParam;
+    fieldParam.m_name = field.m_name;
+    fieldParam.m_type = {field.m_type, "const", true, false};
+    setF.addParam(fieldParam);
+    Variable msgParam;
+    msgParam.m_name = "input";
+    msgParam.m_type = Type{msg.getName(), "c", true, false};
+    setF.addParam(msgParam);
+    setF.addBody("// TODO: implement");
+    utilsClass.addMemberFunction(Class::PUBLIC, setF);
+
+    if (m_protoFile.hasMessage(field.m_name)) {
+        generateUtilGetFunctionsForMessage(m_protoFile.getMessage(field.m_name), utilsClass);
+    }
 }
 
 }
