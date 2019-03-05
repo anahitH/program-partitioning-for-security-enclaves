@@ -40,16 +40,15 @@ std::string Function::getDeclarationAsString() const
         }
     }
     declStr << ");";
-    declStr.seekp(-3, std::ios_base::end);
     return declStr.str();
 }
 
 std::string Function::getDefinitionAsString() const
 {
     std::stringstream defStr;
-    defStr << getDeclarationAsString();
-    defStr.seekp(-1, std::ios_base::end);
-    defStr << " {";
+    std::string decl = getDeclarationAsString();
+    decl = decl.substr(0, decl.size() - 1);
+    defStr << decl << " { \n";
     for (const auto& instr : m_body) {
         defStr << instr << ";\n";
     }

@@ -31,10 +31,10 @@ public:
     {
     }
 
-    ProtoFile(const ProtoFile& ) = delete;
-    ProtoFile(ProtoFile&& ) = delete;
-    ProtoFile& operator =(const ProtoFile& ) = delete;
-    ProtoFile& operator =(ProtoFile&& ) = delete;
+    ProtoFile(const ProtoFile& ) =default;
+    ProtoFile(ProtoFile&& ) = default;
+    ProtoFile& operator =(const ProtoFile& ) = default;
+    ProtoFile& operator =(ProtoFile&& ) = default;
 
 public:
     const std::string& getName() const

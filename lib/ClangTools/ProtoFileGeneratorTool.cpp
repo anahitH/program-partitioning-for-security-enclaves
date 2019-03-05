@@ -8,6 +8,7 @@
 #include "ClangTools/ProtoFileGenerator.h"
 #include "CodeGen/ProtoFileWriter.h"
 #include "CodeGen/ServiceImplGenerator.h"
+#include "CodeGen/ServiceInterfaceWrapperGenerator.h"
 #include "CodeGen/SourceFileWriter.h"
 #include "Utils/Logger.h"
 
@@ -251,7 +252,111 @@ private:
     std::unordered_map<std::string, const FunctionDecl*> m_functionDecls;
 }; // class FunctionFinder
 
-void generateServiceImplFiles(const ProtoFile& protoFile)
+
+class Generator
+{
+public:
+    Generator(const Functions& secureFs,
+              const Functions& insecureFs,
+              CommonOptionsParser& OptionsParser);
+
+    Generator(const Generator& ) = delete;
+    Generator(Generator&& ) = delete;
+    Generator& operator =(const Generator& ) = delete;
+    Generator& operator =(Generator&& ) = delete;
+
+public:
+    void generate();
+
+private:
+    ProtoFile generateServiceProtoFile(const Functions& functions,
+                                       const std::string& protoName);
+    ProtoFile generateDataProtoFile(const ProtoFile& serviceProtoFile, const std::string& protoName);
+    void generateServiceImplFiles(const ProtoFile& protoFile);
+    void generateServiceInterfaceWrappers(const ProtoFile& serviceProtoFile,
+                                          const ProtoFile& serviceDataProtoFile);
+
+private:
+    const Functions& m_secureFunctions;
+    const Functions& m_insecureFunctions;
+    CommonOptionsParser& m_OptionsParser;
+    ProtoFile m_enclaveServiceProtoFile;
+    ProtoFile m_untrustedServiceProtoFile;
+    ProtoFile m_enclaveDataProtoFile;
+    ProtoFile m_untrustedDataProtoFile;
+}; // class Generator
+
+Generator::Generator(const Functions& secureFs,
+                     const Functions& insecureFs,
+                     CommonOptionsParser& OptionsParser)
+    : m_secureFunctions(secureFs)
+    , m_insecureFunctions(insecureFs)
+    , m_OptionsParser(OptionsParser)
+{
+}
+
+void Generator::generate()
+{
+    m_enclaveServiceProtoFile = generateServiceProtoFile(m_secureFunctions, "secure_enclave");
+    m_untrustedServiceProtoFile = generateServiceProtoFile(m_insecureFunctions, "insecure_app");
+
+    m_enclaveDataProtoFile = generateDataProtoFile(m_enclaveServiceProtoFile, "enclave_data");
+    m_untrustedDataProtoFile = generateDataProtoFile(m_untrustedServiceProtoFile, "untrusted_data");
+
+    generateServiceImplFiles(m_enclaveServiceProtoFile);
+    generateServiceImplFiles(m_untrustedServiceProtoFile);
+
+    generateServiceInterfaceWrappers(m_enclaveServiceProtoFile,
+                                     m_enclaveDataProtoFile);
+    generateServiceInterfaceWrappers(m_untrustedServiceProtoFile,
+                                     m_untrustedDataProtoFile);
+}
+
+ProtoFile Generator::generateServiceProtoFile(const Functions& functions,
+                                              const std::string& protoName)
+{
+    ProtoFileGenerator protoFileGen;
+    protoFileGen.setProtoName(protoName + "_service");
+
+    for (const auto& srcFile : m_OptionsParser.getSourcePathList()) {
+        ClangTool Tool(m_OptionsParser.getCompilations(), {srcFile});
+        FunctionFinder functionFinder(functions);
+        StructFinder structFinder;
+        EnumFinder enumFinder;
+        MatchFinder matchFinder;
+        matchFinder.addMatcher(functionMatcher, &functionFinder);
+        matchFinder.addMatcher(structMatcher, &structFinder);
+        matchFinder.addMatcher(enumMatcher, &enumFinder);
+
+        Tool.run(newFrontendActionFactory(&matchFinder).get());
+
+        const auto& decls = functionFinder.getFunctions();
+        const auto& structs = structFinder.getStructs();
+        const auto& enums = enumFinder.getEnums();
+        protoFileGen.setFunctions(decls);
+        protoFileGen.setStructs(structs);
+        protoFileGen.setEnums(enums);
+        protoFileGen.generate();
+    }
+
+    ProtoFileWriter protoWriter(protoName + "_service.proto", protoFileGen.getProtoFile());
+    protoWriter.write();
+    return protoFileGen.getProtoFile();
+}
+
+ProtoFile Generator::generateDataProtoFile(const ProtoFile& serviceProtoFile,
+                                           const std::string& protoName)
+{
+   ProtoFile dataProtoFile(protoName, "proto3", protoName);
+   dataProtoFile.setImports(serviceProtoFile.getImports());
+   dataProtoFile.setMessages(serviceProtoFile.getMessages());
+
+   ProtoFileWriter protoWriter(protoName + ".proto", dataProtoFile);
+   protoWriter.write();
+   return dataProtoFile;
+}
+
+void Generator::generateServiceImplFiles(const ProtoFile& protoFile)
 {
     ServiceImplGenerator serviceImplGen(protoFile);
     serviceImplGen.generate();
@@ -264,56 +369,38 @@ void generateServiceImplFiles(const ProtoFile& protoFile)
     }
 }
 
-void run(CommonOptionsParser& OptionsParser,
-         const std::unordered_set<std::string>& functions,
-         const std::string& protoName)
+void Generator::generateServiceInterfaceWrappers(const ProtoFile& serviceProtoFile,
+                                                 const ProtoFile& serviceDataProtoFile)
 {
-    ProtoFileGenerator protoFileGen;
-    protoFileGen.setProtoName(protoName + "_service");
+    ServiceInterfaceWrapperGenerator wrapperGenerator(serviceProtoFile, serviceDataProtoFile);
+    wrapperGenerator.generate();
 
-    for (const auto& srcFile : OptionsParser.getSourcePathList()) {
-        ClangTool Tool(OptionsParser.getCompilations(), {srcFile});
-        FunctionFinder functionFinder(functions);
-        StructFinder structFinder;
-        EnumFinder enumFinder;
-        MatchFinder matchFinder;
-        matchFinder.addMatcher(functionMatcher, &functionFinder);
-        matchFinder.addMatcher(structMatcher, &structFinder);
-        matchFinder.addMatcher(enumMatcher, &enumFinder);
-
-        Tool.run(newFrontendActionFactory(&matchFinder).get());
-
-        const auto& functionDecls = functionFinder.getFunctions();
-        const auto& structs = structFinder.getStructs();
-        const auto& enums = enumFinder.getEnums();
-        protoFileGen.setFunctions(functionDecls);
-        protoFileGen.setStructs(structs);
-        protoFileGen.setEnums(enums);
-        protoFileGen.generate();
+    for (const auto& [name, file] : wrapperGenerator.getWrapperFiles()) {
+        SourceFileWriter writer(file);
+        writer.write();
     }
-
-    ProtoFileWriter protoWriter(protoName + "_service.proto", protoFileGen.getProtoFile());
-    protoWriter.write();
-
-    generateServiceImplFiles(protoFileGen.getProtoFile());
 }
 
 
 } // namespace vazgen
 
+// TODO: rename the file. It is doing way more than just creating proto files.
+// Or move part of it to separate file
 int main(int argc, const char* argv[])
 {
     CommonOptionsParser OptionsParser(argc, argv, vazgen::ProtoFileGenTool);
     vazgen::Logger logger("clang-tool");
     logger.setLevel(vazgen::Logger::ERR);
     
-    if (!vazgen::functionFile.empty()) {
-        const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
-        vazgen::run(OptionsParser, functions, vazgen::protoName.empty() ? "partition_proto" : vazgen::protoName.getValue());
-    } else if (!vazgen::functionStats.empty()) {
+    // This is only for debugging purposes
+    //if (!vazgen::functionFile.empty()) {
+    //    const auto& functions = vazgen::parseFunctions(vazgen::functionFile.getValue());
+    //    vazgen::run(OptionsParser, functions, vazgen::protoName.empty() ? "secure_enclave" : vazgen::protoName.getValue());
+    //}
+    if (!vazgen::functionStats.empty()) {
         const auto& [secureFunctions, insecureFunctions] = vazgen::parseFunctionsFromStats(vazgen::functionStats.getValue(), logger);
-        vazgen::run(OptionsParser, secureFunctions, "secure_enclave");
-        vazgen::run(OptionsParser, insecureFunctions, "insecure_app");
+        vazgen::Generator generator(secureFunctions, insecureFunctions, OptionsParser);
+        generator.generate();
     } else {
         logger.error("No file is specified for functions");
         return 0;

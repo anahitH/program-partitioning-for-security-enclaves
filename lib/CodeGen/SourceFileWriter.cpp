@@ -60,6 +60,7 @@ void SourceFileWriter::writeNamespace()
         m_writer.write("namespace " + namespace_ + " {\n");
     }
     writeClasses();
+    writeFunctions();
     if (!namespace_.empty()) {
         m_writer.write("} // namespace " + namespace_);
     }
@@ -72,6 +73,16 @@ void SourceFileWriter::writeClasses()
         writeClassDeclarations();
     } else {
         writeClassDefinitions();
+    }
+}
+
+void SourceFileWriter::writeFunctions()
+{
+    std::cout << "Writing functions\n";
+    if (m_sourceFile.isHeader()) {
+        writeFunctionDeclarations();
+    } else {
+        writeFunctionDefinitions();
     }
 }
 
@@ -171,6 +182,29 @@ void SourceFileWriter::writeClassMembers(const Class& class_)
     }
 }
 
+void SourceFileWriter::writeFunctionDeclarations()
+{
+    for (const auto& F : m_sourceFile.getFunctions()) {
+        writeFunctionDeclaration(F);
+    }
+}
+
+void SourceFileWriter::writeFunctionDefinitions()
+{
+    for (const auto& F : m_sourceFile.getFunctions()) {
+        writeFunctionDefinition(F);
+    }
+}
+
+void SourceFileWriter::writeFunctionDeclaration(const Function& F)
+{
+    m_writer.write(F.getDeclarationAsString(), m_indent);
+}
+
+void SourceFileWriter::writeFunctionDefinition(const Function& F)
+{
+    m_writer.write(F.getDefinitionAsString() + "\n", m_indent);
+}
 
 } // namespace vazgen
 

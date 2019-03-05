@@ -16,6 +16,7 @@ public:
         int m_number = 1;
         bool m_isPtr = false;
         bool m_isRepeated;
+        bool m_isConst = false;
         // type if C code
         std::string m_Ctype;
     };

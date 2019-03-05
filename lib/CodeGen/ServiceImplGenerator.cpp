@@ -1,4 +1,5 @@
 #include "CodeGen/ServiceImplGenerator.h"
+#include "CodeGen/UtilsGenerator.h"
 
 #include <sstream>
 #include <iostream>
@@ -110,90 +111,15 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
 
 void ServiceImplGenerator::generateUtilsClass()
 {
-    Class utils("ServiceUtils");
-    for (const auto& [name, service] : m_protoFile.getServices()) {
-        for (const auto& rpc : service.getRPCs()) {
-            generateUtilGetFunctionsForMessage(rpc.m_input, utils);
-            generateUtilSetFunctionsForMessage(rpc.m_output, utils);
-        }
-    }
-    const auto& name = m_protoFile.getPackage();
-    auto& [header, source] = m_serviceFiles[name + "Utils"];
-    header.setName(name + "Utils.h");
-    header.setHeader(true);
-    header.addMacro("#pragma once");
-    header.addInclude("\"" + m_protoFile.getPackage() + ".grpc.pb.h\"");
-    header.setNamespace(m_protoFile.getPackage());
-    header.addClass(utils);
-
-    source.setName(name + "Utils.cpp");
-    source.setHeader(false);
-    source.addInclude("\"" + header.getName() + "\"\n");
-    source.setNamespace(m_protoFile.getPackage());
-    source.addClass(utils);
+    UtilsGenerator utilsGenerator(m_protoFile.getName(), m_protoFile);
+    utilsGenerator.setSettersFor(UtilsGenerator::OUTPUT);
+    utilsGenerator.setGettersFor(UtilsGenerator::INPUT);
+    utilsGenerator.addInclude("\"" + m_protoFile.getPackage() + ".grpc.pb.h\"");
+    utilsGenerator.setNamespace(m_protoFile.getPackage());
+    utilsGenerator.generate();
+    m_serviceFiles[m_protoFile.getName() + "Utils"].first = utilsGenerator.getHeader();
+    m_serviceFiles[m_protoFile.getName() + "Utils"].second = utilsGenerator.getSource();
 }
 
-void ServiceImplGenerator::generateUtilGetFunctionsForMessage(const ProtoMessage& msg,
-                                                              Class& utilsClass)
-{
-    for (const auto& field : msg.getFields()) {
-        generateUtilGetFunctionsForField(field, msg, utilsClass);
-    }
-}
-
-void ServiceImplGenerator::generateUtilSetFunctionsForMessage(const ProtoMessage& msg,
-                                                              Class& utilsClass)
-{
-    for (const auto& field : msg.getFields()) {
-        generateUtilSetFunctionsForField(field, msg, utilsClass);
-    }
-}
-
-void ServiceImplGenerator::generateUtilGetFunctionsForField(const ProtoMessage::Field& field,
-                                                            const ProtoMessage& msg,
-                                                            Class& utilsClass)
-{
-    Function getF("get_" + field.m_name);
-    getF.setIsStatic(true);
-    getF.setReturnType(Type{"void", "", false, false});
-    Variable fieldParam;
-    fieldParam.m_name = field.m_name;
-    fieldParam.m_type = {field.m_type, "", true, false};
-    getF.addParam(fieldParam);
-    Variable msgParam;
-    msgParam.m_name = "input";
-    msgParam.m_type = Type{msg.getName(), "const", true, false};
-    getF.addParam(msgParam);
-    getF.addBody("// TODO: implement");
-    utilsClass.addMemberFunction(Class::PUBLIC, getF);
-
-    if (m_protoFile.hasMessage(field.m_name)) {
-        generateUtilGetFunctionsForMessage(m_protoFile.getMessage(field.m_name), utilsClass);
-    }
-}
-
-void ServiceImplGenerator::generateUtilSetFunctionsForField(const ProtoMessage::Field& field,
-                                                            const ProtoMessage& msg,
-                                                            Class& utilsClass)
-{
-    Function setF("set_" + field.m_name);
-    setF.setIsStatic(true);
-    setF.setReturnType(Type{"void", "", false, false});
-    Variable fieldParam;
-    fieldParam.m_name = field.m_name;
-    fieldParam.m_type = {field.m_type, "const", true, false};
-    setF.addParam(fieldParam);
-    Variable msgParam;
-    msgParam.m_name = "input";
-    msgParam.m_type = Type{msg.getName(), "c", true, false};
-    setF.addParam(msgParam);
-    setF.addBody("// TODO: implement");
-    utilsClass.addMemberFunction(Class::PUBLIC, setF);
-
-    if (m_protoFile.hasMessage(field.m_name)) {
-        generateUtilGetFunctionsForMessage(m_protoFile.getMessage(field.m_name), utilsClass);
-    }
-}
-
-}
+} // namespace vazgen
 

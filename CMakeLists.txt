@@ -42,7 +42,9 @@ add_executable(proto-file-gen
                 lib/CodeGen/Function.cpp
                 lib/CodeGen/Class.cpp
                 lib/CodeGen/ServiceImplGenerator.cpp
+                lib/CodeGen/ServiceInterfaceWrapperGenerator.cpp
                 lib/CodeGen/SourceFileWriter.cpp
+                lib/CodeGen/UtilsGenerator.cpp
                 lib/Utils/Logger.cpp)
 
 target_include_directories(proto-file-gen PUBLIC

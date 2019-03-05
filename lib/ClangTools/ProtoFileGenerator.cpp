@@ -141,6 +141,7 @@ void ProtoFileGenerator::generateRPCMessages()
             if (llvm::isa<clang::PointerType>(&*paramDecl->getType())) {
                 field.m_isPtr = true;
             }
+            field.m_isConst = paramDecl->getType().isConstQualified();
             msg.addField(field);
         }
         m_functionInputMessages.insert(std::make_pair(F, msg));

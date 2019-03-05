@@ -26,6 +26,7 @@ public:
     void writeIncludes();
     void writeNamespace();
     void writeClasses();
+    void writeFunctions();
     void writeClassDeclarations();
     void writeClassDefinitions();
     void writeClassDeclarations(const Class& class_);
@@ -34,6 +35,10 @@ public:
     void writeClassDefinition(const Class& class_);
     void writeClassFunctionsDeclarations(const Class& class_);
     void writeClassMembers(const Class& class_);
+    void writeFunctionDeclarations();
+    void writeFunctionDefinitions();
+    void writeFunctionDeclaration(const Function& F);
+    void writeFunctionDefinition(const Function& F);
 
 private:
     const SourceFile& m_sourceFile;

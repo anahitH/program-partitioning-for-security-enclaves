@@ -14,10 +14,10 @@ public:
     {
     }
 
-    SourceFile(const SourceFile& ) = delete;
-    SourceFile(SourceFile&& ) = delete;
-    SourceFile& operator =(const SourceFile& ) = delete;
-    SourceFile& operator =(SourceFile&& ) = delete;
+//    SourceFile(const SourceFile& ) = delete;
+//    SourceFile(SourceFile&& ) = delete;
+//    SourceFile& operator =(const SourceFile& ) = delete;
+//    SourceFile& operator =(SourceFile&& ) = delete;
 
 public:
     const std::string& getName() const
@@ -50,6 +50,11 @@ public:
         return m_classes;
     }
 
+    const std::vector<Function>& getFunctions() const
+    {
+        return m_functions;
+    }
+
     void setName(const std::string name)
     {
         m_name = name;
@@ -80,6 +85,11 @@ public:
         m_classes = classes;
     }
 
+    void setFunctions(const std::vector<Function>& functions)
+    {
+        m_functions = functions;
+    }
+
     void addInclude(const std::string& include)
     {
         m_includes.push_back(include);
@@ -95,6 +105,11 @@ public:
         m_classes.push_back(class_);
     }
 
+    void addFunction(const Function& function)
+    {
+        m_functions.push_back(function);
+    }
+
 private:
     std::string m_name;
     bool m_isHeader;
@@ -102,6 +117,7 @@ private:
     std::vector<std::string> m_macros;
     std::string m_namespace;
     std::vector<Class> m_classes;
+    std::vector<Function> m_functions;
 }; // class SourceFile
 
 }
