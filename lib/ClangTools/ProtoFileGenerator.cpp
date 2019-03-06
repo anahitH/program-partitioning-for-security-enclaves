@@ -115,7 +115,7 @@ ProtoFileGenerator::ProtoFileGenerator(const Functions& functions,
 
 void ProtoFileGenerator::generate()
 {
-    m_protoFile.setVersion("proto3");
+    m_protoFile.setVersion("proto2");
     m_protoFile.setPackage(m_protoName);
 
     generateMessages();

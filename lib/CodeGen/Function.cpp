@@ -50,7 +50,7 @@ std::string Function::getDefinitionAsString() const
     decl = decl.substr(0, decl.size() - 1);
     defStr << decl << " { \n";
     for (const auto& instr : m_body) {
-        defStr << instr << ";\n";
+        defStr << "   " << instr << ";\n";
     }
     defStr << "}";
     return defStr.str();

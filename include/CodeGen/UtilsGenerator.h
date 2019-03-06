@@ -40,20 +40,21 @@ public:
         return m_source;
     }
 
-    void setNamespace(const std::string& namespace_);
+    void setDataNamespace(const std::string& namespace_);
     void addInclude(const std::string& include);
 
     void generate();
 
 private:
-    void generateUtilSetFunctionsForMessage(const ProtoMessage& msg);
-    void generateUtilGetFunctionsForMessage(const ProtoMessage& msg);
-    void generateUtilGetFunctionsForField(const ProtoMessage::Field& field,
-                                          const ProtoMessage& msg);
-    void generateUtilSetFunctionsForField(const ProtoMessage::Field& field,
-                                          const ProtoMessage& msg);
+    void generateUtilMarshalFunctionsForMessage(const ProtoMessage& msg);
+    void generateUtilUnmarshalFunctionsForField(const ProtoMessage& msg);
+    Function generateUtilUnmarshalFunctionsForField(const ProtoMessage::Field& field,
+                                                    const ProtoMessage& msg);
+    Function generateUtilMarshalFunctionsForField(const ProtoMessage::Field& field,
+                                                  const ProtoMessage& msg);
 
 private:
+    std::string m_dataNamespace;
     Class m_utilsClass;
     SourceFile m_header;
     SourceFile m_source;

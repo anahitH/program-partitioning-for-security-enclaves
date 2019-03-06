@@ -350,6 +350,7 @@ ProtoFile Generator::generateDataProtoFile(const ProtoFile& serviceProtoFile,
    ProtoFile dataProtoFile(protoName, "proto3", protoName);
    dataProtoFile.setImports(serviceProtoFile.getImports());
    dataProtoFile.setMessages(serviceProtoFile.getMessages());
+   dataProtoFile.setServices(serviceProtoFile.getServices());
 
    ProtoFileWriter protoWriter(protoName + ".proto", dataProtoFile);
    protoWriter.write();

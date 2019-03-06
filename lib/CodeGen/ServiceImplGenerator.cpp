@@ -49,10 +49,11 @@ void ServiceImplGenerator::generateForService(const std::string& serviceName,
     header.setNamespace(m_protoFile.getPackage());
     header.addClass(serviceClass);
 
+    const std::string utilsName = m_protoFile.getPackage() + "Utils";
     source.setName(serviceName + ".cpp");
     source.setHeader(false);
     source.addInclude("\"" + header.getName() + "\"\n");
-    source.addInclude("\"Utils.h\"");
+    source.addInclude("\"" + utilsName + ".h\"");
     source.addInclude("<cstdint>");
     source.setNamespace(m_protoFile.getPackage());
     source.addClass(serviceClass);
@@ -64,6 +65,7 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
     std::stringstream body;
     Function actualF(rpc.m_name);
     std::vector<std::string> callArgs;
+    const std::string utilsName = m_protoFile.getPackage() + "Utils";
     for (const auto& field : rpc.m_input.getFields()) {
         std::stringstream instrStrm;
         instrStrm << field.m_Ctype;
@@ -73,7 +75,7 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
         instrStrm << " " << field.m_name << ";";
         F.addBody(instrStrm.str());
         std::stringstream fCall;
-        fCall << "Utils::get_"
+        fCall << utilsName << "::unmarshal_"
               << field.m_name << "(&"
               << field.m_name << ", "
               << "input);";
@@ -99,7 +101,7 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
             F.addBody(field.m_Ctype + " " + field.m_name + ";");
         }
         std::stringstream fCall;
-        fCall << "Utils::set_"
+        fCall << utilsName << "::marshal_"
               << field.m_name << "(&"
               << field.m_name << ", "
               << "output);";
@@ -111,14 +113,14 @@ void ServiceImplGenerator::generateFunctionBody(Function& F,
 
 void ServiceImplGenerator::generateUtilsClass()
 {
-    UtilsGenerator utilsGenerator(m_protoFile.getName(), m_protoFile);
+    UtilsGenerator utilsGenerator(m_protoFile.getPackage(), m_protoFile);
     utilsGenerator.setSettersFor(UtilsGenerator::OUTPUT);
     utilsGenerator.setGettersFor(UtilsGenerator::INPUT);
     utilsGenerator.addInclude("\"" + m_protoFile.getPackage() + ".grpc.pb.h\"");
-    utilsGenerator.setNamespace(m_protoFile.getPackage());
+    utilsGenerator.setDataNamespace(m_protoFile.getPackage());
     utilsGenerator.generate();
-    m_serviceFiles[m_protoFile.getName() + "Utils"].first = utilsGenerator.getHeader();
-    m_serviceFiles[m_protoFile.getName() + "Utils"].second = utilsGenerator.getSource();
+    m_serviceFiles[m_protoFile.getPackage() + "Utils"].first = utilsGenerator.getHeader();
+    m_serviceFiles[m_protoFile.getPackage() + "Utils"].second = utilsGenerator.getSource();
 }
 
 } // namespace vazgen
