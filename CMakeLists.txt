@@ -35,10 +35,12 @@ set(LLVM_LINK_COMPONENTS support)
 #message(STATUS "pdg_LIBRARIES:= ${pdg_LIBRARIES}")
 
 add_executable(proto-file-gen
-                lib/ClangTools/ProtoFileGeneratorTool.cpp
-                lib/ClangTools/ProtoFileGenerator.cpp
-                lib/CodeGen/ProtoFileWriter.cpp
-                lib/CodeGen/FileWriter.cpp)
+                lib/ClangTools/SGXCodeGenerationTool.cpp
+                lib/ClangTools/ClangToolUtils.cpp
+                lib/CodeGen/CodeGenUtils.cpp
+                lib/CodeGen/Function.cpp
+                lib/CodeGen/FileWriter.cpp
+                lib/Utils/Logger.cpp)
 
 target_include_directories(proto-file-gen PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
