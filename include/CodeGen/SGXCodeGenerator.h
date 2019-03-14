@@ -14,6 +14,14 @@ public:
     using Functions = std::vector<Function>;
 
 public:
+    struct FunctionSelector
+    {
+        std::string m_functionName;
+        std::string m_selectorName;
+        std::string m_selectorValue;
+    };
+
+public:
     SGXCodeGenerator(const std::string& programName,
                      const Functions& secureFunctions,
                      const Functions& appFunctions);
@@ -27,15 +35,31 @@ public:
 
 private:
     void generateInterfaceSelectors();
+    void generateEnclaveRunner();
+    void generateAppDriver();
+    void generateEnclaveAbortFunction(SourceScope::ScopeType& inScope);
+    void generateEnclaveEcalls(SourceScope::ScopeType& inScope);
+    void generateEnclaveEcall(const Function& enclaveF, SourceScope::ScopeType& inScope);
+    void generateAsyloEnclaveInitFunction(SourceScope::ScopeType& inScope);
+    void generateAsyloEnclaveFiniFunction(SourceScope::ScopeType& inScope);
+    void generateAppDriverMain();
+    void generateOCallRegistration(SourceScope::ScopeType& inScope);
+    std::vector<Function> generateEnclaveFunctionsInDriver();
+    Function generateEcallWrapper(const Function& enclaveF);
+    void generateEnclaveFunctionInDriver(const Function& ecallWrapper, const Function& enclaveF);
+
+    void writeGeneratedFiles();
 
 private:
     const std::string& m_prefix;
     const Functions& m_enclaveFunctions;
     const Functions& m_appFunctions;
 
-    std::unordered_map<std::string, std::string> m_ecallSelectorsMap;
-    std::unordered_map<std::string, std::string> m_ocallSelectorsMap;
+    std::unordered_map<std::string, FunctionSelector> m_ecallSelectors;
+    std::unordered_map<std::string, FunctionSelector> m_ocallSelectors;
     SourceFile m_interfaceSelectorsFile;
+    SourceFile m_enclaveFile;
+    SourceFile m_appDriverFile;
 }; // class SGXCodeGenerator
 
 } // namespace vazgen

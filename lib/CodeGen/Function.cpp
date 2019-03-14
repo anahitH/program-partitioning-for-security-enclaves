@@ -29,6 +29,12 @@ std::string Function::getDeclarationAsString() const
     if (m_isStatic) {
         declStr << "static ";
     }
+    if (m_isExtern) {
+        declStr << "extern ";
+    }
+    if (!m_declPrefix.empty()) {
+        declStr << m_declPrefix << " ";
+    }
     declStr << m_returnType.getAsString() << " ";
     declStr << m_name
             << "(";
@@ -45,6 +51,9 @@ std::string Function::getDeclarationAsString() const
 
 std::string Function::getDefinitionAsString() const
 {
+    if (m_isExtern && m_body.empty()) {
+        return getDeclarationAsString();
+    }
     std::stringstream defStr;
     std::string decl = getDeclarationAsString();
     decl = decl.substr(0, decl.size() - 1);

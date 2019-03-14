@@ -79,7 +79,7 @@ private:
             const auto& paramType = getTypeFromClangType(&*paramDecl->getType());
             F.addParam(Variable{paramType, paramName});
         }
-        if (!Fdecl->getReturnType()->isVoidType()) {
+        if (Fdecl->getReturnType()->isVoidType()) {
             F.setReturnType(Type{"void", "", false, false});
         } else {
             F.setReturnType(getTypeFromClangType(&*Fdecl->getReturnType()));

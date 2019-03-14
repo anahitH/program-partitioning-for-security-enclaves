@@ -326,10 +326,10 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
     GlobalVariableExtractorHelper* globalsExtractionHelper;
     if (enclave) {
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
-        sliceName = "enclave_partition.bc";
+        sliceName = "enclave_lib.bc";
     } else {
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
-        sliceName = "app_partition.bc";
+        sliceName = "app_lib.bc";
     }
     
     m_extractor.reset(new PartitionExtractor(&M, partition, globalSetters, logger));

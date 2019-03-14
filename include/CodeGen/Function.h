@@ -35,6 +35,8 @@ public:
     Function(std::string name)
         : m_name(name)
         , m_isStatic(false)
+        , m_isExtern(false)
+        , m_declPrefix("")
     {
     }
     
@@ -46,6 +48,16 @@ public:
     bool isStatic() const
     {
         return m_isStatic;
+    }
+
+    bool isExtern() const
+    {
+        return m_isExtern;
+    }
+
+    const std::string& getDeclPrefix() const
+    {
+        return m_declPrefix;
     }
 
     Type getReturnType() const
@@ -71,6 +83,16 @@ public:
     void setIsStatic(bool isStatic)
     {
         m_isStatic = isStatic;
+    }
+
+    void setIsExtern(bool isExtern)
+    {
+        m_isExtern = isExtern;
+    }
+
+    void setDeclPrefix(const std::string& defPrefix)
+    {
+        m_declPrefix = defPrefix;
     }
 
     void setReturnType(const Type& type)
@@ -106,6 +128,8 @@ public:
 private:
     std::string m_name;
     bool m_isStatic;
+    bool m_isExtern;
+    std::string m_declPrefix;
     Type m_returnType;
     Params m_params;
     Body m_body;

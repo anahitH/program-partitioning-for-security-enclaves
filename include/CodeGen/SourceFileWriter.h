@@ -24,20 +24,20 @@ public:
     void endScope();
     void writeMacros();
     void writeIncludes();
-    void writeNamespace();
-    void writeClasses();
-    void writeFunctions();
-    void writeGlobals();
-    void writeClassDeclarations();
-    void writeClassDefinitions();
+    void writeSourceScope(const SourceScope& scope);
+    void writeClasses(const std::vector<Class>& classes);
+    void writeFunctions(const std::vector<Function>& functions);
+    void writeGlobals(const std::vector<SourceScope::VariableValue>& globals);
+    void writeClassDeclarations(const std::vector<Class>& classes);
+    void writeClassDefinitions(const std::vector<Class>& classes);
     void writeClassDeclarations(const Class& class_);
     void writeClassDefinitions(const Class& class_);
     void writeClassDeclaration(const Class& class_);
     void writeClassDefinition(const Class& class_);
     void writeClassFunctionsDeclarations(const Class& class_);
     void writeClassMembers(const Class& class_);
-    void writeFunctionDeclarations();
-    void writeFunctionDefinitions();
+    void writeFunctionDeclarations(const std::vector<Function>& functions);
+    void writeFunctionDefinitions(const std::vector<Function>& functions);
     void writeFunctionDeclaration(const Function& F);
     void writeFunctionDefinition(const Function& F);
 

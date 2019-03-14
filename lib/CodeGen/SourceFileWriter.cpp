@@ -16,7 +16,7 @@ SourceFileWriter::SourceFileWriter(const SourceFile& sourceFile)
 void SourceFileWriter::write()
 {
     beginFile();
-    writeNamespace();
+    writeSourceScope(m_sourceFile);
 }
 
 void SourceFileWriter::beginFile()
@@ -53,62 +53,63 @@ void SourceFileWriter::writeIncludes()
     m_writer.writeNewLine();
 }
 
-void SourceFileWriter::writeNamespace()
+void SourceFileWriter::writeSourceScope(const SourceScope& scope)
 {
-    const auto& namespaces = m_sourceFile.getNamespaces();
-    for (const auto& namespace_ : namespaces) {
-        m_writer.write("namespace " + namespace_ + " {\n");
-    }
-    writeClasses();
-    writeFunctions();
-    writeGlobals();
-    for (const auto& namespace_ : namespaces) {
-        m_writer.write("} // namespace " + namespace_);
+    writeClasses(scope.getClasses());
+    writeFunctions(scope.getFunctions());
+    writeGlobals(scope.getGlobalVariables());
+
+    for (const auto& subScope : scope.getSubScopes()) {
+        m_writer.write("namespace " + subScope->getName() + " {\n");
+        writeSourceScope(*subScope);
+        m_writer.write("} // namespace " + subScope->getName());
     }
 }
 
-void SourceFileWriter::writeClasses()
+void SourceFileWriter::writeClasses(const std::vector<Class>& classes)
 {
     std::cout << "writing classes\n";
     if (m_sourceFile.isHeader()) {
-        writeClassDeclarations();
+        writeClassDeclarations(classes);
     } else {
-        writeClassDefinitions();
+        writeClassDefinitions(classes);
     }
 }
 
-void SourceFileWriter::writeFunctions()
+void SourceFileWriter::writeFunctions(const std::vector<Function>& functions)
 {
     std::cout << "Writing functions\n";
     if (m_sourceFile.isHeader()) {
-        writeFunctionDeclarations();
+        writeFunctionDeclarations(functions);
     } else {
-        writeFunctionDefinitions();
+        writeFunctionDefinitions(functions);
     }
 }
 
-void SourceFileWriter::writeGlobals()
+void SourceFileWriter::writeGlobals(const std::vector<SourceScope::VariableValue>& globals)
 {
     std::cout << "Writing globals\n";
-    for (const auto& [global, value] : m_sourceFile.getGlobalVariables()) {
+    for (const auto& [global, value] : globals) {
         std::stringstream globalStrm;
         globalStrm << "static "
-                   << global.getAsString()
-                   << " = " << value;
+                   << global.getAsString();
+        if (!value.empty()) {
+            globalStrm << " = " << value;
+        }
         m_writer.write(globalStrm.str(), m_indent);
     }
 }
 
-void SourceFileWriter::writeClassDeclarations()
+void SourceFileWriter::writeClassDeclarations(const std::vector<Class>& classes)
 {
-    for (const auto& class_ : m_sourceFile.getClasses()) {
+    for (const auto& class_ : classes) {
         writeClassDeclaration(class_);
     }
 }
 
-void SourceFileWriter::writeClassDefinitions()
+void SourceFileWriter::writeClassDefinitions(const std::vector<Class>& classes)
 {
-    for (const auto& class_ : m_sourceFile.getClasses()) {
+    for (const auto& class_ : classes) {
         writeClassDefinition(class_);
     }
 }
@@ -195,16 +196,16 @@ void SourceFileWriter::writeClassMembers(const Class& class_)
     }
 }
 
-void SourceFileWriter::writeFunctionDeclarations()
+void SourceFileWriter::writeFunctionDeclarations(const std::vector<Function>& functions)
 {
-    for (const auto& F : m_sourceFile.getFunctions()) {
+    for (const auto& F : functions) {
         writeFunctionDeclaration(F);
     }
 }
 
-void SourceFileWriter::writeFunctionDefinitions()
+void SourceFileWriter::writeFunctionDefinitions(const std::vector<Function>& functions)
 {
-    for (const auto& F : m_sourceFile.getFunctions()) {
+    for (const auto& F : functions) {
         writeFunctionDefinition(F);
     }
 }
