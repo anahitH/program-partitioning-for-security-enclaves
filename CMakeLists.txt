@@ -34,15 +34,18 @@ set(LLVM_LINK_COMPONENTS support)
 #message(STATUS "pdg_LIBRARY:= ${pdg_LIBRARY}")
 #message(STATUS "pdg_LIBRARIES:= ${pdg_LIBRARIES}")
 
-add_executable(proto-file-gen
+add_executable(sgx-code-gen
                 lib/ClangTools/SGXCodeGenerationTool.cpp
                 lib/ClangTools/ClangToolUtils.cpp
+                lib/CodeGen/SGXCodeGenerator.cpp
                 lib/CodeGen/CodeGenUtils.cpp
+                lib/CodeGen/Class.cpp
                 lib/CodeGen/Function.cpp
+                lib/CodeGen/SourceFileWriter.cpp
                 lib/CodeGen/FileWriter.cpp
                 lib/Utils/Logger.cpp)
 
-target_include_directories(proto-file-gen PUBLIC
+target_include_directories(sgx-code-gen PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         PRIVATE
@@ -51,7 +54,7 @@ target_include_directories(proto-file-gen PUBLIC
 )
 
 #message ("llvm libs" ${LLVM_AVAILABLE_LIBS})
-target_link_libraries(proto-file-gen
+target_link_libraries(sgx-code-gen
                       PRIVATE
                       clangTooling
                       clangDriver
@@ -185,6 +188,6 @@ target_compile_options(program_partitioning PRIVATE -fno-rtti -g -DIL_STD) #-DND
 target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
 
-target_compile_features(proto-file-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
-target_compile_options(proto-file-gen PRIVATE -fno-rtti -g)
+target_compile_features(sgx-code-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
+target_compile_options(sgx-code-gen PRIVATE -fno-rtti -g)
 

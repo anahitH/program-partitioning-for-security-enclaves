@@ -1,0 +1,8 @@
+collide_object
+collide_self
+collide_walls
+collision
+eat_gold
+move
+setup_level
+show_score

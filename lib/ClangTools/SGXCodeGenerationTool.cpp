@@ -7,6 +7,7 @@
 
 #include "Utils/Logger.h"
 #include "ClangTools/ClangToolUtils.h"
+#include "CodeGen/SGXCodeGenerator.h"
 #include "CodeGen/CodeGenUtils.h"
 #include "CodeGen/Function.h"
 
@@ -27,12 +28,12 @@ DeclarationMatcher functionMatcher = functionDecl().bind("functionDecl");
 static llvm::cl::OptionCategory SGXCodeGenTool("SGX code generation options");
 static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp("\nMore help text...\n");
-static llvm::cl::opt<std::string> functionStats("partition-stats",
+static llvm::cl::opt<std::string> FunctionStats("partition-stats",
                                                 llvm::cl::desc("Statistics json file containing partition info for SGX code generation."),
                                                 llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
-static llvm::cl::opt<std::string> protoName("prefix",
-                                            llvm::cl::desc("Prefix to use when generating SGX files"),
-                                            llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
+static llvm::cl::opt<std::string> Prefix("prefix",
+                                         llvm::cl::desc("Prefix to use when generating SGX files"),
+                                         llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
 
 class FunctionFinder : public MatchFinder::MatchCallback
 {
@@ -120,11 +121,11 @@ int main(int argc, const char* argv[])
     CommonOptionsParser OptionsParser(argc, argv, vazgen::SGXCodeGenTool);
     vazgen::Logger logger("code-gen");
     logger.setLevel(vazgen::Logger::ERR);
-    if (vazgen::functionStats.empty()) {
+    if (vazgen::FunctionStats.empty()) {
         logger.error("No file is specified for functions");
         return 0;
     }
-    const auto& [secureFunctionNames, insecureFunctionNames] = vazgen::CodeGenUtils::parseFunctionsFromStats(vazgen::functionStats.getValue(), logger);
+    const auto& [secureFunctionNames, insecureFunctionNames] = vazgen::CodeGenUtils::parseFunctionsFromStats(vazgen::FunctionStats.getValue(), logger);
     ClangTool Tool(OptionsParser.getCompilations(), {OptionsParser.getSourcePathList()});
 
     vazgen::FunctionFinder secureFunctionFinder(secureFunctionNames);
@@ -138,5 +139,13 @@ int main(int argc, const char* argv[])
     Tool.run(newFrontendActionFactory(&matchFinder).get());
     const auto& insecureFunctions = insecureFunctionFinder.getFunctions();
 
+    std::string prefix;
+    if (vazgen::Prefix.empty()) {
+        prefix = "app";
+    } else {
+        prefix = vazgen::Prefix.getValue();
+    }
+    vazgen::SGXCodeGenerator codeGen(prefix, secureFunctions, insecureFunctions);
+    codeGen.generate();
     return 0;
 } 
