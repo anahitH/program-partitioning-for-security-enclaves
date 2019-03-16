@@ -39,11 +39,16 @@ private:
     void generateAppDriver();
     void generateEnclaveAbortFunction(SourceScope::ScopeType& inScope);
     void generateEnclaveEcalls(SourceScope::ScopeType& inScope);
+    std::vector<Function> generateAppFunctionsInEnclave();
     void generateEnclaveEcall(const Function& enclaveF, SourceScope::ScopeType& inScope);
+    Function generateAppFunctionWrapperInEnclave(const Function appF);
+    void generateAppFunctionInEnclave(const Function& ocallWrapper, const Function& appF);
     void generateAsyloEnclaveInitFunction(SourceScope::ScopeType& inScope);
     void generateAsyloEnclaveFiniFunction(SourceScope::ScopeType& inScope);
     void generateAppDriverMain();
     void generateOCallRegistration(SourceScope::ScopeType& inScope);
+    void generateOCalls(SourceScope::ScopeType inScope);
+    void generateOCall(const Function& appF, SourceScope::ScopeType inScope);
     std::vector<Function> generateEnclaveFunctionsInDriver();
     Function generateEcallWrapper(const Function& enclaveF);
     void generateEnclaveFunctionInDriver(const Function& ecallWrapper, const Function& enclaveF);
