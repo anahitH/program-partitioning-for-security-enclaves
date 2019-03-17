@@ -15,6 +15,9 @@ std::string Type::getAsString() const
     if (m_isPtr) {
         typeStr << "*";
     }
+    if (m_isArray) {
+        typeStr << "[]";
+    }
     return typeStr.str();
 }
 
@@ -101,7 +104,7 @@ std::string Function::getCallAsString(const std::vector<std::string>& arguments)
             callStr << ", ";
         }
     }
-    callStr << ");";
+    callStr << ")";
     return callStr.str();
 }
 

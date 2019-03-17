@@ -89,6 +89,9 @@ private:
 
     vazgen::Type getTypeFromClangType(const clang::Type* clangT)
     {
+        if (auto* decayedType = llvm::dyn_cast<clang::DecayedType>(clangT)) {
+            return getTypeFromClangType(&*decayedType->getOriginalType());
+        }
         vazgen::Type type;
         if (auto* ptrType = llvm::dyn_cast<clang::PointerType>(clangT)) {
             type = getTypeFromClangType(&*ptrType->getPointeeType());

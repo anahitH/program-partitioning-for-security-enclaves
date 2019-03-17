@@ -6,6 +6,85 @@
 
 namespace vazgen {
 
+namespace {
+
+std::string getPushAllocStrForArray(const Type& type, const std::string& varName, bool isStackPtr)
+{
+    std::stringstream pushStr;
+    const std::string ext_name = varName + "_ext";
+    pushStr << "auto " << ext_name << " = params";
+    if (isStackPtr) {
+        pushStr << "->";
+    } else {
+        pushStr << ".";
+    }
+    const std::string strlenStr = "strlen(" + varName + ")";
+    pushStr << "PushAlloc("
+            << "sizeof(" << type.m_name << ") *" << strlenStr << ");\n";
+    pushStr << "memcpy(" << ext_name << ".As<" << type.m_name << ">(), "
+            << varName << ", " << strlenStr << ")";
+    return pushStr.str();
+
+}
+
+std::string getPushAllocStr(const Type& type, const std::string& varName, bool isStackPtr)
+{
+    if (type.m_isArray) {
+        return getPushAllocStrForArray(type, varName, isStackPtr);
+    }
+    std::stringstream pushStr;
+    pushStr << "*params";
+    if (isStackPtr) {
+        pushStr << "->";
+    } else {
+        pushStr << ".";
+    }
+    pushStr << "PushAlloc<"
+            << type.m_name << ">() = ";
+    if (type.m_isPtr) {
+        pushStr << "*";
+    }
+    pushStr << varName;
+    return pushStr.str();
+}
+
+std::string getPopStrForArray(const Type& type, const std::string& varName, bool isStackPtr, bool isNewVar)
+{
+    std::stringstream popStr;
+    if (isNewVar) {
+        popStr << type.m_name << "* ";
+    }
+    popStr << varName << " = reinterpret_cast<" << type.m_name << "*>(params";
+    if (isStackPtr) {
+        popStr << "->"; 
+    } else {
+        popStr << "."; 
+    }
+    popStr << "Pop()->data())";
+    return popStr.str();
+}
+
+std::string getPopStr(const Type& type, const std::string& varName, bool isStackPtr, bool isNewVar)
+{
+    if (type.m_isArray) {
+        return getPopStrForArray(type, varName, isStackPtr, isNewVar);
+    }
+    std::stringstream popStr;
+    if (isNewVar) {
+        popStr << type.m_name << " ";
+    }
+    popStr << varName << " = params";
+    if (isStackPtr) {
+        popStr << "->"; 
+    } else {
+        popStr << "."; 
+    }
+    popStr << "Pop<" << type.m_name << ">()";
+    return popStr.str();
+}
+
+}
+
 SGXCodeGenerator::SGXCodeGenerator(const std::string& programName,
                                    const Functions& secureFunctions,
                                    const Functions& appFunctions)
@@ -92,7 +171,7 @@ void SGXCodeGenerator::generateEnclaveRunner()
     generateEnclaveEcalls(unnamedNamespace);
     const auto& ocallWrappers = generateAppFunctionsInEnclave();
     for (const auto& ocallWrapper : ocallWrappers) {
-        primitivesNamespace->addFunction(ocallWrapper);
+        unnamedNamespace->addFunction(ocallWrapper);
     }
     generateAsyloEnclaveInitFunction(primitivesNamespace);
     generateAsyloEnclaveFiniFunction(primitivesNamespace);
@@ -188,12 +267,9 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
     std::vector<std::string> call_params(enclaveF.getParams().size());
     int i = enclaveF.getParams().size();
     for (auto r_it = enclaveF.getParams().rbegin(); r_it != enclaveF.getParams().rend(); ++r_it) {
-        std::stringstream getParamStr;
-        getParamStr << r_it->m_name << " ";
         std::string paramName = r_it->m_name + "_param";
         call_params[--i] = paramName;
-        getParamStr << paramName << " = " << "params->Pop<" << r_it->m_type.m_name << ">()";
-        ecallF.addBody(getParamStr.str());
+        ecallF.addBody(getPopStr(r_it->m_type, paramName, true, true));
     }
     // insertin call to the actual function
     std::string callStr = enclaveF.getCallAsString(call_params);
@@ -211,18 +287,16 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
     // push in the reverse order
     // first goes return value if it exists
     if (!enclaveF.isVoidReturn()) {
-        std::stringstream retValPushStr;
-        retValPushStr << "*params->PushAlloc<"
-                      << enclaveF.getReturnType().m_name << ">() = "
-                      << returnVal;
-        ecallF.addBody(retValPushStr.str());
+        Type newType = enclaveF.getReturnType();
+        newType.m_isPtr = false;
+        const std::string& pushAllocStr = getPushAllocStr(enclaveF.getReturnType(), returnVal, true);
+        ecallF.addBody(pushAllocStr);
     }
     // now parameters
     for (const auto& param : enclaveF.getParams()) {
-        std::stringstream paramPushStr;
-        paramPushStr << "*params->PushAlloc<" << param.m_type.m_name << ">() = "
-                     << param.m_name + "_param";
-        ecallF.addBody(paramPushStr.str());
+        Type newType = param.m_type;
+        newType.m_isPtr = false;
+        ecallF.addBody(getPushAllocStr(newType, param.m_name + "_param", true));
     }
     ecallF.addBody("PrimitiveStatus::OkStatus()");
     inScope->addFunction(ecallF);
@@ -242,13 +316,7 @@ Function SGXCodeGenerator::generateAppFunctionWrapperInEnclave(const Function ap
     ocallWrapper.addBody("TrustedParameterStack params");
     // Push params in the call order
     for (const auto& param : ocallWrapper.getParams()) {
-        std::stringstream paramPushStr;
-        paramPushStr << "*params.PushAlloc<" << param.m_type.m_name << ">() = ";
-        if (param.m_type.m_isPtr) {
-            paramPushStr << "*";
-        }
-        paramPushStr << param.m_name;
-        ocallWrapper.addBody(paramPushStr.str());
+        ocallWrapper.addBody(getPushAllocStr(param.m_type, param.m_name, false));
     }
     // ecall
     const std::string& selector = m_ocallSelectors[appF.getName()].m_selectorName;
@@ -256,13 +324,7 @@ Function SGXCodeGenerator::generateAppFunctionWrapperInEnclave(const Function ap
 
     // pop returned params
     for (const auto& param : ocallWrapper.getParams()) {
-        std::stringstream paramPopStr;
-        if (param.m_type.m_isPtr) {
-            paramPopStr << "*";
-        }
-        paramPopStr << param.m_name << " = params.Pop<" << param.m_type.m_name
-                    << ">()";
-        ocallWrapper.addBody(paramPopStr.str());
+        ocallWrapper.addBody(getPopStr(param.m_type, param.m_name, false, false));
     }
     ocallWrapper.addBody("return PrimitiveStatus::OkStatus()");
     return ocallWrapper;
@@ -276,7 +338,11 @@ void SGXCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper
     std::string returnVal = "returnVal";
     std::vector<std::string> callParams;
     for (const auto& param : appF.getParams()) {
-        callParams.push_back(param.m_name);
+        if (param.m_type.m_isPtr) {
+            callParams.push_back("*" + param.m_name);
+        } else {
+            callParams.push_back(param.m_name);
+        }
     }
     if (!appF.isVoidReturn()) {
         ocallF.addBody(appF.getReturnType().getAsString() + " " + returnVal);
@@ -366,12 +432,9 @@ void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeTyp
     std::vector<std::string> call_params(appF.getParams().size());
     int i = appF.getParams().size();
     for (auto r_it = appF.getParams().rbegin(); r_it != appF.getParams().rend(); ++r_it) {
-        std::stringstream getParamStr;
-        getParamStr << r_it->m_name << " ";
         std::string paramName = r_it->m_name + "_param";
         call_params[--i] = paramName;
-        getParamStr << paramName << " = " << "params->Pop<" << r_it->m_type.m_name << ">()";
-        ocallF.addBody(getParamStr.str());
+        ocallF.addBody(getPopStr(r_it->m_type, paramName, true, true));
     }
     // insertin call to the actual function
     std::string callStr = appF.getCallAsString(call_params);
@@ -389,18 +452,15 @@ void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeTyp
     // push in the reverse order
     // first goes return value if it exists
     if (!appF.isVoidReturn()) {
-        std::stringstream retValPushStr;
-        retValPushStr << "*params->PushAlloc<"
-                      << appF.getReturnType().m_name << ">() = "
-                      << returnVal;
-        ocallF.addBody(retValPushStr.str());
+        Type newType = appF.getReturnType();
+        newType.m_isPtr = false;
+        ocallF.addBody(getPushAllocStr(newType, returnVal, true));
     }
     // now parameters
     for (const auto& param : appF.getParams()) {
-        std::stringstream paramPushStr;
-        paramPushStr << "*params->PushAlloc<" << param.m_type.m_name << ">() = "
-                     << param.m_name + "_param";
-        ocallF.addBody(paramPushStr.str());
+        Type newType = param.m_type;
+        newType.m_isPtr = false;
+        ocallF.addBody(getPushAllocStr(newType, param.m_name + "_param", true));
     }
     ocallF.addBody("PrimitiveStatus::OkStatus()");
     inScope->addFunction(ocallF);
@@ -430,13 +490,7 @@ Function SGXCodeGenerator::generateEcallWrapper(const Function& enclaveF)
     ecallWrapper.addBody("UntrustedParameterStack params");
     // Push params in the call order
     for (const auto& param : ecallWrapper.getParams()) {
-        std::stringstream paramPushStr;
-        paramPushStr << "*params.PushAlloc<" << param.m_type.m_name << ">() = ";
-        if (param.m_type.m_isPtr) {
-            paramPushStr << "*";
-        }
-        paramPushStr << param.m_name;
-        ecallWrapper.addBody(paramPushStr.str());
+        ecallWrapper.addBody(getPushAllocStr(param.m_type, param.m_name, false));
     }
     // ecall
     const std::string& selector = m_ecallSelectors[enclaveF.getName()].m_selectorName;
@@ -444,13 +498,7 @@ Function SGXCodeGenerator::generateEcallWrapper(const Function& enclaveF)
 
     // pop returned params
     for (const auto& param : ecallWrapper.getParams()) {
-        std::stringstream paramPopStr;
-        if (param.m_type.m_isPtr) {
-            paramPopStr << "*";
-        }
-        paramPopStr << param.m_name << " = params.Pop<" << param.m_type.m_name
-                    << ">()";
-        ecallWrapper.addBody(paramPopStr.str());
+        ecallWrapper.addBody(getPopStr(param.m_type, param.m_name, false, false));
     }
     ecallWrapper.addBody("return Status::OkStatus()");
     return ecallWrapper;
@@ -463,7 +511,11 @@ void SGXCodeGenerator::generateEnclaveFunctionInDriver(const Function& ecallWrap
     std::string returnVal = "returnVal";
     std::vector<std::string> callParams;
     for (const auto& param : enclaveF.getParams()) {
-        callParams.push_back(param.m_name);
+        if (param.m_type.m_isPtr) {
+            callParams.push_back("*" + param.m_name);
+        } else {
+            callParams.push_back(param.m_name);
+        }
     }
     if (!enclaveF.isVoidReturn()) {
         ecallF.addBody(enclaveF.getReturnType().getAsString() + " " + returnVal);
