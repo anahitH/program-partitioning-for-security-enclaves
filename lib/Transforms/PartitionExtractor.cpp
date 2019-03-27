@@ -320,28 +320,44 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
                                               const FunctionSet& globalSetters,
                                               bool enclave)
 {
-    Partition partition;
+    Partition* partition;
     std::string sliceName;
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
-    GlobalVariableExtractorHelper* globalsExtractionHelper;
+    ProgramPartition& programPartition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition();
     if (enclave) {
-        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+        partition = &programPartition.getSecurePartition();
         sliceName = "enclave_lib.bc";
     } else {
-        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
+        partition = &programPartition.getInsecurePartition();
         sliceName = "app_lib.bc";
     }
-    
-    m_extractor.reset(new PartitionExtractor(&M, partition, globalSetters, logger));
+    for (const auto& globalSetter : globalSetters) {
+        partition->addToPartition(globalSetter);
+    }
+    m_extractor.reset(new PartitionExtractor(&M, *partition, globalSetters, logger));
     bool modified = m_extractor->extract();
     if (modified) {
         logger.info("Extraction done\n");
+        if (enclave) {
+            renameInsecureCalls("insecure_", m_extractor->getSlicedModule().get(), programPartition.getInsecurePartition());
+        }
         Utils::saveModule(m_extractor->getSlicedModule().get(), sliceName);
     } else {
         logger.info("No extraction\n");
     }
-    delete globalsExtractionHelper;
     return modified;
+}
+
+void PartitionExtractorPass::renameInsecureCalls(const std::string& prefix, llvm::Module* M, const Partition& insecurePartition)
+{
+    for (auto& F : *M) {
+        if (!F.isDeclaration()) {
+            continue;
+        }
+        if (insecurePartition.containsFunctionWithName(F.getName())) {
+            F.setName(prefix + F.getName());
+        }
+    }
 }
 
 static llvm::RegisterPass<PartitionExtractorPass> X("extract-partition","Slice program for a partitioning");

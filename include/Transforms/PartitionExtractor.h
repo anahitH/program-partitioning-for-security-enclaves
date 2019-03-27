@@ -72,6 +72,7 @@ public:
 private:
     FunctionSet getGlobalSetters(llvm::Module& M, Logger& logger, bool isEnclave);
     bool extractPartition(Logger& logger, llvm::Module& M, const FunctionSet& globalSetters, bool enclave);
+    void renameInsecureCalls(const std::string& prefix, llvm::Module* M, const Partition& insecurePartition);
 
 private:
     std::unique_ptr<PartitionExtractor> m_extractor;

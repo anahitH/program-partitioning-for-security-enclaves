@@ -47,6 +47,8 @@ public:
     int getFunctionRelationLevel(llvm::Function* F) const;
 
     bool contains(llvm::Function* F) const;
+    // this is expensive function
+    bool containsFunctionWithName(const std::string& Fname) const;
     bool contains(llvm::GlobalVariable* g) const;
     bool references(llvm::GlobalVariable* global) const;
 

@@ -201,7 +201,7 @@ void SGXCodeGenerator::generateAppDriver()
     appMainF.setReturnType(Type{"int", "", false, false});
     m_appDriverFile.addFunction(appMainF);
 
-    // declaration for actual enclave functions
+    // declaration for actual app functions
     for (auto function : m_appFunctions) {
         function.setIsExtern(true);
         m_appDriverFile.addFunction(function);
@@ -334,6 +334,7 @@ void SGXCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper
 {
     // this is the function that will be envoked by enclave functions and will redirect the call to app
     Function ocallF = appF;
+    ocallF.setName("insecure_" + appF.getName());
     // generateBody
     std::string returnVal = "returnVal";
     std::vector<std::string> callParams;
@@ -421,7 +422,7 @@ void SGXCodeGenerator::generateOCalls(SourceScope::ScopeType inScope)
 
 void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeType inScope)
 {
-    Function ocallF("app_" + appF.getName());
+    Function ocallF("insecure_" + appF.getName());
     ocallF.setReturnType(Type{"Status"});
     ocallF.addParam(Variable {Type{"std::shared_ptr<EnclaveClient>", "", false, false}, "client"});
     ocallF.addParam(Variable {Type{"void", "", true, false}, "context"});

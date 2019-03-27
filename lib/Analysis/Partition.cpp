@@ -123,6 +123,16 @@ bool Partition::contains(llvm::Function* F) const
     return m_partition.find(F) != m_partition.end();
 }
 
+bool Partition::containsFunctionWithName(const std::string& Fname) const
+{
+    for (const auto& F : m_partition) {
+        if (F->getName() == Fname) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Partition::contains(llvm::GlobalVariable* g) const
 {
     return m_partitionGlobals.find(g) != m_partitionGlobals.end();
