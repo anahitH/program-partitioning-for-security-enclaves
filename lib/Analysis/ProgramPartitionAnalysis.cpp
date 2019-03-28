@@ -103,10 +103,10 @@ void ProgramPartition::dump(const std::string& outFile) const
         ostr.close();
         return;
     }
-    llvm::dbgs() << "Partition of Module " << m_module.getName() << "\n";
-    for (auto F : partitionFs) {
-        llvm::dbgs() << "   " << F->getName() << "\n";
-    }
+    //llvm::dbgs() << "Partition of Module " << m_module.getName() << "\n";
+    //for (auto F : partitionFs) {
+    //    llvm::dbgs() << "   " << F->getName() << "\n";
+    //}
 }
 
 void ProgramPartition::dumpStats(const std::string& statsFile) const
@@ -133,7 +133,7 @@ llvm::cl::opt<std::string> Outfile(
     llvm::cl::value_desc("outfile name"));
 
 llvm::cl::opt<bool> Stats(
-    "partition-stats",
+    "dump-stats",
     llvm::cl::desc("Dump partition stats"),
     llvm::cl::value_desc("flag to dump stats"));
 

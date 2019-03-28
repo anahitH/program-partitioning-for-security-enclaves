@@ -101,6 +101,7 @@ add_library(program_partitioning MODULE
         lib/Utils/PartitionUtils.cpp
         lib/Analysis/ProgramPartitionAnalysis.cpp
         lib/Analysis/PartitionStatistics.cpp
+        lib/Analysis/ProgramPartitionStatistics.cpp
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp
         lib/Analysis/CallGraph.cpp
