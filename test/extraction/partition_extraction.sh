@@ -14,11 +14,11 @@ run_partition() {
     cd $dir
     bc="$dir.bc"
     outfile=$dir
-    outfile+="_partition.txt"
+    outfile+="_partition.json"
     annots="$dir"
     annots+="_annotations.json"
     echo "opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -extract-partition -optimize="static-analysis" -json-annotations=$annots -partition-stats -outfile=$outfile"
-    opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -extract-partition -optimize="static-analysis" -json-annotations=$annots -partition-stats -outfile=$outfile 
+    opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -extract-partition -optimize="static-analysis" -json-annotations=$annots -partition-stats -stats-file=$outfile
     cd -
 }
 
