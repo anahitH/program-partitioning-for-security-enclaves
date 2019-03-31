@@ -226,6 +226,9 @@ bool PartitionExtractor::extract()
     if (!modified) {
         return modified;
     }
+    for (const auto& global : m_partition.getGlobals()) {
+        function_names.insert(global->getName());
+    }
     createModule(function_names);
     return modified;
 }
