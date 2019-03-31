@@ -15,9 +15,9 @@ ENCLAVES = "<ENCLAVES>" #enclave name (e.g. program's name)
 
 def patchBuildFile(results):
    build_file_name = "BUILD"
-   copyfile(results.build_template, build_file_name)
-   with open(build_file_name, 'r+w') as build_file:
-       content = build_file.read()
+   content = ""
+   with open(results.build_template, 'r') as build_template:
+       content = build_template.read()
        content = content.replace(ENCLAVE, results.enclave_so)
        content = content.replace(ENCLAVE_SRC, results.enclave_src)
        content = content.replace(ENCLAVE_LIB, results.enclave_lib)
@@ -29,7 +29,9 @@ def patchBuildFile(results):
        app_headers = ",".join(results.app_hdr)
        content = content.replace(APP_HDR, app_headers)
        content = content.replace(ENCLAVES, results.enclaves)
+   with open(build_file_name, 'w+') as build_file:
        build_file.write(content)
+       build_file.close()
 
 def main():
     parser = argparse.ArgumentParser()

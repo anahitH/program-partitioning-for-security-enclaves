@@ -55,7 +55,7 @@ sim_enclave_loader(
         "<APP_HEADERS>",
     ],
     copts = ASYLO_DEFAULT_COPTS,
-    enclaves = {"<ENCLAVES>": "<ENCLAVE>.so"},
+    enclaves = {"<ENCLAVES>": ":<ENCLAVE>.so"},
     deps = [
         "//asylo/platform/primitives",
         "//asylo/platform/primitives:untrusted_primitives",
