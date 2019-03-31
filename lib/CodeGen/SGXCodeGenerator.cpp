@@ -20,7 +20,7 @@ std::string getPushAllocStrForArray(const Type& type, const std::string& varName
     }
     const std::string strlenStr = "strlen(" + varName + ")";
     pushStr << "PushAlloc("
-            << "sizeof(" << type.m_name << ") *" << strlenStr << ");\n";
+            << strlenStr << ");\n";
     pushStr << "memcpy(" << ext_name << ".As<" << type.m_name << ">(), "
             << varName << ", " << strlenStr << ")";
     return pushStr.str();
@@ -116,7 +116,7 @@ void SGXCodeGenerator::generateInterfaceSelectors()
         m_ecallSelectors.insert(std::make_pair(enclaveF.getName(), FunctionSelector{enclaveF.getName(), selectorName, selectorValue}));
     }
 
-    i = 0;
+    i = 1;
     for (const auto& appF : m_appFunctions) {
         std::string selectorValue = kSelector + " + " + std::to_string(i++);
         std::string selectorName = "k" + appF.getName() + "OCallHandler";
@@ -138,7 +138,7 @@ void SGXCodeGenerator::generateInterfaceSelectors()
     }
     // separately register selector for abort function
     Variable abortSelector = {Type{"uint64_t", "constexpr", false, false}, "kAbortEnclaveSelector"};
-    primitivesNamespace->addGlobalVariable(std::make_pair(abortSelector, kSelector + std::to_string(m_ecallSelectors.size())));
+    primitivesNamespace->addGlobalVariable(std::make_pair(abortSelector, kSelector + " + " + std::to_string(m_ecallSelectors.size() + 1)));
 
     for (const auto& [fname, selector] : m_ocallSelectors) {
         Variable global = {Type{"uint64_t", "constexpr", false, false}, selector.m_selectorName};
@@ -156,7 +156,7 @@ void SGXCodeGenerator::generateEnclaveRunner()
     m_enclaveFile.addInclude("\"asylo/platform/primitives/extent.h\"");
     m_enclaveFile.addInclude("\"asylo/platform/primitives/primitive_status.h\"");
     m_enclaveFile.addInclude("\"asylo/platform/primitives/trusted_primitives.h\"");
-    m_enclaveFile.addInclude("\"asylo/util/status_macro.h\"");
+    m_enclaveFile.addInclude("\"asylo/util/status_macros.h\"");
 
     // declaration for actual enclave functions
     for (auto function : m_enclaveFunctions) {
@@ -193,7 +193,7 @@ void SGXCodeGenerator::generateAppDriver()
     m_appDriverFile.addInclude("\"asylo/platform/primitives/primitive_status.h\"");
     m_appDriverFile.addInclude("\"asylo/platform/primitives/util/dispatch_table.h\"");
     m_appDriverFile.addInclude("\"asylo/platform/primitives/trusted_primitives.h\"");
-    m_appDriverFile.addInclude("\"asylo/util/status_macro.h\"");
+    m_appDriverFile.addInclude("\"asylo/util/status_macros.h\"");
 
     m_appDriverFile.addMacro("DEFINE_string(enclave_path, \"\", \"Path to enclave binary\");");
     Function appMainF("app_main");
@@ -265,6 +265,11 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
     // body
     // parsing passed arguments, assuming they where pushed in the call order, then pop in the reverse order
     std::vector<std::string> call_params(enclaveF.getParams().size());
+    std::string returnVal;
+    if (!enclaveF.isVoidReturn()) {
+        returnVal = "returnVal";
+	ecallF.addBody(getPopStr(enclaveF.getReturnType(), returnVal, true, true));
+    }
     int i = enclaveF.getParams().size();
     for (auto r_it = enclaveF.getParams().rbegin(); r_it != enclaveF.getParams().rend(); ++r_it) {
         std::string paramName = r_it->m_name + "_param";
@@ -273,12 +278,9 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
     }
     // insertin call to the actual function
     std::string callStr = enclaveF.getCallAsString(call_params);
-    std::string returnVal;
     if (!enclaveF.isVoidReturn()) {
-        returnVal = "returnVal";
         std::stringstream returnStr;
-        returnStr << enclaveF.getReturnType().m_name << " " << returnVal << " = "
-                  << callStr;
+        returnStr << returnVal << " = " << callStr;
         ecallF.addBody(returnStr.str());
     } else {
         ecallF.addBody(callStr);
@@ -298,7 +300,7 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
         newType.m_isPtr = false;
         ecallF.addBody(getPushAllocStr(newType, param.m_name + "_param", true));
     }
-    ecallF.addBody("PrimitiveStatus::OkStatus()");
+    ecallF.addBody("return PrimitiveStatus::OkStatus()");
     inScope->addFunction(ecallF);
 }
 
@@ -351,7 +353,9 @@ void SGXCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper
     }
     const std::string& callStr = ocallWrapper.getCallAsString(callParams);
     ocallF.addBody("asylo::primitives::" + callStr);
-    ocallF.addBody("return returnVal");
+    if (!appF.isVoidReturn()) {
+	ocallF.addBody("return returnVal");
+    }
     m_enclaveFile.addFunction(ocallF);
 }
 
@@ -368,6 +372,10 @@ void SGXCodeGenerator::generateAsyloEnclaveInitFunction(SourceScope::ScopeType& 
                  << ecall.m_selectorName << ", EntryHandler{" << "secure_" << ecall.m_functionName << "}))";
         enclaveInitF.addBody(ecallReg.str());
     }
+    std::stringstream ecallReg;
+    ecallReg << " ASYLO_RETURN_IF_ERROR(TrustedPrimitives::RegisterEntryHandler(kAbortEnclaveSelector, EntryHandler{Abort}))";
+    enclaveInitF.addBody(ecallReg.str());
+
     enclaveInitF.addBody("return PrimitiveStatus::OkStatus()");
     inScope->addFunction(enclaveInitF);
 }
@@ -407,7 +415,7 @@ void SGXCodeGenerator::generateOCallRegistration(SourceScope::ScopeType& inScope
         std::stringstream regStr;
         regStr << "status = client->exit_call_provider()->RegisterExitHandler("
                << m_ocallSelectors[appF.getName()].m_selectorName << ", ExitHandler{"
-               << "app_" << appF.getName() << "})";
+               << "insecure_" << appF.getName() << "})";
         OCallRegF.addBody(regStr.str());
     }
     inScope->addFunction(OCallRegF);
@@ -431,6 +439,11 @@ void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeTyp
     // body
     // parsing passed arguments, assuming they where pushed in the call order, then pop in the reverse order
     std::vector<std::string> call_params(appF.getParams().size());
+    std::string returnVal;
+    if (!appF.isVoidReturn()) {
+        returnVal = "returnVal";
+	ocallF.addBody(getPopStr(appF.getReturnType(), returnVal, true, false));
+    }
     int i = appF.getParams().size();
     for (auto r_it = appF.getParams().rbegin(); r_it != appF.getParams().rend(); ++r_it) {
         std::string paramName = r_it->m_name + "_param";
@@ -439,12 +452,9 @@ void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeTyp
     }
     // insertin call to the actual function
     std::string callStr = appF.getCallAsString(call_params);
-    std::string returnVal;
     if (!appF.isVoidReturn()) {
-        returnVal = "returnVal";
         std::stringstream returnStr;
-        returnStr << appF.getReturnType().m_name << " " << returnVal << " = "
-                  << callStr;
+        returnStr << returnVal << " = " << callStr;
         ocallF.addBody(returnStr.str());
     } else {
         ocallF.addBody(callStr);

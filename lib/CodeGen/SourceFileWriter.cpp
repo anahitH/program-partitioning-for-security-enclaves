@@ -96,6 +96,7 @@ void SourceFileWriter::writeGlobals(const std::vector<SourceScope::VariableValue
         if (!value.empty()) {
             globalStrm << " = " << value;
         }
+	globalStrm << ";";
         m_writer.write(globalStrm.str(), m_indent);
     }
 }
