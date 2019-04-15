@@ -67,13 +67,16 @@ void ILPOptimization::Impl::run()
     createEdgeVariables();
     createConstraints();
     createObjective();
+    m_logger.info("Exporting ILP model to partition_model.lp file");
     m_cplex.exportModel("partition_model.lp");
 
     if ( !m_cplex.solve() ) {
+        m_logger.info("Failed to optimize LP. Check ILP log for more details");
         m_ilpEnv.error() << "Failed to optimize LP" << endl;
         return;
     }
     IloNumArray vals(m_ilpEnv);
+    m_logger.info("ILP solver succeeded");
     m_ilpEnv.out() << "Solution status " << m_cplex.getStatus() << std::endl;
     for (const auto& [node, var] : m_nodeVariables) {
         if (m_cplex.getValue(var) == 1) {
@@ -84,6 +87,7 @@ void ILPOptimization::Impl::run()
 
 void ILPOptimization::Impl::apply()
 {
+    m_logger.info("Applying ILP optimization");
     for (auto* F : m_movedFunctions) {
         m_securePartition.addToPartition(F);
         m_securePartition.removeRelatedFunction(F);
@@ -177,6 +181,7 @@ ILPOptimization::ILPOptimization(const CallGraph& callgraph,
 
 void ILPOptimization::run()
 {
+    m_logger.info("Running ILP optimization");
     m_impl->run();
 }
 

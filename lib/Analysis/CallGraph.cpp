@@ -1,6 +1,7 @@
 #include "Analysis/CallGraph.h"
 
 #include "Analysis/ProgramPartitionAnalysis.h"
+#include "Utils/Logger.h"
 #include "Utils/Utils.h"
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/FunctionPDG.h"
@@ -290,7 +291,8 @@ public:
                           const Partition& securePartition,
                           const Partition& insecurePartition,
                           const pdg::PDG* pdg,
-                          const LoopInfoGetter& loopInfoGetter);
+                          const LoopInfoGetter& loopInfoGetter,
+                          Logger& logger);
     
     void assignWeights();
 
@@ -304,7 +306,8 @@ private:
     void assignArgWeights();
     void assignRetValueWeights();
     CallSiteData collectFunctionCallSiteData();
-    void normalizeWeight();
+    void normalizeWeights();
+    void normalizeWeights(const std::vector<Double*>& weights);
 
 private:
     CallGraph& m_callGraph;
@@ -312,19 +315,22 @@ private:
     const Partition& m_insecurePartition;
     const pdg::PDG* m_pdg;
     const LoopInfoGetter& m_loopInfoGetter;
-    std::vector<Double*> m_allWeights;
+    Logger& m_logger;
+    std::unordered_map<WeightFactor::Factor, std::vector<Double*>> m_factorWeights;
 }; // class WeightAssigningHelper
 
 WeightAssigningHelper::WeightAssigningHelper(CallGraph& callGraph,
                                              const Partition& securePartition,
                                              const Partition& insecurePartition,
                                              const pdg::PDG* pdg,
-                                             const LoopInfoGetter& loopInfoGetter)
+                                             const LoopInfoGetter& loopInfoGetter,
+                                             Logger& logger)
     : m_callGraph(callGraph)
     , m_securePartition(securePartition)
     , m_insecurePartition(insecurePartition)
     , m_pdg(pdg)
     , m_loopInfoGetter(loopInfoGetter)
+    , m_logger(logger)
 {
 }
  
@@ -332,7 +338,7 @@ void WeightAssigningHelper::assignWeights()
 {
     assignNodeWeights();
     assignEdgeWeights();
-    normalizeWeight();
+    normalizeWeights();
 }
 
 void WeightAssigningHelper::assignNodeWeights()
@@ -344,18 +350,20 @@ void WeightAssigningHelper::assignNodeWeights()
 
 void WeightAssigningHelper::assignSensitiveNodeWeights()
 {
+    m_logger.info("Compute security sensitivity weights for nodes");
     WeightFactor factor(WeightFactor::SENSITIVE);
     factor.setValue(Double::POS_INFINITY);
     for (llvm::Function* F : m_securePartition.getPartition()) {
         auto* Fnode = m_callGraph.getFunctionNode(F);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
-        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE).getValue());
+        m_factorWeights[WeightFactor::SENSITIVE].push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE).getValue());
     }
 }
 
 void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
 {
+    m_logger.info("Compute security sensitivity relation weights for nodes");
     WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
     factor.setValue(Double::POS_INFINITY);
     for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
@@ -363,12 +371,13 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
         auto* Fnode = m_callGraph.getFunctionNode(function);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
-        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE_RELATED).getValue());
+        m_factorWeights[WeightFactor::SENSITIVE_RELATED].push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE_RELATED).getValue());
     }
 }
 
 void WeightAssigningHelper::assignNodeSizeWeights()
 {
+    m_logger.info("Compute size weights for nodes");
     WeightFactor sizeFactor(WeightFactor::SIZE);
     for (auto it = m_callGraph.begin();
             it != m_callGraph.end();
@@ -377,7 +386,7 @@ void WeightAssigningHelper::assignNodeSizeWeights()
         sizeFactor.setValue(Fsize);
         Weight& nodeWeight = it->second->getWeight();
         nodeWeight.addFactor(sizeFactor);
-        m_allWeights.push_back(&nodeWeight.getFactor(WeightFactor::SIZE).getValue());
+        m_factorWeights[WeightFactor::SIZE].push_back(&nodeWeight.getFactor(WeightFactor::SIZE).getValue());
     }
 }
 
@@ -391,6 +400,7 @@ void WeightAssigningHelper::assignEdgeWeights()
 
 void WeightAssigningHelper::assignCallNumWeights()
 {
+    m_logger.info("Compute context switch weights for edges");
     const auto& callSiteData = collectFunctionCallSiteData();
     WeightFactor callNumFactor(WeightFactor::CALL_NUM);
     for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
@@ -407,7 +417,7 @@ void WeightAssigningHelper::assignCallNumWeights()
              Weight& edgeWeight = edge_it->getWeight();
              callNumFactor.setValue(calls);
              edgeWeight.addFactor(callNumFactor);
-             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
+             m_factorWeights[WeightFactor::CALL_NUM].push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
         }
     }
 
@@ -437,6 +447,7 @@ void WeightAssigningHelper::assignCallNumWeights()
 
 void WeightAssigningHelper::assignArgWeights()
 {
+    m_logger.info("Compute passed arguments weights for edges");
     WeightFactor argNumFactor(WeightFactor::ARG_NUM);
     WeightFactor argComplexityFactor(WeightFactor::ARG_COMPLEXITY);
     for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
@@ -449,14 +460,15 @@ void WeightAssigningHelper::assignArgWeights()
              Weight& edgeWeight = edge_it->getWeight();
              edgeWeight.addFactor(argNumFactor);
              edgeWeight.addFactor(argComplexityFactor);
-             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::ARG_NUM).getValue());
-             m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::ARG_COMPLEXITY).getValue());
+             m_factorWeights[WeightFactor::ARG_NUM].push_back(&edgeWeight.getFactor(WeightFactor::ARG_NUM).getValue());
+             m_factorWeights[WeightFactor::ARG_COMPLEXITY].push_back(&edgeWeight.getFactor(WeightFactor::ARG_COMPLEXITY).getValue());
         }
     }
 }
 
 void WeightAssigningHelper::assignRetValueWeights()
 {
+    m_logger.info("Compute return value weights for edges");
     WeightFactor factor(WeightFactor::RET_COMPLEXITY);
     for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
         factor.setValue(getTypeComplexity(it->first->getReturnType()));
@@ -465,7 +477,7 @@ void WeightAssigningHelper::assignRetValueWeights()
                 ++edge_it) {
             Weight& edgeWeight = edge_it->getWeight();
             edgeWeight.addFactor(factor);
-            m_allWeights.push_back(&edgeWeight.getFactor(WeightFactor::RET_COMPLEXITY).getValue());
+            m_factorWeights[WeightFactor::RET_COMPLEXITY].push_back(&edgeWeight.getFactor(WeightFactor::RET_COMPLEXITY).getValue());
         }
     }
 }
@@ -490,27 +502,32 @@ WeightAssigningHelper::collectFunctionCallSiteData()
     return callSiteData;
 }
 
-void WeightAssigningHelper::normalizeWeight()
+void WeightAssigningHelper::normalizeWeights()
 {
-    // TODO:
-//    Double minNonInfinityWeigth;
-//    Double maxNonInfinityWeight;
-//    for (const auto& weight : m_allWeights) {
-//        if (minNonInfinityWeigth > *weight && !weight->isNegInfinity()) {
-//            minNonInfinityWeigth = *weight;
-//        }
-//        if (maxNonInfinityWeight < *weight && !weight->isPosInfinity()) {
-//            maxNonInfinityWeight = *weight;
-//        }
-//    }
-//    for (const auto& weight : m_allWeights) {
-//        if (*weight > )
-//    }
+    m_logger.info("Normalizing weights");
+    for (auto& [factor, weights] : m_factorWeights) {
+        normalizeWeights(weights);
+    }
+    m_factorWeights.clear();
+}
+
+void WeightAssigningHelper::normalizeWeights(const std::vector<Double*>& weights)
+{
+    const auto& cmp = [] (Double* d1, Double* d2) {return *d1 < *d2; };
+    Double* minimum = *std::min_element(weights.begin(), weights.end(), cmp);
+    Double* maximum = *std::max_element(weights.begin(), weights.end(), cmp);
+
+    Double diff = *maximum - *minimum;
+    std::for_each(weights.begin(), weights.end(),
+                  [minimum, &diff] (Double* d) {
+                    *d = (*d - *minimum)/diff;
+                  });
 }
 
 /**********************************************************/
 
-CallGraph::CallGraph(const llvm::CallGraph& graph)
+CallGraph::CallGraph(const llvm::CallGraph& graph, Logger& logger)
+    : m_logger(logger)
 {
     create(graph);
 }
@@ -531,12 +548,14 @@ void CallGraph::assignWeights(const Partition& securePartition,
                               const pdg::PDG* pdg,
                               const LoopInfoGetter& loopInfoGetter)
 {
-    WeightAssigningHelper helper(*this, securePartition, insecurePartition, pdg, loopInfoGetter);
+    m_logger.info("Computing weights for Augmented Call Graph");
+    WeightAssigningHelper helper(*this, securePartition, insecurePartition, pdg, loopInfoGetter, m_logger);
     helper.assignWeights();
 }
 
 void CallGraph::create(const llvm::CallGraph& graph)
 {
+    m_logger.info("Creating Augmented Call Graph");
     for (auto it = graph.begin(); it != graph.end(); ++it) {
         if (!it->first) {
             continue;
@@ -581,13 +600,15 @@ void CallGraphPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 
 bool CallGraphPass::runOnModule(llvm::Module& M)
 {
+    Logger logger("Augmented CG");
+    logger.setLevel(vazgen::Logger::INFO);
+
     llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
-    m_callgraph.reset(new CallGraph(CG));
+    m_callgraph.reset(new CallGraph(CG, logger));
     auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
-
     m_callgraph->assignWeights(partition->getSecurePartition(), partition->getInsecurePartition(),
                                pdg.get(), loopGetter);
     return false;

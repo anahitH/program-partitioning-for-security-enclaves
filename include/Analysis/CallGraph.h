@@ -23,6 +23,8 @@ class PDG;
 
 namespace vazgen {
 
+class Logger;
+
 class WeightFactor
 {
 public:
@@ -324,7 +326,7 @@ public:
     using const_iterator = FunctionNodes::const_iterator;
 
 public:
-    explicit CallGraph(const llvm::CallGraph& graph);
+    explicit CallGraph(const llvm::CallGraph& graph, Logger& logger);
 
     CallGraph(const CallGraph&) = delete;
     CallGraph(CallGraph&&) = delete;
@@ -369,6 +371,7 @@ private:
 
 private:
     FunctionNodes m_functionNodes;
+    Logger& m_logger;
 }; // class CallGraph
 
 class CallGraphPass : public llvm::ModulePass

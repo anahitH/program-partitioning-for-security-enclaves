@@ -65,7 +65,7 @@ ProgramPartition::ProgramPartition(llvm::Module& M,
                                    Logger& logger)
     : m_module(M)
     , m_pdg(pdg)
-    , m_callgraph(callgraph)
+    , m_callgraph(callgraph, logger)
     , m_loopInfoGetter(loopInfoGetter)
     , m_logger(logger)
 {

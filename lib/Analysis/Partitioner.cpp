@@ -113,7 +113,7 @@ private:
 
     virtual void traverse() final
     {
-        m_logger.info("Partitioning for sensitive functions");
+        m_logger.info("Analyzing for annotated function");
         m_partition.addToPartition(m_annotation.getFunction());
     }
 
@@ -266,7 +266,7 @@ bool PartitionForArguments::canPartition() const
 
 void PartitionForArguments::traverse()
 {
-    m_logger.info("Partitioning for sensitive arguments");
+    m_logger.info("Analyzing for annotated arguments");
     llvm::Function* F = m_annotation.getFunction();
     m_partition.addToPartition(F);
     const auto& annotatedArgs = m_annotation.getAnnotatedArguments();
@@ -449,7 +449,7 @@ bool PartitionForReturnValue::canPartition() const
 
 void PartitionForReturnValue::traverse()
 {
-    m_logger.info("Partitioning for sensitive return values");
+    m_logger.info("Analyzing for annotated return values");
     // TODO: do we need to include new functions in the curse of backward traversal?
     llvm::Function* F = m_annotation.getFunction();
     m_functionLevels.insert(std::make_pair(F, 0));
@@ -502,8 +502,7 @@ void PartitionForReturnValue::traverse()
 
 void PartitionGlobals::partition()
 {
-    // TODO: this probably is not an accurate message.
-    m_logger.info("Partitioning globals");
+    m_logger.info("Analyzing for globals");
     for (auto glob_it = m_module.global_begin();
          glob_it != m_module.global_end();
          ++glob_it) {
@@ -546,6 +545,7 @@ void Partitioner::computeInsecurePartition()
 void Partitioner::partition(const Annotations& annotations)
 {
     for (const auto& annot : annotations) {
+        m_logger.info("Static analysis for annotation " + annot.getFunction()->getName().str());
         PartitionForFunction f_partitioner(m_module, annot, m_logger);
         const auto& f_partition = f_partitioner.partition();
         m_securePartition.addToPartition(f_partition);

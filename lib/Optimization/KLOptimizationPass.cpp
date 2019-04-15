@@ -65,6 +65,7 @@ void KLOptimizationPass::Impl::setCandidates(const Functions& candidates)
 
 void KLOptimizationPass::Impl::run()
 {
+    m_logger.info("Running KL optimization");
     computeCandidateEdgeCosts();
     computeNodeCosts();
     llvm::Function* movedF = nullptr;
@@ -75,6 +76,7 @@ void KLOptimizationPass::Impl::run()
         movedF = m_candidates[maxGainIdx];
         moveFunction(maxGainIdx);
     }
+    m_logger.info("KL optimization finished");
     applyOptimization();
 }
 
@@ -108,7 +110,8 @@ void KLOptimizationPass::Impl::computeNodeCosts()
             Fnode->getWeight().getFactor(WeightFactor::SENSITIVE_RELATED).getWeight() : Double();
         const auto& sizeFactor =  Fnode->getWeight().hasFactor(WeightFactor::SIZE) ?
             Fnode->getWeight().getFactor(WeightFactor::SIZE).getWeight() : Double();
-        m_functionCosts.insert(std::make_pair(F, sensitiveRelatedFactor - sizeFactor));
+        // The sensitive related needs to be optimized, while the size (TCB) needs to be minimized
+        m_functionCosts.insert(std::make_pair(F, sensitiveRelatedFactor + (-1) * sizeFactor));
     }
 }
 
@@ -176,6 +179,7 @@ void KLOptimizationPass::Impl::moveFunction(int idx)
 
 void KLOptimizationPass::Impl::applyOptimization()
 {
+    m_logger.info("Applying KL optimization");
     Double maxGain = 0;
     Double intmdGain = 0;
     int idx = -1;

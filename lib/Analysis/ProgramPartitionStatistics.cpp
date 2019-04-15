@@ -4,6 +4,7 @@
 #include "Analysis/ProgramPartitionAnalysis.h"
 #include "Analysis/PartitionStatistics.h"
 #include "Analysis/Partition.h"
+#include "Utils/Logger.h"
 
 #include "PDG/Passes/PDGBuildPasses.h"
 
@@ -47,7 +48,10 @@ bool ProgramPartitionStatisticsPass::runOnModule(llvm::Module& M)
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
 
-    CallGraph callGraph(CG);
+    Logger logger("Program partition statistics");
+    logger.setLevel(vazgen::Logger::INFO);
+
+    CallGraph callGraph(CG, logger);
     callGraph.assignWeights(securePartition, insecurePartition, pdg.get(), loopGetter);
     std::ofstream strm;
     if (StatsFile.empty()) {
