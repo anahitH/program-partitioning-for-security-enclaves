@@ -84,7 +84,7 @@ protected:
 
     void updateFunctionLevel(llvm::Function* currentF, llvm::Function* newF);
     void addRelatedFunction(llvm::Function* F);
-    bool processNode(pdg::FunctionPDG::PDGNodeTy node) const;
+    bool canProcessNode(pdg::FunctionPDG::PDGNodeTy node) const;
 
 protected:
     llvm::Module& m_module;
@@ -239,7 +239,7 @@ void PartitionForAnnotation::addRelatedFunction(llvm::Function* F)
     }
 }
 
-bool PartitionForAnnotation::processNode(pdg::FunctionPDG::PDGNodeTy node) const
+bool PartitionForAnnotation::canProcessNode(pdg::FunctionPDG::PDGNodeTy node) const
 {
     return !llvm::isa<pdg::PDGLLVMConstantNode>(node.get())
         && !llvm::isa<pdg::PDGNullNode>(node.get());
@@ -347,7 +347,7 @@ void PartitionForArguments::traverseForward(pdg::FunctionPDG::PDGNodeTy formalAr
                 out_it != currentNode->outEdgesEnd();
                 ++out_it) {
             auto destNode = (*out_it)->getDestination();
-            if (!processNode(destNode)) {
+            if (!canProcessNode(destNode)) {
                 continue;
             }
             forwardWorkingList.push_front(destNode);
@@ -395,7 +395,7 @@ void PartitionForArguments::traverseBackward(Container& workingList)
                 in_it != currentNode->inEdgesEnd();
                 ++in_it) {
             auto sourceNode = (*in_it)->getSource();
-            if (!processNode(sourceNode)) {
+            if (!canProcessNode(sourceNode)) {
                 continue;
             }
             //llvm::dbgs() << "source node " << sourceNode->getNodeAsString() << "\n";
@@ -450,6 +450,7 @@ bool PartitionForReturnValue::canPartition() const
 void PartitionForReturnValue::traverse()
 {
     m_logger.info("Analyzing for annotated return values");
+    llvm::dbgs() << "FUNCTION " << m_annotation.getFunction()->getName() << "\n";
     // TODO: do we need to include new functions in the curse of backward traversal?
     llvm::Function* F = m_annotation.getFunction();
     m_functionLevels.insert(std::make_pair(F, 0));
@@ -470,12 +471,12 @@ void PartitionForReturnValue::traverse()
         }
         auto* nodeValue = llvmNode->getNodeValue();
         // TODO: check this
-        if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
+        if (nodeValue) {
+            //llvm::dbgs() << "Node value " << *nodeValue << "\n";
             if (!processed_values.insert(nodeValue).second) {
                 continue;
             }
         }
-        //llvm::dbgs() << "Node value " << *nodeValue << "\n";
         if (auto* FNode = llvm::dyn_cast<pdg::PDGLLVMFunctionNode>(llvmNode)) {
             llvm::Function* F = FNode->getFunction();
             if (F == m_annotation.getFunction()) {
@@ -491,7 +492,7 @@ void PartitionForReturnValue::traverse()
                 in_it != currentNode->inEdgesEnd();
                 ++in_it) {
             auto sourceNode = (*in_it)->getSource();
-            if (!processNode(sourceNode)) {
+            if (!canProcessNode(sourceNode)) {
                 continue;
             }
             workingList.push_front(sourceNode);
