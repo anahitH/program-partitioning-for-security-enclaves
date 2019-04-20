@@ -7,6 +7,9 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
 
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
+
 namespace vazgen {
 
 PartitionStatistics::PartitionStatistics(std::ofstream& strm,
@@ -114,17 +117,12 @@ void PartitionStatistics::reportNumOfContextSwitches(const Partition& partition)
 
 void PartitionStatistics::reportSizeOfTCB(const Partition& partition)
 {
-    Double tcbSize = 0;
+    long tcbSize = 0;
     for (const auto& F : partition.getPartition()) {
         if (!m_callgraph.hasFunctionNode(F)) {
             continue;
         }
-        auto Fnode = m_callgraph.getFunctionNode(F);
-        if (!Fnode->getWeight().hasFactor(WeightFactor::SIZE)) {
-            tcbSize += Utils::getFunctionSize(F);
-        } else {
-            tcbSize += Fnode->getWeight().getFactor(WeightFactor::SIZE).getValue();
-        }
+        tcbSize += Utils::getFunctionSize(F);
     }
     write_entry({"partition", m_partitionName, "TCB"}, (double) tcbSize);
 }

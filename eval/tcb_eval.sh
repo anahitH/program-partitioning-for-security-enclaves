@@ -33,7 +33,7 @@ generate_annotations_for_program() {
         cp $annot_output_dir/$annot_name $cov_dir
     done
     cd -
-#    rm -rf $annot_output_dir
+    rm -rf $annot_output_dir
     echo 'DONE: Generating random annotations for ' $1
 }
 
