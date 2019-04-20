@@ -130,6 +130,11 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/FunctionExtractor.cpp
         lib/Debug/OptimizationFactorsTable.cpp
         lib/Debug/ILPOptimizationData.cpp
+        lib/Eval/AnnotationCreatorPass.cpp
+)
+
+add_library(eval-program_partitioning MODULE
+        lib/Eval/AnnotationCreatorPass.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
@@ -157,6 +162,16 @@ target_include_directories(debug-program_partitioning PUBLIC
         ${CPLEX_INCLUDE}
         ${CP_INCLUDE}
 )
+
+target_include_directories(eval-program_partitioning PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LLVM_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
+)
+
 target_link_libraries(program_partitioning PRIVATE
                       Threads::Threads
                       svf::Svf
@@ -178,6 +193,10 @@ target_link_libraries(debug-program_partitioning PRIVATE
                       ${Boost_LIBRARIES}
 )
 
+target_link_libraries(eval-program_partitioning PRIVATE
+                      Threads::Threads
+                      ${Boost_LIBRARIES}
+)
 if ($ENV{CLION_IDE})
     include_directories("/usr/local/include/llvm/")
     include_directories("/usr/local/include/llvm-c/")
@@ -188,6 +207,9 @@ target_compile_options(program_partitioning PRIVATE -fno-rtti -g -DIL_STD) #-DND
 
 target_compile_features(debug-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(debug-program_partitioning PRIVATE -fno-rtti -g)
+
+target_compile_features(eval-program_partitioning PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
+target_compile_options(eval-program_partitioning PRIVATE -fno-rtti -g)
 
 target_compile_features(sgx-code-gen PRIVATE cxx_range_for cxx_auto_type cxx_std_17)
 target_compile_options(sgx-code-gen PRIVATE -fno-rtti -g)
