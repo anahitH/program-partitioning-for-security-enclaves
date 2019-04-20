@@ -190,7 +190,7 @@ void KLOptimizationPass::Impl::applyOptimization()
             idx = i;
         }
     }
-    for (int i = idx + 1; i <= m_functionMoveGains.size(); ++i) {
+    for (int i = idx + 1; i < m_functionMoveGains.size(); ++i) {
         llvm::Function* revertF = m_functionMoveGains[i].first;
         m_securePartition.removeFromPartition(revertF);
         m_insecurePartition.addToPartition(revertF);
