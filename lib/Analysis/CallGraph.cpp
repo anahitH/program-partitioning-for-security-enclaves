@@ -182,7 +182,7 @@ struct AnalysisCallGraphPassTraits {
 
 namespace vazgen {
 
-static const int LOOP_COST = 100000;
+static const int LOOP_COST = 1000;
 
 namespace {
 
@@ -365,9 +365,12 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
 {
     m_logger.info("Compute security sensitivity relation weights for nodes");
     WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
-    factor.setValue(Double::POS_INFINITY);
     for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
-        factor.setCoef(1/level);
+        if (level == 0) {
+            factor.setValue(1/LOOP_COST);
+        } else {
+            factor.setValue(1/level);
+        }
         auto* Fnode = m_callGraph.getFunctionNode(function);
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
@@ -516,11 +519,14 @@ void WeightAssigningHelper::normalizeWeights(const std::vector<Double*>& weights
     const auto& cmp = [] (Double* d1, Double* d2) {return *d1 < *d2; };
     Double* minimum = *std::min_element(weights.begin(), weights.end(), cmp);
     Double* maximum = *std::max_element(weights.begin(), weights.end(), cmp);
+    double min = *minimum;
+    double max = *maximum;
 
-    Double diff = *maximum - *minimum;
+    double diff = max - min;
     std::for_each(weights.begin(), weights.end(),
-                  [minimum, &diff] (Double* d) {
-                    *d = (*d - *minimum)/diff;
+                  [min, &diff] (Double* d) {
+                    double local_diff = d->getValue() - min;
+                    *d = diff == 0 ? min : local_diff /diff;
                   });
 }
 

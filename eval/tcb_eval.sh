@@ -15,6 +15,16 @@ optimization=$1
 #optimizations=('no-opt' 'kl' 'ilp' 'local')
 optimizations=('no-opt' 'kl' 'local' 'static-analysis' 'ilp')
 
+set_manual_annotation() {
+    echo 'Setup manual annotations directory for ' $1
+    bitcode=$1
+    filename=$2
+    manual_annot_dir=$3/'manual'
+    mkdir -p $manual_annot_dir
+    cp $ANNOTATIONS/$filename'_annotations.json' $manual_annot_dir
+    echo 'DONE Setup manual annotations directory for ' $1
+}
+
 generate_annotations_for_program() {
     echo 'Generating random annotations for ' $1
     bitcode=$1
@@ -91,6 +101,9 @@ run_partitioning() {
         run_partitioning_for_coverage $cov $bitcode $annot_name $dir
         cd $current_dir
     done
+    cd $dir/'manual'
+    run_partitioning_for_coverage 'manual' $bitcode $filename'_annotations.json' $dir
+    cd $current_dir
     echo 'DONE: Run partitioning for ' $1
 }
 
@@ -105,6 +118,7 @@ run() {
         output_dir=$OUTPUT/$filename
         mkdir -p $output_dir
         generate_annotations_for_program $bitcode $filename $output_dir
+        set_manual_annotation $bitcode $filename $output_dir
         run_partitioning $bitcode $filename $output_dir
     done
 

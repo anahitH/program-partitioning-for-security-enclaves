@@ -51,7 +51,7 @@ void PartitionStatistics::reportPartitionFunctions(const Partition& partition)
     std::vector<std::string> partitionFs;
     partitionFs.reserve(partition.getPartition().size());
     std::transform(partition.getPartition().begin(), partition.getPartition().end(), std::back_inserter(partitionFs),
-            [] (llvm::Function* F) { return F->getName().str();});
+            [] (llvm::Function* F) { if (F) { return F->getName().str(); } });
     write_entry({"partition", m_partitionName, "partition_functions"}, partitionFs);
     write_entry({"partition", m_partitionName, "partition_size"}, (unsigned) partitionFs.size());
     double partition_portion = (partition.getPartition().size() * 100.0) / m_module.size();

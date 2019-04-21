@@ -65,11 +65,14 @@ Functions pickFunctions(llvm::Module& M, int percentage)
     int num = allFunctions.size() * percentage/100;
     functionsToAnnotate.reserve(num);
 
+    int numOfAllFunctions = allFunctions.size();
     srand(time(NULL));
     for (int i = 0; i < num; ++i) {
-        int idx = rand() % (allFunctions.size() - i);
+        int idx = rand() % (numOfAllFunctions);
         functionsToAnnotate.push_back(allFunctions[idx]);
-        std::swap(allFunctions[idx], allFunctions.back());
+        //llvm::dbgs() << "idx " << idx << " function: " << allFunctions[idx]->getName() << "\n";
+        std::swap(allFunctions[idx], allFunctions[numOfAllFunctions - 1]);
+        --numOfAllFunctions;
     }
 
     return functionsToAnnotate;
