@@ -125,34 +125,24 @@ run_partitioning() {
 
 }
 
-generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt() {
-    echo 'generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt ' $1
-    opt=$1
-    bitcode=$2
-    filename=$4
-    echo $1 $2 $3 $4
-    cd $3/$opt
-    echo 'opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $3/$opt/$filename"_instrumented.bc'
-    opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $3/$opt/$filename'_instrumented.bc'
-    cd -
-    echo 'DONE: generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt ' $1
+cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt() {
+    echo 'cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt ' $1
+    cp $4 $3/$2/$1
+    echo 'DONE: cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt ' $1
 }
 
-generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage() {
-    echo 'generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage ' $1
-    echo $1 $2 $3 $4
-    bitcode=$2
+cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage() {
+    echo 'cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage ' $1
     if [ "$optimization" == "all" ]; then
         for opt in "${optimizations[@]}"
         do
             #echo "HERE OPT is " $opt 'and annot ' $annot_name
-            generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt $opt $bitcode $3 $4
+            cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt $opt $1 $2 $3
         done
     else
-        generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt $optimization $bitcode $3 $4
+        cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage_and_opt $optimization $1 $2 $3
     fi
-    echo 'DONE: generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage ' $1
-
+    echo 'DONE: cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage ' $1
 }
 
 generate_instrumented_binaries_for_shadow_call_stack_for_bitcode() {
@@ -160,18 +150,15 @@ generate_instrumented_binaries_for_shadow_call_stack_for_bitcode() {
     bitcode=$1
     filename=$2
     dir=$3/
-    current_dir=$PWD
+    echo 'opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $3/$opt/$filename"_instrumented.bc'
+    opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $filename'_instrumented.bc'
+    instrumented_bitcode=$filename'_instrumented.bc'
     for cov in $annotation_coverage
     do
-        annot_dir=$dir/$cov
-        cd $annot_dir
-        generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage $cov $bitcode $annot_dir $filename
-        cd $current_dir
+        cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage $cov $dir $instrumented_bitcode
     done
-    cd $dir/'manual'
-    generate_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage 'manual' $bitcode $dir/'manual' $filename
-    cd $current_dir
-
+    cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage 'manual' $dir $instrumented_bitcode
+    rm $instrumented_bitcode
     echo 'DONE: Run generate_instrumented_binaries_for_shadow_call_stack for bitcode ' $1
 }
 
