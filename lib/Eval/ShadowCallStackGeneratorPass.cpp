@@ -55,9 +55,6 @@ bool ShadowCallStackGeneratorPass::runOnModule(llvm::Module& M)
             addCallee(&F);
         }
         bool isCaller = false;
-        if (F.getName() == "alarm_handler") {
-            llvm::dbgs() << "Here\n";
-        }
         for (auto& B : F) {
             for (auto& I : B) {
                 llvm::Function* callee = nullptr;
@@ -103,7 +100,6 @@ void ShadowCallStackGeneratorPass::addCallee(llvm::Function* F, llvm::Function* 
 
 void ShadowCallStackGeneratorPass::addCallee(llvm::Function* F)
 {
-    llvm::dbgs() << F->getName() << "\n";
     llvm::LLVMContext& Ctx = F->getContext();
     llvm::IRBuilder<> builder(Ctx);
     builder.SetInsertPoint(&*F->getEntryBlock().begin());
