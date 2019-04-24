@@ -135,6 +135,7 @@ add_library(debug-program_partitioning MODULE
 
 add_library(eval-program_partitioning MODULE
         lib/Eval/AnnotationCreatorPass.cpp
+        lib/Eval/ShadowCallStackGeneratorPass.cpp
 )
 
 target_include_directories(program_partitioning PUBLIC
