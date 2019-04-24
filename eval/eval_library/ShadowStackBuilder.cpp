@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cassert>
 #include <unordered_map>
 
@@ -58,17 +59,21 @@ public:
 
     void addCallee(const std::string& callee)
     {
-        assert(!m_currentCaller.empty());
-        m_callStackEntryNum[CallStackEntry{m_currentCaller, callee}] += 1;
-        m_currentCaller.clear();
+        // possibly call from external function, to which callee was passed as callback argument
+        if (m_currentCaller.empty()) {
+            m_callStackEntryNum[CallStackEntry{"external", callee}] += 1;
+        } else {
+            m_callStackEntryNum[CallStackEntry{m_currentCaller, callee}] += 1;
+            m_currentCaller.clear();
+        }
     }
 
 
     void dumpShadowCallStack()
     {
         std::ofstream strm("shadow_call_stack.txt");
-        for (const auto& [callEntry, num] : m_callStackEntryNum) {
-            strm << "(" << callEntry.caller << " " << callEntry.callee << ") " << num << "\n";
+        for (const auto& callEntry : m_callStackEntryNum) {
+            strm << "(" << callEntry.first.caller << " " << callEntry.first.callee << ") " << callEntry.second << "\n";
         }
         strm.flush();
         strm.close();
