@@ -5,6 +5,9 @@ DG_PATH="/usr/local/lib/lib/libLLVMdg.so"
 SVFG_PATH="/usr/local/lib/Svf.so"
 PROGRAM_PARTITIONING_PATH="/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/build/libprogram_partitioning.so"
 PROGRAM_PARTITIONING_EVAL_PATH="/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/build/libeval-program_partitioning.so"
+SHADOW_STACK_SRC_PATH="$PWD/eval_library/"
+LINK_LIBRARIES="$PWD/link_libraries"
+INTERCEPTS="$PWD/intercepts"
 
 BITCODES=$PWD/dataset/*.bc
 ANNOTATIONS=$PWD/annotations/
@@ -14,7 +17,7 @@ annotation_coverage="10 25 35 50"
 optimization=$1
 #optimizations=('no-opt' 'kl' 'ilp' 'local')
 optimizations=('no-opt' 'kl' 'local' 'static-analysis' 'ilp')
-run_partitioning=$1
+do_partition=$2
 
 set_manual_annotation() {
     echo 'Setup manual annotations directory for ' $1
@@ -85,7 +88,7 @@ run_partitioning_for_coverage() {
     echo 'DONE: Run partitioning for coverage ' $1
 }
 
-run_partitioning() {
+run_partitioning_for_bitcode() {
     echo 'Run partitioning for ' $1
     bitcode=$1
     filename=$2
@@ -120,7 +123,7 @@ run_partitioning() {
         mkdir -p $output_dir
         generate_annotations_for_program $bitcode $filename $output_dir
         set_manual_annotation $bitcode $filename $output_dir
-        run_partitioning $bitcode $filename $output_dir
+        run_partitioning_for_bitcode $bitcode $filename $output_dir
     done
 
 }
@@ -145,8 +148,8 @@ cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage() {
     echo 'DONE: cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage ' $1
 }
 
-generate_instrumented_binaries_for_shadow_call_stack_for_bitcode() {
-    echo 'Run generate_instrumented_binaries_for_shadow_call_stack for bitcode ' $1
+generate_instrumented_bitcodes_for_shadow_call_stack_for_bitcode() {
+    echo 'Run generate_instrumented_bitcodes_for_shadow_call_stack for bitcode ' $1
     bitcode=$1
     filename=$2
     dir=$3/
@@ -159,27 +162,92 @@ generate_instrumented_binaries_for_shadow_call_stack_for_bitcode() {
     done
     cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage 'manual' $dir $instrumented_bitcode
     rm $instrumented_bitcode
-    echo 'DONE: Run generate_instrumented_binaries_for_shadow_call_stack for bitcode ' $1
+    echo 'DONE: Run generate_instrumented_bitcodes_for_shadow_call_stack for bitcode ' $1
 }
 
-generate_instrumented_binaries_for_shadow_call_stack() {
-    echo 'Run generate_instrumented_binaries_for_shadow_call_stack'
+generate_instrumented_bitcodes_for_shadow_call_stack() {
+    echo 'Run generate_instrumented_bitcodes_for_shadow_call_stack'
     for bc in $BITCODES
     do
 	bitcode=$bc
 	filename=${bc##*/}
 	filename=${filename::-3}
         output_dir=$OUTPUT/$filename
-        generate_instrumented_binaries_for_shadow_call_stack_for_bitcode $bc $filename $output_dir
+        generate_instrumented_bitcodes_for_shadow_call_stack_for_bitcode $bc $filename $output_dir
     done
-    echo 'DONE: Run generate_instrumented_binaries_for_shadow_call_stack'
+    echo 'DONE: Run generate_instrumented_bitcodes_for_shadow_call_stack'
 }
 
-if [ "$run_partitioning" == "true" ]; then
+generate_instrumented_binaries_for_shadow_call_stack() {
+    clang $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.cpp" -c -emit-llvm -o $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc"
+    for bc in $BITCODES
+    do
+        filename=${bc##*/}
+        filename=${filename::-3}
+        libraries=$(<$LINK_LIBRARIES/$filename)
+        #echo "Libraries are: " $libraries
+        for cov in $annotation_coverage
+        do
+            if [ "$optimization" == "all" ]; then
+                for opt in "${optimizations[@]}"
+                do
+                    instrumented_bc=$OUTPUT/$filename/$cov/$opt/$filename'_instrumented.bc'
+                    instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
+                    echo 'Generating ' $filename'_instrumented'
+                    llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
+                    echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
+                    clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
+                    echo 'DONE: Generating ' $filename'_instrumented'
+                done
+            else
+                    instrumented_bc=$OUTPUT/$filename/$cov/$optimization/$filename'_instrumented.bc'
+                    instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
+                    echo 'Generating ' $filename'_instrumented'
+                    llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
+                    echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
+                    clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
+                    echo 'DONE: Generating ' $filename'_instrumented'
+            fi
+        done
+    done
+}
+
+run_instrumented_binaries() {
+    export LD_PRELOAD="$PWD/hook/build/libminm.so" 
+    cd $INTERCEPTS
+    for bc in $BITCODES
+    do
+        filename=${bc##*/}
+        filename=${filename::-3}
+        #echo "Libraries are: " $libraries
+        for cov in $annotation_coverage
+        do
+            if [ "$optimization" == "all" ]; then
+                for opt in "${optimizations[@]}"
+                do
+                    instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
+                    $instrumented_bin
+                    mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$opt
+                done
+            else
+                instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
+                $instrumented_bin
+                mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$optimization
+            fi
+        done
+    done
+    unset "$LD_PRELOAD"
+    cd -
+}
+
+if [ "$do_partition" == "true" ]; then
     echo 'Runing partitioning'
     run_partitioning
     echo 'Partitioning is done!'
 fi
+generate_instrumented_bitcodes_for_shadow_call_stack
 generate_instrumented_binaries_for_shadow_call_stack
+run_instrumented_binaries
+# TODO: create binaries and run them
 
 
