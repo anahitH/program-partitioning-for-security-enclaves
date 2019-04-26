@@ -178,6 +178,32 @@ generate_instrumented_bitcodes_for_shadow_call_stack() {
     echo 'DONE: Run generate_instrumented_bitcodes_for_shadow_call_stack'
 }
 
+generate_instrumented_binaries_for_shadow_call_stack_for_cov() {
+    filename=$1
+    libraries=$2
+    cov=$3
+    if [ "$optimization" == "all" ]; then
+        for opt in "${optimizations[@]}"
+         do
+             instrumented_bc=$OUTPUT/$filename/$cov/$opt/$filename'_instrumented.bc'
+             instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
+             echo 'Generating ' $filename'_instrumented'
+             llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
+             echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
+             clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
+             echo 'DONE: Generating ' $filename'_instrumented'
+          done
+    else
+        instrumented_bc=$OUTPUT/$filename/$cov/$optimization/$filename'_instrumented.bc'
+        instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
+        echo 'Generating ' $filename'_instrumented'
+        llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
+        echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
+        clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
+        echo 'DONE: Generating ' $filename'_instrumented'
+    fi
+}
+
 generate_instrumented_binaries_for_shadow_call_stack() {
     clang $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.cpp" -c -emit-llvm -o $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc"
     for bc in $BITCODES
@@ -188,28 +214,27 @@ generate_instrumented_binaries_for_shadow_call_stack() {
         #echo "Libraries are: " $libraries
         for cov in $annotation_coverage
         do
-            if [ "$optimization" == "all" ]; then
-                for opt in "${optimizations[@]}"
-                do
-                    instrumented_bc=$OUTPUT/$filename/$cov/$opt/$filename'_instrumented.bc'
-                    instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
-                    echo 'Generating ' $filename'_instrumented'
-                    llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
-                    echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
-                    clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
-                    echo 'DONE: Generating ' $filename'_instrumented'
-                done
-            else
-                    instrumented_bc=$OUTPUT/$filename/$cov/$optimization/$filename'_instrumented.bc'
-                    instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
-                    echo 'Generating ' $filename'_instrumented'
-                    llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
-                    echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
-                    clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
-                    echo 'DONE: Generating ' $filename'_instrumented'
-            fi
+            generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries $cov
         done
+        generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries 'manual'
     done
+}
+
+run_instrumented_binaries_for_cov() {
+    filename=$1
+    cov=$2
+    if [ "$optimization" == "all" ]; then
+        for opt in "${optimizations[@]}"
+        do
+            instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
+            $instrumented_bin
+            mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$opt
+        done
+    else
+        instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
+        $instrumented_bin
+        mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$optimization
+    fi
 }
 
 run_instrumented_binaries() {
@@ -222,19 +247,9 @@ run_instrumented_binaries() {
         #echo "Libraries are: " $libraries
         for cov in $annotation_coverage
         do
-            if [ "$optimization" == "all" ]; then
-                for opt in "${optimizations[@]}"
-                do
-                    instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
-                    $instrumented_bin
-                    mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$opt
-                done
-            else
-                instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
-                $instrumented_bin
-                mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$optimization
-            fi
+            run_instrumented_binaries_for_cov $filename $cov
         done
+        run_instrumented_binaries_for_cov $filename 'manual'
     done
     unset "$LD_PRELOAD"
     cd -

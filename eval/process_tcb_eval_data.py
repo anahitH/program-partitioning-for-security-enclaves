@@ -128,7 +128,7 @@ def visualize_data():
 def dump_data():
     coverage_file = "secure_tcb_eval.json"
     with open(coverage_file, 'a') as f :
-        json.dump(partition_tcb, f)
+        f.write(json.dumps(partition_tcb, indent=4))
 
 def parse_data_for_program_coverage_optimization(program, coverage, opt):
     stat_file = os.path.join(STAT_DIR, program, coverage, opt, STAT_FILE)

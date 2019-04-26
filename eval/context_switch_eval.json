@@ -1,0 +1,113 @@
+{
+    "tetris": {
+        "25": {
+            "static-analysis": 4300, 
+            "no-opt": 4300, 
+            "local": 4300, 
+            "ilp": 4300, 
+            "kl": 4300
+        }, 
+        "manual": {
+            "static-analysis": 4192, 
+            "no-opt": 4192, 
+            "local": 4192, 
+            "ilp": 4192, 
+            "kl": 4192
+        }, 
+        "50": {
+            "static-analysis": 4192, 
+            "no-opt": 4300, 
+            "local": 4192, 
+            "ilp": 4192, 
+            "kl": 4192
+        }, 
+        "35": {
+            "static-analysis": 4300, 
+            "no-opt": 4300, 
+            "local": 4300, 
+            "ilp": 4300, 
+            "kl": 4300
+        }, 
+        "10": {
+            "static-analysis": 4300, 
+            "no-opt": 4300, 
+            "local": 4300, 
+            "ilp": 4300, 
+            "kl": 4300
+        }
+    }, 
+    "2048_game": {
+        "25": {
+            "static-analysis": 46, 
+            "no-opt": 46, 
+            "local": 46, 
+            "ilp": 46, 
+            "kl": 46
+        }, 
+        "manual": {
+            "static-analysis": 46, 
+            "no-opt": 46, 
+            "local": 46, 
+            "ilp": 46, 
+            "kl": 46
+        }, 
+        "50": {
+            "static-analysis": 46, 
+            "no-opt": 46, 
+            "local": 46, 
+            "ilp": 46, 
+            "kl": 46
+        }, 
+        "35": {
+            "static-analysis": 46, 
+            "no-opt": 46, 
+            "local": 46, 
+            "ilp": 46, 
+            "kl": 46
+        }, 
+        "10": {
+            "static-analysis": 46, 
+            "no-opt": 46, 
+            "local": 46, 
+            "ilp": 46, 
+            "kl": 46
+        }
+    }, 
+    "snake": {
+        "25": {
+            "static-analysis": 4232, 
+            "no-opt": 4232, 
+            "local": 4232, 
+            "ilp": 4232, 
+            "kl": 4232
+        }, 
+        "manual": {
+            "static-analysis": 4232, 
+            "no-opt": 4232, 
+            "local": 4232, 
+            "ilp": 4232, 
+            "kl": 4232
+        }, 
+        "50": {
+            "static-analysis": 4232, 
+            "no-opt": 4232, 
+            "local": 4232, 
+            "ilp": 4232, 
+            "kl": 4232
+        }, 
+        "35": {
+            "static-analysis": 4232, 
+            "no-opt": 4232, 
+            "local": 4232, 
+            "ilp": 4232, 
+            "kl": 4232
+        }, 
+        "10": {
+            "static-analysis": 4232, 
+            "no-opt": 4232, 
+            "local": 4232, 
+            "ilp": 4232, 
+            "kl": 4232
+        }
+    }
+}
