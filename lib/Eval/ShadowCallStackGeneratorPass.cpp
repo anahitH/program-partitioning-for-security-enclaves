@@ -45,6 +45,7 @@ bool ShadowCallStackGeneratorPass::runOnModule(llvm::Module& M)
     m_addCalleeF = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction("addCallee", addCallerCalleeFTy));
 
     for (auto& F : M) {
+        //llvm::dbgs() << "Function: " << F.getName() << "\n";
         if (F.isIntrinsic()) {
             continue;
         }
