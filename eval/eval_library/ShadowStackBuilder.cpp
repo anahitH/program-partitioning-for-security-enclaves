@@ -53,7 +53,7 @@ public:
 public:
     void addCaller(const std::string& caller)
     {
-        assert(m_currentCaller.empty());
+        //assert(m_currentCaller.empty());
         m_currentCaller = caller;
     }
 

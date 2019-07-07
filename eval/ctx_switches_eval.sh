@@ -15,15 +15,15 @@ OUTPUT=$PWD/partition-out
 
 annotation_coverage="10 25 35 50"
 optimization=$1
-#optimizations=('no-opt' 'kl' 'ilp' 'local')
-optimizations=('no-opt' 'kl' 'local' 'static-analysis' 'ilp')
+optimizations=('no-opt' 'kl' 'ilp' 'local')
+#optimizations=('no-opt' 'search-based' 'ilp')
 do_partition=$2
 
 set_manual_annotation() {
     echo 'Setup manual annotations directory for ' $1
     bitcode=$1
     filename=$2
-    manual_annot_dir=$3/'manual'
+    manual_annot_dir=$3/'expert-knowledge'
     mkdir -p $manual_annot_dir
     cp $ANNOTATIONS/$filename'_annotations.json' $manual_annot_dir
     echo 'DONE Setup manual annotations directory for ' $1
@@ -105,8 +105,8 @@ run_partitioning_for_bitcode() {
         run_partitioning_for_coverage $cov $bitcode $annot_name $dir
         cd $current_dir
     done
-    cd $dir/'manual'
-    run_partitioning_for_coverage 'manual' $bitcode $filename'_annotations.json' $dir
+    cd $dir/'expert-knowledge'
+    run_partitioning_for_coverage 'expert-knowledge' $bitcode $filename'_annotations.json' $dir
     cd $current_dir
     echo 'DONE: Run partitioning for ' $1
 }
@@ -155,13 +155,14 @@ generate_instrumented_bitcodes_for_shadow_call_stack_for_bitcode() {
     dir=$3/
     echo 'opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $3/$opt/$filename"_instrumented.bc'
     opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-shadow-stack -o $filename'_instrumented.bc'
-    instrumented_bitcode=$filename'_instrumented.bc'
-    for cov in $annotation_coverage
-    do
-        cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage $cov $dir $instrumented_bitcode
-    done
-    cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage 'manual' $dir $instrumented_bitcode
-    rm $instrumented_bitcode
+    mv  $filename'_instrumented.bc' $dir
+    #instrumented_bitcode=$filename'_instrumented.bc'
+    #for cov in $annotation_coverage
+    #do
+    #    cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage $cov $dir $instrumented_bitcode
+    #done
+    #cp_instrumented_binaries_for_shadow_call_stack_for_bitcode_and_coverage 'expert-knowledge' $dir $instrumented_bitcode
+    #rm $instrumented_bitcode
     echo 'DONE: Run generate_instrumented_bitcodes_for_shadow_call_stack for bitcode ' $1
 }
 
@@ -211,12 +212,19 @@ generate_instrumented_binaries_for_shadow_call_stack() {
         filename=${bc##*/}
         filename=${filename::-3}
         libraries=$(<$LINK_LIBRARIES/$filename)
+        instrumented_bc=$OUTPUT/$filename/$filename'_instrumented.bc'
+        instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
+        echo 'Generating ' $filename'_instrumented'
+        llvm-link  $instrumented_bc $SHADOW_STACK_SRC_PATH/"ShadowStackBuilder.bc" -o $instrumented_bc
+        echo "clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries"
+        clang++ -std=c++0x -rdynamic -fPIC $instrumented_bc -o $instrumented_bin $libraries
+
         #echo "Libraries are: " $libraries
-        for cov in $annotation_coverage
-        do
-            generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries $cov
-        done
-        generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries 'manual'
+        #for cov in $annotation_coverage
+        #do
+        #    generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries $cov
+        #done
+        #generate_instrumented_binaries_for_shadow_call_stack_for_cov $filename $libraries 'expert-knowledge'
     done
 }
 
@@ -227,12 +235,20 @@ run_instrumented_binaries_for_cov() {
         for opt in "${optimizations[@]}"
         do
             instrumented_bin=$OUTPUT/$filename/$cov/$opt/$filename
-            $instrumented_bin
+            if [ "$filename" == "2048_game" ]; then
+                $instrumented_bin -p $INTERCEPTS/"intercept_2048_game" -seed 123
+            else
+                $instrumented_bin
+            fi
             mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$opt
         done
     else
         instrumented_bin=$OUTPUT/$filename/$cov/$optimization/$filename
-        $instrumented_bin
+        if [ "$filename" == "2048_game" ]; then
+            $instrumented_bin -p $INTERCEPTS/"intercept_2048_game" -seed 123
+        else
+            $instrumented_bin
+        fi
         mv "shadow_call_stack.txt" $OUTPUT/$filename/$cov/$optimization
     fi
 }
@@ -249,7 +265,7 @@ run_instrumented_binaries() {
         do
             run_instrumented_binaries_for_cov $filename $cov
         done
-        run_instrumented_binaries_for_cov $filename 'manual'
+        run_instrumented_binaries_for_cov $filename 'expert-knowledge'
     done
     unset "$LD_PRELOAD"
     cd -
@@ -262,7 +278,7 @@ if [ "$do_partition" == "true" ]; then
 fi
 generate_instrumented_bitcodes_for_shadow_call_stack
 generate_instrumented_binaries_for_shadow_call_stack
-run_instrumented_binaries
+#run_instrumented_binaries
 # TODO: create binaries and run them
 
 

@@ -365,6 +365,7 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
 {
     m_logger.info("Compute security sensitivity relation weights for nodes");
     WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
+    factor.setCoef(LOOP_COST);
     for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
         if (level == 0) {
             factor.setValue(1/LOOP_COST);
