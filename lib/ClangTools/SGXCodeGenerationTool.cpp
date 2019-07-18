@@ -7,7 +7,7 @@
 
 #include "Utils/Logger.h"
 #include "ClangTools/ClangToolUtils.h"
-#include "CodeGen/SGXCodeGenerator.h"
+#include "CodeGen/AsyloCodeGenerator.h"
 #include "CodeGen/CodeGenUtils.h"
 #include "CodeGen/Function.h"
 
@@ -148,7 +148,7 @@ int main(int argc, const char* argv[])
     } else {
         prefix = vazgen::Prefix.getValue();
     }
-    vazgen::SGXCodeGenerator codeGen(prefix, secureFunctions, insecureFunctions);
+    vazgen::AsyloCodeGenerator codeGen(prefix, secureFunctions, insecureFunctions);
     codeGen.generate();
     return 0;
 } 

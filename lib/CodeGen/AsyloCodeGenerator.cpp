@@ -1,4 +1,4 @@
-#include "CodeGen/SGXCodeGenerator.h"
+#include "CodeGen/AsyloCodeGenerator.h"
 #include "CodeGen/SourceFileWriter.h"
 
 #include <sstream>
@@ -85,16 +85,14 @@ std::string getPopStr(const Type& type, const std::string& varName, bool isStack
 
 }
 
-SGXCodeGenerator::SGXCodeGenerator(const std::string& programName,
+AsyloCodeGenerator::AsyloCodeGenerator(const std::string& programName,
                                    const Functions& secureFunctions,
                                    const Functions& appFunctions)
-    : m_prefix(programName)
-    , m_enclaveFunctions(secureFunctions)
-    , m_appFunctions(appFunctions)
+    : SGXCodeGenerator(programName, secureFunctions, appFunctions)
 {
 }
 
-void SGXCodeGenerator::generate()
+void AsyloCodeGenerator::generate()
 {
     // generate selectors
     generateInterfaceSelectors();
@@ -106,7 +104,7 @@ void SGXCodeGenerator::generate()
     writeGeneratedFiles();
 }
 
-void SGXCodeGenerator::generateInterfaceSelectors()
+void AsyloCodeGenerator::generateInterfaceSelectors()
 {
     const std::string kSelector = "kSelectorUser";
     int i = 1;
@@ -148,7 +146,7 @@ void SGXCodeGenerator::generateInterfaceSelectors()
     m_interfaceSelectorsFile.addSubscope(asyloNamespace);
 }
 
-void SGXCodeGenerator::generateEnclaveRunner()
+void AsyloCodeGenerator::generateEnclaveRunner()
 {
     m_enclaveFile.setName(m_prefix + "_enclave.cc");
     m_enclaveFile.setHeader(false);
@@ -181,7 +179,7 @@ void SGXCodeGenerator::generateEnclaveRunner()
     m_enclaveFile.addSubscope(asyloNamespace);
 }
 
-void SGXCodeGenerator::generateAppDriver()
+void AsyloCodeGenerator::generateAppDriver()
 {
     m_appDriverFile.setName(m_prefix + "_driver.cc");
     m_appDriverFile.setHeader(false);
@@ -226,7 +224,7 @@ void SGXCodeGenerator::generateAppDriver()
     m_appDriverFile.addSubscope(asyloNamespace);
 }
 
-void SGXCodeGenerator::generateEnclaveAbortFunction(SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateEnclaveAbortFunction(SourceScope::ScopeType& inScope)
 {
     Function enclaveAbortFunction("Abort");
     enclaveAbortFunction.setReturnType(Type{"PrimitiveStatus", "", false, false});
@@ -237,14 +235,14 @@ void SGXCodeGenerator::generateEnclaveAbortFunction(SourceScope::ScopeType& inSc
     inScope->addFunction(enclaveAbortFunction);
 }
 
-void SGXCodeGenerator::generateEnclaveEcalls(SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateEnclaveEcalls(SourceScope::ScopeType& inScope)
 {
     for (const auto& enclaveF : m_enclaveFunctions) {
         generateEnclaveEcall(enclaveF, inScope);
     }
 }
 
-std::vector<Function> SGXCodeGenerator::generateAppFunctionsInEnclave()
+std::vector<Function> AsyloCodeGenerator::generateAppFunctionsInEnclave()
 {
     std::vector<Function> appFunctionOcalls;
     for (const auto& appF : m_appFunctions) {
@@ -255,7 +253,7 @@ std::vector<Function> SGXCodeGenerator::generateAppFunctionsInEnclave()
     return appFunctionOcalls;
 }
 
-void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScope::ScopeType& inScope)
 {
     Function ecallF("secure_" + enclaveF.getName());
     ecallF.setReturnType(Type{"PrimitiveStatus"});
@@ -304,7 +302,7 @@ void SGXCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceScop
     inScope->addFunction(ecallF);
 }
 
-Function SGXCodeGenerator::generateAppFunctionWrapperInEnclave(const Function appF)
+Function AsyloCodeGenerator::generateAppFunctionWrapperInEnclave(const Function appF)
 {
     // this is the function that invokes untrusted call
     Function ocallWrapper(appF.getName());
@@ -332,7 +330,7 @@ Function SGXCodeGenerator::generateAppFunctionWrapperInEnclave(const Function ap
     return ocallWrapper;
 }
 
-void SGXCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper, const Function& appF)
+void AsyloCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper, const Function& appF)
 {
     // this is the function that will be envoked by enclave functions and will redirect the call to app
     Function ocallF = appF;
@@ -359,7 +357,7 @@ void SGXCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapper
     m_enclaveFile.addFunction(ocallF);
 }
 
-void SGXCodeGenerator::generateAsyloEnclaveInitFunction(SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateAsyloEnclaveInitFunction(SourceScope::ScopeType& inScope)
 {
     Function enclaveInitF("asylo_enclave_init");
     enclaveInitF.setIsExtern(true);
@@ -380,7 +378,7 @@ void SGXCodeGenerator::generateAsyloEnclaveInitFunction(SourceScope::ScopeType& 
     inScope->addFunction(enclaveInitF);
 }
 
-void SGXCodeGenerator::generateAsyloEnclaveFiniFunction(SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateAsyloEnclaveFiniFunction(SourceScope::ScopeType& inScope)
 {
     Function enclaveFiniF("asylo_enclave_fini");
     enclaveFiniF.setIsExtern(true);
@@ -390,7 +388,7 @@ void SGXCodeGenerator::generateAsyloEnclaveFiniFunction(SourceScope::ScopeType& 
     inScope->addFunction(enclaveFiniF);
 }
 
-void SGXCodeGenerator::generateAppDriverMain()
+void AsyloCodeGenerator::generateAppDriverMain()
 {
     Function mainF("main");
     mainF.setReturnType(Type{"int", "", false, false});
@@ -405,7 +403,7 @@ void SGXCodeGenerator::generateAppDriverMain()
     m_appDriverFile.addFunction(mainF);
 }
 
-void SGXCodeGenerator::generateOCallRegistration(SourceScope::ScopeType& inScope)
+void AsyloCodeGenerator::generateOCallRegistration(SourceScope::ScopeType& inScope)
 {
     Function OCallRegF("registerOCalls");
     OCallRegF.setReturnType(Type{"Status", "", false, false});
@@ -421,14 +419,14 @@ void SGXCodeGenerator::generateOCallRegistration(SourceScope::ScopeType& inScope
     inScope->addFunction(OCallRegF);
 }
 
-void SGXCodeGenerator::generateOCalls(SourceScope::ScopeType inScope)
+void AsyloCodeGenerator::generateOCalls(SourceScope::ScopeType inScope)
 {
     for (const auto& appF : m_appFunctions) {
         generateOCall(appF, inScope);
     }
 }
 
-void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeType inScope)
+void AsyloCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeType inScope)
 {
     Function ocallF("insecure_" + appF.getName());
     ocallF.setReturnType(Type{"Status"});
@@ -477,7 +475,7 @@ void SGXCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeTyp
     inScope->addFunction(ocallF);
 }
 
-std::vector<Function> SGXCodeGenerator::generateEnclaveFunctionsInDriver()
+std::vector<Function> AsyloCodeGenerator::generateEnclaveFunctionsInDriver()
 {
     std::vector<Function> ecallWrappers;
     for (const auto& enclaveF : m_enclaveFunctions) {
@@ -488,7 +486,7 @@ std::vector<Function> SGXCodeGenerator::generateEnclaveFunctionsInDriver()
     return ecallWrappers;
 }
 
-Function SGXCodeGenerator::generateEcallWrapper(const Function& enclaveF)
+Function AsyloCodeGenerator::generateEcallWrapper(const Function& enclaveF)
 {
     Function ecallWrapper(enclaveF.getName());
     ecallWrapper.setReturnType(Type{"Status", "", false, false});
@@ -515,7 +513,7 @@ Function SGXCodeGenerator::generateEcallWrapper(const Function& enclaveF)
     return ecallWrapper;
 }
 
-void SGXCodeGenerator::generateEnclaveFunctionInDriver(const Function& ecallWrapper, const Function& enclaveF)
+void AsyloCodeGenerator::generateEnclaveFunctionInDriver(const Function& ecallWrapper, const Function& enclaveF)
 {
     Function ecallF = enclaveF;
     // generateBody
@@ -538,7 +536,7 @@ void SGXCodeGenerator::generateEnclaveFunctionInDriver(const Function& ecallWrap
     m_appDriverFile.addFunction(ecallF);
 }
 
-void SGXCodeGenerator::writeGeneratedFiles()
+void AsyloCodeGenerator::writeGeneratedFiles()
 {
     SourceFileWriter selectorsFileWriter(m_interfaceSelectorsFile);
     selectorsFileWriter.write();

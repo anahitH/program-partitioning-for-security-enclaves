@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(program_partitioning VERSION 0.1.0 LANGUAGES CXX)
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
-find_package(LLVM 6.0 REQUIRED CONFIG)
+find_package(LLVM REQUIRED CONFIG)
 find_package (Threads)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_package(svf REQUIRED COMPONENTS Svf)
@@ -37,7 +37,7 @@ set(LLVM_LINK_COMPONENTS support)
 add_executable(sgx-code-gen
                 lib/ClangTools/SGXCodeGenerationTool.cpp
                 lib/ClangTools/ClangToolUtils.cpp
-                lib/CodeGen/SGXCodeGenerator.cpp
+                lib/CodeGen/AsyloCodeGenerator.cpp
                 lib/CodeGen/CodeGenUtils.cpp
                 lib/CodeGen/Class.cpp
                 lib/CodeGen/Function.cpp
@@ -112,7 +112,7 @@ add_library(program_partitioning MODULE
         lib/Optimization/DuplicateFunctionsOptimization.cpp
         lib/Optimization/KLOptimizer.cpp
         lib/Optimization/KLOptimizationPass.cpp
-        lib/Optimization/ILPOptimization.cpp
+	lib/Optimization/ILPOptimization.cpp
         lib/Transforms/PartitionExtractor.cpp
         lib/Transforms/ProtoGeneratorPass.cpp
         lib/CodeGen/FileWriter.cpp
@@ -125,11 +125,11 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/AnnotationsTest.cpp
         lib/Debug/ModuleAnnotationsTest.cpp
         lib/Debug/JsonAnnotationsTest.cpp
-        lib/Debug/DgPDGCompare.cpp
-        #lib/Debug/SVFGTraversal.cpp
+	lib/Debug/DgPDGCompare.cpp
+	#lib/Debug/SVFGTraversal.cpp
         lib/Debug/FunctionExtractor.cpp
         lib/Debug/OptimizationFactorsTable.cpp
-        lib/Debug/ILPOptimizationData.cpp
+	lib/Debug/ILPOptimizationData.cpp
         lib/Eval/AnnotationCreatorPass.cpp
 )
 
@@ -147,7 +147,7 @@ target_include_directories(program_partitioning PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
         ${pdg_INCLUDE_DIR}
-        ${CPLEX_CONCERT_INCLUDE}
+	${CPLEX_CONCERT_INCLUDE}
         ${CPLEX_INCLUDE}
         ${CP_INCLUDE}
 )
@@ -159,9 +159,9 @@ target_include_directories(debug-program_partitioning PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
-        ${DG_INCLUDE_DIR}
+	${DG_INCLUDE_DIR}
         ${pdg_INCLUDE_DIR}
-        ${CPLEX_CONCERT_INCLUDE}
+	${CPLEX_CONCERT_INCLUDE}
         ${CPLEX_INCLUDE}
         ${CP_INCLUDE}
 )
@@ -179,7 +179,7 @@ target_link_libraries(program_partitioning PRIVATE
                       Threads::Threads
                       svf::Svf
                       nlohmann_json::nlohmann_json
-                      ${CPLEX_CONCERT_LIB}
+		      ${CPLEX_CONCERT_LIB}
                       ${CP_LIB}
                       ${ILOCPLEX_LIB}
                       ${CPLEX_LIB}
