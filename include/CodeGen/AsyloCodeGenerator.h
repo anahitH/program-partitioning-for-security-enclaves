@@ -30,6 +30,8 @@ public:
     virtual void generate() final;
 
 private:
+    virtual void writeGeneratedFiles() override;
+
     void generateInterfaceSelectors();
     void generateEnclaveRunner();
     void generateAppDriver();
@@ -48,8 +50,6 @@ private:
     std::vector<Function> generateEnclaveFunctionsInDriver();
     Function generateEcallWrapper(const Function& enclaveF);
     void generateEnclaveFunctionInDriver(const Function& ecallWrapper, const Function& enclaveF);
-
-    void writeGeneratedFiles();
 
 private:
     std::unordered_map<std::string, FunctionSelector> m_ecallSelectors;

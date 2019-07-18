@@ -29,6 +29,9 @@ std::string Variable::getAsString() const
 std::string Function::getDeclarationAsString() const
 {
     std::stringstream declStr;
+    if (!m_accessModifier.empty()) {
+        declStr << m_accessModifier << " ";
+    }
     if (m_isStatic) {
         declStr << "static ";
     }

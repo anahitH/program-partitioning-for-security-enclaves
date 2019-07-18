@@ -29,6 +29,9 @@ public:
     virtual void generate() = 0;
 
 protected:
+    virtual void writeGeneratedFiles() = 0;
+
+protected:
     const std::string& m_prefix;
     const Functions& m_enclaveFunctions;
     const Functions& m_appFunctions;

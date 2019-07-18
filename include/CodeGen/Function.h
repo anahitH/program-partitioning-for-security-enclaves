@@ -75,6 +75,11 @@ public:
         return m_params;
     }
 
+    const std::string& getAccessModifier() const
+    {
+        return m_accessModifier;
+    }
+
     void setName(const std::string name)
     {
         m_name = name;
@@ -110,6 +115,11 @@ public:
         m_params.push_back(param);
     }
 
+    void setAccessModifier(const std::string accessModifier)
+    {
+        m_accessModifier = accessModifier;
+    }
+
     void setBody(const Body& body)
     {
         m_body = body;
@@ -132,6 +142,7 @@ private:
     std::string m_declPrefix;
     Type m_returnType;
     Params m_params;
+    std::string m_accessModifier;
     Body m_body;
 }; // class Funciton
 
