@@ -15,6 +15,7 @@ SourceFileWriter::SourceFileWriter(const SourceFile& sourceFile)
 
 void SourceFileWriter::write()
 {
+    std::cout << "Writing file " << m_sourceFile.getName() << "...\n";
     beginFile();
     writeSourceScope(m_sourceFile);
 }

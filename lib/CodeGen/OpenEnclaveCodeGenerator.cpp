@@ -52,12 +52,12 @@ std::string generateEcall(const Function& ecallF, const Variable returnVal)
         if (!ecallF.getReturnType().m_isPtr) {
             ecallStr << "&";
         }
-        ecallStr << returnVal.m_name << ",";
+        ecallStr << returnVal.m_name << ", ";
     }
     for (const auto& param : ecallF.getParams()) {
         ecallStr << param.m_name;
         if (param.m_name != ecallF.getParams().back().m_name) {
-            ecallStr << ",";
+            ecallStr << ", ";
         }
     }
     ecallStr << ");";
@@ -75,16 +75,18 @@ Function generateEcallWrapper(const Function& ecallF)
     if (!ecallF.isVoidReturn()) {
         returnVal.m_type = ecallF.getReturnType();
         returnVal.m_name = "return_val";
+        wrapperBody << returnVal.getAsString() << ";\n";
     }
     // TODO: handle pointer type for return value
-    wrapperBody << returnVal.getAsString();
-    wrapperBody << generateEcall(ecallF, returnVal);
-    wrapperBody << "if (oe_result != OE_OK) {";
-    wrapperBody << "fprintf(stderr, \"Failed to invoke ecall\"" << ecallF.getName() << "\");";
-    wrapperBody << "terminate_enclave()";
-    wrapperBody << "exit(1)";
-    wrapperBody << "}";
-    wrapperBody << "return " << returnVal.m_name << ";";
+    wrapperBody << generateEcall(ecallF, returnVal) << "\n";
+    wrapperBody << "if (oe_result != OE_OK) {\n";
+    wrapperBody << "fprintf(stderr, \"Failed to invoke ecall " << ecallF.getName() << "\");\n";
+    wrapperBody << "terminate_enclave();\n";
+    wrapperBody << "exit(1);\n";
+    wrapperBody << "}\n";
+    if (!ecallF.isVoidReturn()) {
+        wrapperBody << "return " << returnVal.m_name;
+    }
     wrapperF.addBody(wrapperBody.str());
     return wrapperF;
 }
@@ -112,6 +114,8 @@ void OpenEnclaveCodeGenerator::generate()
 
     // generate app wrapper
     generateAppDriverFile();
+
+    writeGeneratedFiles();
 }
 
 void OpenEnclaveCodeGenerator::writeGeneratedFiles()
@@ -143,6 +147,7 @@ void OpenEnclaveCodeGenerator::generateEnclaveDefinitionFile()
     }
     enclaceScope->addSubscope(trustedScope);
     enclaceScope->addSubscope(untrustedScope);
+    m_edlFile.addSubscope(enclaceScope);
 }
 
 void OpenEnclaveCodeGenerator::generateEnclaveFile()

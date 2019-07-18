@@ -7,7 +7,9 @@
 
 #include "Utils/Logger.h"
 #include "ClangTools/ClangToolUtils.h"
+#include "CodeGen/SGXCodeGenerator.h"
 #include "CodeGen/AsyloCodeGenerator.h"
+#include "CodeGen/OpenEnclaveCodeGenerator.h"
 #include "CodeGen/CodeGenUtils.h"
 #include "CodeGen/Function.h"
 
@@ -33,6 +35,9 @@ static llvm::cl::opt<std::string> FunctionStats("partition-stats",
                                                 llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
 static llvm::cl::opt<std::string> Prefix("prefix",
                                          llvm::cl::desc("Prefix to use when generating SGX files"),
+                                         llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
+static llvm::cl::opt<std::string> Framework("framework",
+                                         llvm::cl::desc("Framework to use for generating SGX files"),
                                          llvm::cl::ZeroOrMore, llvm::cl::cat(SGXCodeGenTool));
 
 class FunctionFinder : public MatchFinder::MatchCallback
@@ -148,7 +153,12 @@ int main(int argc, const char* argv[])
     } else {
         prefix = vazgen::Prefix.getValue();
     }
-    vazgen::AsyloCodeGenerator codeGen(prefix, secureFunctions, insecureFunctions);
-    codeGen.generate();
+    vazgen::SGXCodeGenerator* codeGen;
+    if (vazgen::Framework.getValue() == "open-enclave") {
+        codeGen = new vazgen::OpenEnclaveCodeGenerator(prefix, secureFunctions, insecureFunctions);
+    } else {
+        codeGen = new vazgen::AsyloCodeGenerator(prefix, secureFunctions, insecureFunctions);
+    }
+    codeGen->generate();
     return 0;
 } 
