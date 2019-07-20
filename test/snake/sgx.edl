@@ -1,0 +1,23 @@
+
+namespace enclave {
+
+namespace trusted {
+
+public void setup_level_protected([in, out] screen_t* screen, [in, out] snake_t* snake, int level);
+public void move_protected([in, out] snake_t* snake, [in, out] char[] keys, char key);
+public int collide_object_protected([in, out] snake_t* snake, [in, out] screen_t* screen, char object);
+public int collision_protected([in, out] snake_t* snake, [in, out] screen_t* screen);
+public int eat_gold_protected([in, out] snake_t* snake, [in, out] screen_t* screen);
+} // namespace trusted
+namespace untrusted {
+
+public int printf_app([in, out] char* );
+public int printf_app([in, out] char* __format);
+public int puts_app([in, out] char* __s);
+public int rand_app();
+public void srand_app(unsigned int __seed);
+public long time_app([in, out] long* __timer);
+public void show_score_app([in, out] screen_t* screen);
+public void draw_line_app(int col, int row);
+} // namespace untrusted
+} // namespace enclave
