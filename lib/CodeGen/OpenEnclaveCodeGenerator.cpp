@@ -203,7 +203,9 @@ void OpenEnclaveCodeGenerator::generateEnclaveDefinitionFile()
         trustedScope->addFunction(generateFunctionForEdl(secureF, true));
     }
     for (const auto& appF : m_appFunctions) {
-        untrustedScope->addFunction(generateFunctionForEdl(appF, false));
+        if (!OpenEnclaveSupportedLibFunctions::get().supportsFunction(appF.getName())) {
+            untrustedScope->addFunction(generateFunctionForEdl(appF, false));
+        }
     }
     enclaceScope->addSubscope(trustedScope);
     enclaceScope->addSubscope(untrustedScope);
