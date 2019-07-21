@@ -1,4 +1,5 @@
 #include "CodeGen/OpenEnclaveCodeGenerator.h"
+#include "CodeGen/OpenEnclaveSupportedLibFunctions.h"
 #include "CodeGen/SourceFileWriter.h"
 
 #include <sstream>
@@ -217,7 +218,9 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
     m_enclaveFile.addInclude("\"sgx_t.h\"");
 
     for (const auto& appF : m_appFunctions) {
-        m_enclaveFile.addFunction(generateOcallWrapper(appF));
+        if (!OpenEnclaveSupportedLibFunctions::get().supportsFunction(appF.getName())) {
+            m_enclaveFile.addFunction(generateOcallWrapper(appF));
+        }
     }
 
 }

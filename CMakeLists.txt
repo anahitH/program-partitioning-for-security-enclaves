@@ -39,6 +39,7 @@ add_executable(sgx-code-gen
                 lib/ClangTools/ClangToolUtils.cpp
                 lib/CodeGen/AsyloCodeGenerator.cpp
                 lib/CodeGen/OpenEnclaveCodeGenerator.cpp
+                lib/CodeGen/OpenEnclaveSupportedLibFunctions.cpp
                 lib/CodeGen/CodeGenUtils.cpp
                 lib/CodeGen/Class.cpp
                 lib/CodeGen/Function.cpp
