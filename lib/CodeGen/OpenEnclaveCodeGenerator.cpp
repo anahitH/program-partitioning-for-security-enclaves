@@ -36,7 +36,7 @@ Function generateFunctionForEdl(const Function& function, bool is_protected)
     enclaveF.setAccessModifier("public");
     for (const auto& param : function.getParams()) {
 	std::string qualifier = getEdlParamQualifier(param.m_type);
-        Type enclaveParamTy{param.m_type.m_name, qualifier, param.m_type.m_isPtr, param.m_type.m_isArray};
+        Type enclaveParamTy{param.m_type.m_name, qualifier, param.m_type.m_isPtr || param.m_type.m_isArray, false};
         enclaveF.addParam({enclaveParamTy, param.m_name});
     }
     return enclaveF;
@@ -57,7 +57,7 @@ Function generateMain()
 std::string generateOcall(const Function& appF, const Variable returnVal)
 {
     std::stringstream ocallStr;
-    ocallStr << "oe_result_t oe_result = " << appF.getName() << "(";
+    ocallStr << "oe_result_t oe_result = " << appF.getName() << "_app(";
     if (!appF.isVoidReturn()) {
         if (!appF.getReturnType().m_isPtr) {
             ocallStr << "&";
@@ -77,7 +77,7 @@ std::string generateOcall(const Function& appF, const Variable returnVal)
 std::string generateEcall(const Function& ecallF, const Variable returnVal)
 {
     std::stringstream ecallStr;
-    ecallStr << "oe_result_t oe_result = " << ecallF.getName();
+    ecallStr << "oe_result_t oe_result = " << ecallF.getName() << "_protected";
     ecallStr << "(enclave, ";
     if (!ecallF.isVoidReturn()) {
         if (!ecallF.getReturnType().m_isPtr) {
@@ -86,6 +86,7 @@ std::string generateEcall(const Function& ecallF, const Variable returnVal)
         ecallStr << returnVal.m_name << ", ";
     }
     for (const auto& param : ecallF.getParams()) {
+        // TODO: check if need to handle array params
         ecallStr << param.m_name;
         if (param.m_name != ecallF.getParams().back().m_name) {
             ecallStr << ", ";

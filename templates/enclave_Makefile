@@ -24,7 +24,7 @@ all:
 
 build:
 	@ echo "Compilers used: $(CC), $(CXX)"
-	oeedger8r ../snake.edl --trusted
+	oeedger8r ../<EDL>.edl --trusted
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 <PROGRAM>_enclave.c -o <PROGRAM>_enclave.o
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 <EDL>_t.c -o <EDL>_t.o
 	$(CC) -o <PROGRAM>enc <EDL>_t.o <ENCLAVE_LIB>.o <PROGRAM>_enclave.o $(LDFLAGS)

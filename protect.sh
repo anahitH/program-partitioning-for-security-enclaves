@@ -23,7 +23,7 @@ optimization=$6
 
 enclave_bc="enclave_lib.bc"
 app_bc="app_lib.bc"
-enclave_lib="ecnalve_lib.o"
+enclave_lib="enclave_lib.o"
 app_lib="app_lib.o"
 
 compile_source() {
@@ -76,9 +76,9 @@ generate_framework_code() {
 compile_partitions_to_object() {
     echo "Compile partitioned libraries to object files"
     llc $enclave_bc -o enclave_lib.s
-    g++ -std=c++0x -c enclave_lib.s -o $enclave_lib
+    g++ -std=c++0x -fPIC -c enclave_lib.s -o $enclave_lib
     llc $app_bc -o app_lib.s
-    g++ -std=c++0x -c app_lib.s -o $app_lib
+    g++ -std=c++0x  -fPIC -c app_lib.s -o $app_lib
 }
 
 generate_asylo_code() {
@@ -92,8 +92,10 @@ generate_asylo_code() {
 }
 
 generate_open_enclave_code() {
+    program_name=${program%.*}
+    echo $program_name
     echo "python $BUILDFILE_GEN_SCRIPTS/generateOpenEnclaveMakefiles.py -makefile=$TEMPLATE_FILES/Makefile -enclave-makefile=$TEMPLATE_FILES/enclave_Makefile -host-makefile=$TEMPLATE_FILES/host_Makefile -program=$program -enclave_lib=$enclave_lib -unprotected_lib=$app_lib -edl=sgx.edl"
-    python $BUILDFILE_GEN_SCRIPTS/generateOpenEnclaveMakefiles.py -makefile=$TEMPLATE_FILES/Makefile -enclave-makefile=$TEMPLATE_FILES/enclave_Makefile -host-makefile=$TEMPLATE_FILES/host_Makefile -program=$program -enclave_lib=$enclave_lib -unprotected_lib=$app_lib -edl=sgx.edl
+    python $BUILDFILE_GEN_SCRIPTS/generateOpenEnclaveMakefiles.py -makefile=$TEMPLATE_FILES/Makefile -enclave-makefile=$TEMPLATE_FILES/enclave_Makefile -host-makefile=$TEMPLATE_FILES/host_Makefile -program=$program_name -enclave_lib=${enclave_lib%.*} -unprotected_lib=${app_lib%.*} -edl=sgx
     mkdir enclave
     mkdir host
     mv $TEMPLATE_FILES/enclave_Makefile_patched enclave/Makefile
