@@ -61,9 +61,17 @@ void SourceFileWriter::writeSourceScope(const SourceScope& scope)
     writeGlobals(scope.getGlobalVariables());
 
     for (const auto& subScope : scope.getSubScopes()) {
-        m_writer.write("namespace " + subScope->getName() + " {\n");
+        if (subScope->isNamespace()) {
+            m_writer.write("namespace " + subScope->getName() + " {\n");
+        } else {
+            m_writer.write(subScope->getName() + " {\n");
+        }
         writeSourceScope(*subScope);
-        m_writer.write("} // namespace " + subScope->getName());
+        if (subScope->isNamespace()) {
+            m_writer.write("} // namespace " + subScope->getName());
+        } else {
+            m_writer.write("}; // " + subScope->getName());
+        }
     }
 }
 

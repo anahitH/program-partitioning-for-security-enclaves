@@ -20,7 +20,7 @@ LDFLAGS=$(shell pkg-config oehost-$(COMPILER) --libs)
 build:
 	@ echo "Compilers used: $(CC), $(CXX)"
 	oeedger8r ../<EDL>.edl --untrusted
-	$(CC) -g -c $(CFLAGS) <PROGRAM>.c
+	$(CC) -g -c $(CFLAGS) <PROGRAM>_app.cc
 	$(CC) -g -c $(CFLAGS) <EDL>_u.c
 	$(CC) -o <PROGRAM>host <EDL>_u.o <UNPROTECTED_LIB>.o <PROGRAM>.o $(LDFLAGS)
 

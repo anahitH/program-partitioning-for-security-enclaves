@@ -33,7 +33,9 @@ Function generateFunctionForEdl(const Function& function, bool is_protected)
     Function enclaveF(name);
     enclaveF.setReturnType(function.getReturnType());
     // TODO: think about having enum for access modifiers
-    enclaveF.setAccessModifier("public");
+    if (is_protected) {
+        enclaveF.setAccessModifier("public");
+    }
     for (const auto& param : function.getParams()) {
 	std::string qualifier = getEdlParamQualifier(param.m_type);
         Type enclaveParamTy{param.m_type.m_name, qualifier, param.m_type.m_isPtr || param.m_type.m_isArray, false};
@@ -219,6 +221,7 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
     m_enclaveFile.setHeader(false);
     m_enclaveFile.addInclude("<openenclave/enclave.h>");
     m_enclaveFile.addInclude("\"sgx_t.h\"");
+    m_enclaveFile.addInclude("<stdio.h>");
 
     for (const auto& appF : m_appFunctions) {
         if (!OpenEnclaveSupportedLibFunctions::get().supportsFunction(appF.getName())) {
@@ -235,6 +238,7 @@ void OpenEnclaveCodeGenerator::generateAppDriverFile()
     m_appDriverFile.addInclude("\"sgx_u.h\"");
     // app_util.h has enclave creation and termination code
     m_appDriverFile.addInclude("\"app_utils.h\"");
+    m_enclaveFile.addInclude("<stdio.h>");
 
     // TODO: add extern
     m_enclaveFile.addGlobalVariable(std::make_pair(Variable{Type{"oe_enclave_t", "", true, false}, "enclave"}, "NULL"));

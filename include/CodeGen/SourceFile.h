@@ -14,8 +14,9 @@ public:
 
 public:
     SourceScope() = default;
-    SourceScope(std::string name)
+    SourceScope(std::string name, bool isNamespace = true)
         : m_name(name)
+        , m_isNamespace(isNamespace)
     {
     }
 
@@ -23,6 +24,11 @@ public:
     const std::string& getName() const
     {
         return m_name;
+    }
+
+    const bool isNamespace() const
+    {
+        return m_isNamespace;
     }
     
     const std::vector<ScopeType>& getSubScopes() const
@@ -93,6 +99,7 @@ public:
 
 protected:
     std::string m_name;
+    bool m_isNamespace;
     std::vector<ScopeType> m_subScopes;
     std::vector<Class> m_classes;
     std::vector<Function> m_functions;
