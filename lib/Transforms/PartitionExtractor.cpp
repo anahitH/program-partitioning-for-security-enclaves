@@ -227,7 +227,9 @@ bool PartitionExtractor::extract()
         return modified;
     }
     for (const auto& global : m_partition.getGlobals()) {
-        global->setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+        if (!global->hasExternalLinkage()) {
+            global->setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+        }
         function_names.insert(global->getName());
     }
     createModule(function_names);
