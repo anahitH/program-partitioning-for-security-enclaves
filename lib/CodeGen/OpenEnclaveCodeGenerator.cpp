@@ -99,6 +99,13 @@ std::string generateEcall(const Function& ecallF, const Variable returnVal)
     return ecallStr.str();
 }
 
+Function generateExternForFunction(const Function& enclaveF)
+{
+    Function externF = enclaveF;
+    externF.setIsExtern(true);
+    return enclaveF;
+}
+
 Function generateCallWrapper(const Function& F, bool is_ecall)
 {
     std::string name = F.getName();
@@ -116,7 +123,14 @@ Function generateCallWrapper(const Function& F, bool is_ecall)
     std::transform(F.getParams().begin(), F.getParams().end(), std::back_inserter(paramNames),
             [] (const Variable& var) { return var.m_name; });
 
-    wrapperF.addBody(F.getCallAsString(paramNames));
+    std::string Fcall = F.getCallAsString(paramNames);
+    std::string body;
+    if (!F.isVoidReturn()) {
+        body = "return " + Fcall;
+    } else {
+        body = Fcall;
+    }
+    wrapperF.addBody(body);
     return wrapperF;
 }
 
@@ -254,6 +268,7 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
 
     for (const auto& enclaveF : m_enclaveFunctions) {
 	m_enclaveFile.addFunction(generateCallWrapper(enclaveF, true));
+        m_enclaveFile.addFunction(generateExternForFunction(enclaveF));
     }
 
 }
@@ -282,6 +297,7 @@ void OpenEnclaveCodeGenerator::generateAppDriverFile()
 
     for (const auto& appF : m_appFunctions) {
 	m_appDriverFile.addFunction(generateCallWrapper(appF, false));
+        m_enclaveFile.addFunction(generateExternForFunction(appF));
     }
 }
 

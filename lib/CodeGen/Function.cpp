@@ -15,15 +15,19 @@ std::string Type::getAsString() const
     if (m_isPtr) {
         typeStr << "*";
     }
-    if (m_isArray) {
-        typeStr << "[]";
-    }
+//    if (m_isArray) {
+//        typeStr << "[]";
+//    }
     return typeStr.str();
 }
 
 std::string Variable::getAsString() const
 {
-    return m_type.getAsString() + " " + m_name;
+    std::string asStr = m_type.getAsString() + " " + m_name;
+    if (m_type.m_isArray) {
+        asStr += "[]";
+    }
+    return asStr;
 }
 
 std::string Function::getDeclarationAsString() const

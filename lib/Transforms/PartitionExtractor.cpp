@@ -227,10 +227,6 @@ bool PartitionExtractor::extract()
         return modified;
     }
     for (const auto& global : m_partition.getGlobals()) {
-        if (!global->hasExternalLinkage()) {
-            llvm::dbgs() << *global << "\n";
-            global->setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
-        }
         function_names.insert(global->getName());
     }
     createModule(function_names);
@@ -280,6 +276,14 @@ void PartitionExtractor::createModule(const std::unordered_set<std::string>& fun
             new_F->eraseFromParent();
         }
     }
+    for (auto glob_it = m_slicedModule->global_begin(); glob_it != m_slicedModule->global_end(); ++glob_it) {
+        auto* global = &*glob_it;
+        if (!global->hasPrivateLinkage() && !global->hasGlobalUnnamedAddr() && global->hasInitializer()) {
+            llvm::dbgs() << *global << " has linkage " << global->getLinkage() << "\n";
+            global->setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+        }
+    }
+
 }
 
 char PartitionExtractorPass::ID = 0;
@@ -345,9 +349,10 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
     bool modified = m_extractor->extract();
     if (modified) {
         logger.info("Extraction done\n");
-        if (enclave) {
-            renameInsecureCalls("insecure_", m_extractor->getSlicedModule().get(), programPartition.getInsecurePartition());
-        }
+        // TODO: this is redundant (and leads to errors) for OpenEnclave framework
+        //if (enclave) {
+        //    renameInsecureCalls("insecure_", m_extractor->getSlicedModule().get(), programPartition.getInsecurePartition());
+        //}
         Utils::saveModule(m_extractor->getSlicedModule().get(), sliceName);
     } else {
         logger.info("No extraction\n");
