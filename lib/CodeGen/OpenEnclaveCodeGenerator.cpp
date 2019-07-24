@@ -3,6 +3,7 @@
 #include "CodeGen/SourceFileWriter.h"
 
 #include <sstream>
+#include <algorithm>
 
 namespace vazgen {
 
@@ -97,6 +98,28 @@ std::string generateEcall(const Function& ecallF, const Variable returnVal)
     ecallStr << ");";
     return ecallStr.str();
 }
+
+Function generateCallWrapper(const Function& F, bool is_ecall)
+{
+    std::string name = F.getName();
+    if (is_ecall) {
+        name += "_protected";
+    } else {
+        name += "_app";
+    }
+
+    Function wrapperF(name);
+    wrapperF.setReturnType(F.getReturnType());
+    wrapperF.setParams(F.getParams());
+    std::vector<std::string> paramNames;
+    paramNames.reserve(F.getParams().size());
+    std::transform(F.getParams().begin(), F.getParams().end(), std::back_inserter(paramNames),
+            [] (const Variable& var) { return var.m_name; });
+
+    wrapperF.addBody(F.getCallAsString(paramNames));
+    return wrapperF;
+}
+
 
 Function generateEcallWrapper(const Function& ecallF)
 {
@@ -198,9 +221,9 @@ void OpenEnclaveCodeGenerator::generateEnclaveDefinitionFile()
     m_edlFile.setName("sgx.edl");
     m_edlFile.setHeader(true);
 
-    SourceScope::ScopeType enclaceScope(new SourceScope("enclave"));
-    SourceScope::ScopeType trustedScope(new SourceScope("trusted"));
-    SourceScope::ScopeType untrustedScope(new SourceScope("untrusted"));
+    SourceScope::ScopeType enclaceScope(new SourceScope("enclave", false));
+    SourceScope::ScopeType trustedScope(new SourceScope("trusted", false));
+    SourceScope::ScopeType untrustedScope(new SourceScope("untrusted", false));
 
     for (const auto& secureF : m_enclaveFunctions) {
         trustedScope->addFunction(generateFunctionForEdl(secureF, true));
@@ -229,6 +252,10 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
         }
     }
 
+    for (const auto& enclaveF : m_enclaveFunctions) {
+	m_enclaveFile.addFunction(generateCallWrapper(enclaveF, true));
+    }
+
 }
 
 void OpenEnclaveCodeGenerator::generateAppDriverFile()
@@ -251,6 +278,10 @@ void OpenEnclaveCodeGenerator::generateAppDriverFile()
     m_appDriverFile.addFunction(generateMain());
     for (const auto& secureF : m_enclaveFunctions) {
         m_appDriverFile.addFunction(generateEcallWrapper(secureF));
+    }
+
+    for (const auto& appF : m_appFunctions) {
+	m_appDriverFile.addFunction(generateCallWrapper(appF, false));
     }
 }
 
