@@ -69,6 +69,16 @@ void Partition::addRelatedFunction(llvm::Function* F, int level)
     m_relatedFunctions.insert(std::make_pair(F, level));
 }
 
+void Partition::addToInInterface(llvm::Function* F)
+{
+    m_inInterface.insert(F);
+}
+
+void Partition::addToOutInterface(llvm::Function* F)
+{
+    m_outInterface.insert(F);
+}
+
 void Partition::removeFromPartition(llvm::Function* F)
 {
     m_partition.erase(F);

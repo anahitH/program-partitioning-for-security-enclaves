@@ -97,17 +97,17 @@ std::string Function::getDefinitionAsString(const std::string& className) const
     return defStr.str();
 }
 
-std::string Function::getCallAsString(const std::vector<std::string>& arguments) const
+std::string Function::getCallAsString(const std::vector<Variable>& arguments) const
 {
     std::stringstream callStr;
     callStr << m_name << "(";
     int i = 0;
-    for (const std::string& arg : arguments) {
-        if (m_params[i++].m_type.m_isPtr) {
+    for (const Variable& arg : arguments) {
+        if (m_params[i++].m_type.m_isPtr && !arg.m_type.m_isPtr && !arg.m_type.m_isArray) {
             callStr << "&";
         }
-        callStr << arg;
-        if (arg != arguments.back()) {
+        callStr << arg.m_name;
+        if (i != arguments.size()) {
             callStr << ", ";
         }
     }

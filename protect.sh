@@ -75,10 +75,12 @@ generate_framework_code() {
 
 compile_partitions_to_object() {
     echo "Compile partitioned libraries to object files"
-    llc $enclave_bc -o enclave_lib.s
-    g++ -std=c++0x -fPIC -c enclave_lib.s -o $enclave_lib
-    llc $app_bc -o app_lib.s
-    g++ -std=c++0x  -fPIC -c app_lib.s -o $app_lib
+    #llc $enclave_bc -o enclave_lib.s
+    #g++ -std=c++0x -fPIC -c enclave_lib.s -o $enclave_lib
+    clang -fPIC -c enclave_lib.bc -o $enclave_lib
+    #llc $app_bc -o app_lib.s
+    #g++ -std=c++0x  -fPIC -c app_lib.s -o $app_lib
+    clang -fPIC -c app_lib.bc -o $app_lib
 }
 
 generate_asylo_code() {

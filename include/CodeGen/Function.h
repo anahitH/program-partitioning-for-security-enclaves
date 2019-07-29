@@ -133,7 +133,7 @@ public:
     std::string getDeclarationAsString() const;
     std::string getDefinitionAsString() const;
     std::string getDefinitionAsString(const std::string& className) const;
-    std::string getCallAsString(const std::vector<std::string>& arguments) const;
+    std::string getCallAsString(const std::vector<Variable>& arguments) const;
 
 private:
     std::string m_name;

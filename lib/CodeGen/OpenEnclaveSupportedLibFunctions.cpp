@@ -11,6 +11,7 @@ void fill(std::unordered_set<std::string>& functions)
     functions.insert("time");
     functions.insert("rand");
     functions.insert("srand");
+    functions.insert("puts");
     // TODO: fill
     // TODO: thread functions?
 }

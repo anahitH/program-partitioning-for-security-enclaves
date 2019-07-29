@@ -34,6 +34,8 @@ public:
     void addToPartition(const FunctionSet& functions);
     void addToPartition(const Partition& partition);
     void addRelatedFunction(llvm::Function* F, int level);
+    void addToInInterface(llvm::Function* F);
+    void addToOutInterface(llvm::Function* F);
 
     void removeFromPartition(llvm::Function* F);
     void removeRelatedFunction(llvm::Function* F);

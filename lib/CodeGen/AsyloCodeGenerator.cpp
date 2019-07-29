@@ -262,7 +262,7 @@ void AsyloCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceSc
 
     // body
     // parsing passed arguments, assuming they where pushed in the call order, then pop in the reverse order
-    std::vector<std::string> call_params(enclaveF.getParams().size());
+    std::vector<Variable> call_params(enclaveF.getParams().size());
     std::string returnVal;
     if (!enclaveF.isVoidReturn()) {
         returnVal = "returnVal";
@@ -271,7 +271,7 @@ void AsyloCodeGenerator::generateEnclaveEcall(const Function& enclaveF, SourceSc
     int i = enclaveF.getParams().size();
     for (auto r_it = enclaveF.getParams().rbegin(); r_it != enclaveF.getParams().rend(); ++r_it) {
         std::string paramName = r_it->m_name + "_param";
-        call_params[--i] = paramName;
+        call_params[--i] = Variable{r_it->m_type, paramName};
         ecallF.addBody(getPopStr(r_it->m_type, paramName, true, true));
     }
     // insertin call to the actual function
@@ -337,17 +337,11 @@ void AsyloCodeGenerator::generateAppFunctionInEnclave(const Function& ocallWrapp
     ocallF.setName("insecure_" + appF.getName());
     // generateBody
     std::string returnVal = "returnVal";
-    std::vector<std::string> callParams;
-    for (const auto& param : appF.getParams()) {
-        if (param.m_type.m_isPtr) {
-            callParams.push_back("*" + param.m_name);
-        } else {
-            callParams.push_back(param.m_name);
-        }
-    }
+    std::vector<Variable> callParams;
+    callParams.insert(callParams.begin(), appF.getParams().begin(), appF.getParams().end());
     if (!appF.isVoidReturn()) {
         ocallF.addBody(appF.getReturnType().getAsString() + " " + returnVal);
-        callParams.push_back(returnVal);
+        callParams.push_back(Variable{appF.getReturnType(), returnVal});
     }
     const std::string& callStr = ocallWrapper.getCallAsString(callParams);
     ocallF.addBody("asylo::primitives::" + callStr);
@@ -436,7 +430,7 @@ void AsyloCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeT
 
     // body
     // parsing passed arguments, assuming they where pushed in the call order, then pop in the reverse order
-    std::vector<std::string> call_params(appF.getParams().size());
+    std::vector<Variable> call_params(appF.getParams().size());
     std::string returnVal;
     if (!appF.isVoidReturn()) {
         returnVal = "returnVal";
@@ -445,7 +439,7 @@ void AsyloCodeGenerator::generateOCall(const Function& appF, SourceScope::ScopeT
     int i = appF.getParams().size();
     for (auto r_it = appF.getParams().rbegin(); r_it != appF.getParams().rend(); ++r_it) {
         std::string paramName = r_it->m_name + "_param";
-        call_params[--i] = paramName;
+        call_params[--i] = Variable{r_it->m_type, paramName};
         ocallF.addBody(getPopStr(r_it->m_type, paramName, true, true));
     }
     // insertin call to the actual function
@@ -518,17 +512,11 @@ void AsyloCodeGenerator::generateEnclaveFunctionInDriver(const Function& ecallWr
     Function ecallF = enclaveF;
     // generateBody
     std::string returnVal = "returnVal";
-    std::vector<std::string> callParams;
-    for (const auto& param : enclaveF.getParams()) {
-        if (param.m_type.m_isPtr) {
-            callParams.push_back("*" + param.m_name);
-        } else {
-            callParams.push_back(param.m_name);
-        }
-    }
+    std::vector<Variable> callParams;
+    callParams.insert(callParams.begin(), enclaveF.getParams().begin(), enclaveF.getParams().end());
     if (!enclaveF.isVoidReturn()) {
         ecallF.addBody(enclaveF.getReturnType().getAsString() + " " + returnVal);
-        callParams.push_back(returnVal);
+        callParams.push_back(Variable{enclaveF.getReturnType(), returnVal});
     }
     const std::string& callStr = ecallWrapper.getCallAsString(callParams);
     ecallF.addBody("asylo::primitives::" + callStr);

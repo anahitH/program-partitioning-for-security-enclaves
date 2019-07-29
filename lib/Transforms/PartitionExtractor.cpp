@@ -344,6 +344,7 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
     }
     for (const auto& globalSetter : globalSetters) {
         partition->addToPartition(globalSetter);
+        partition->addToInInterface(globalSetter);
     }
     m_extractor.reset(new PartitionExtractor(&M, *partition, globalSetters, logger));
     bool modified = m_extractor->extract();
@@ -353,6 +354,11 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
         //if (enclave) {
         //    renameInsecureCalls("insecure_", m_extractor->getSlicedModule().get(), programPartition.getInsecurePartition());
         //}
+        if (!enclave) {
+            if (llvm::Function* mainF = m_extractor->getSlicedModule()->getFunction("main")) {
+                mainF->setName("app_main");
+            }
+        }
         Utils::saveModule(m_extractor->getSlicedModule().get(), sliceName);
     } else {
         logger.info("No extraction\n");

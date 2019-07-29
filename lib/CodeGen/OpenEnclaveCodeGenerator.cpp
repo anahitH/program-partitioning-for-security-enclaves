@@ -3,7 +3,6 @@
 #include "CodeGen/SourceFileWriter.h"
 
 #include <sstream>
-#include <algorithm>
 
 namespace vazgen {
 
@@ -103,7 +102,7 @@ Function generateExternForFunction(const Function& enclaveF)
 {
     Function externF = enclaveF;
     externF.setIsExtern(true);
-    return enclaveF;
+    return externF;
 }
 
 Function generateCallWrapper(const Function& F, bool is_ecall)
@@ -118,12 +117,7 @@ Function generateCallWrapper(const Function& F, bool is_ecall)
     Function wrapperF(name);
     wrapperF.setReturnType(F.getReturnType());
     wrapperF.setParams(F.getParams());
-    std::vector<std::string> paramNames;
-    paramNames.reserve(F.getParams().size());
-    std::transform(F.getParams().begin(), F.getParams().end(), std::back_inserter(paramNames),
-            [] (const Variable& var) { return var.m_name; });
-
-    std::string Fcall = F.getCallAsString(paramNames);
+    std::string Fcall = F.getCallAsString(F.getParams());
     std::string body;
     if (!F.isVoidReturn()) {
         body = "return " + Fcall;
@@ -254,7 +248,7 @@ void OpenEnclaveCodeGenerator::generateEnclaveDefinitionFile()
 
 void OpenEnclaveCodeGenerator::generateEnclaveFile()
 {
-    m_enclaveFile.setName(m_prefix + "_enclave.cc");
+    m_enclaveFile.setName(m_prefix + "_enclave.c");
     m_enclaveFile.setHeader(false);
     m_enclaveFile.addInclude("<openenclave/enclave.h>");
     m_enclaveFile.addInclude("\"sgx_t.h\"");
@@ -267,23 +261,20 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
     }
 
     for (const auto& enclaveF : m_enclaveFunctions) {
-	m_enclaveFile.addFunction(generateCallWrapper(enclaveF, true));
         m_enclaveFile.addFunction(generateExternForFunction(enclaveF));
+	m_enclaveFile.addFunction(generateCallWrapper(enclaveF, true));
     }
 
 }
 
 void OpenEnclaveCodeGenerator::generateAppDriverFile()
 {
-    m_appDriverFile.setName(m_prefix + "_app.cc");
+    m_appDriverFile.setName(m_prefix + "_app.c");
     m_appDriverFile.setHeader(false);
     m_appDriverFile.addInclude("\"sgx_u.h\"");
     // app_util.h has enclave creation and termination code
     m_appDriverFile.addInclude("\"app_utils.h\"");
-    m_enclaveFile.addInclude("<stdio.h>");
-
-    // TODO: add extern
-    m_enclaveFile.addGlobalVariable(std::make_pair(Variable{Type{"oe_enclave_t", "", true, false}, "enclave"}, "NULL"));
+    m_appDriverFile.addInclude("<stdio.h>");
 
     Function appMainF("app_main");
     appMainF.setIsExtern(true);
@@ -296,8 +287,10 @@ void OpenEnclaveCodeGenerator::generateAppDriverFile()
     }
 
     for (const auto& appF : m_appFunctions) {
-	m_appDriverFile.addFunction(generateCallWrapper(appF, false));
-        m_enclaveFile.addFunction(generateExternForFunction(appF));
+        if (!OpenEnclaveSupportedLibFunctions::get().supportsFunction(appF.getName())) {
+            m_appDriverFile.addFunction(generateExternForFunction(appF));
+            m_appDriverFile.addFunction(generateCallWrapper(appF, false));
+        }
     }
 }
 
