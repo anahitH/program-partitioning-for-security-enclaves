@@ -1,0 +1,67 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 757.0,
+            "TCB%": 67.2291296625222,
+            "args_passed": 100000.0,
+            "context_switches": 1001.9950099800399,
+            "in_interface": [
+                "printf",
+                "puts"
+            ],
+            "in_interface_size": 2,
+            "partition%": 96.0,
+            "partition_functions": [
+                "setup_level",
+                "show_score",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "collide_object",
+                "collision",
+                "collide_self",
+                "collide_walls",
+                "main",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "setitimer",
+                "draw_line",
+                "exit",
+                "rand"
+            ],
+            "partition_size": 24,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 8.0
+        },
+        "secure_partition": {
+            "TCB": 369.0,
+            "TCB%": 32.770870337477795,
+            "args_passed": 0.9970059880239521,
+            "context_switches": 2001.9970059880238,
+            "in_interface": [
+                "move"
+            ],
+            "in_interface_size": 1,
+            "partition%": 4.0,
+            "partition_functions": [
+                "move"
+            ],
+            "partition_size": 1,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

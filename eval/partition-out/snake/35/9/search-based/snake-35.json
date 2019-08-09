@@ -1,0 +1,35 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "show_score"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collision",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "move"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_walls",
+                "return": "True"
+            }
+        ]
+    }
+]

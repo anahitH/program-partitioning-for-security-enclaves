@@ -1,0 +1,11 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

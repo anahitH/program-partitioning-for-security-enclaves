@@ -1,0 +1,74 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 641.0,
+            "TCB%": 56.92717584369449,
+            "args_passed": 100000.0,
+            "context_switches": 4002.008982035928,
+            "in_interface": [
+                "draw_line",
+                "printf",
+                "rand",
+                "srand",
+                "puts",
+                "time"
+            ],
+            "in_interface_size": 6,
+            "partition%": 76.0,
+            "partition_functions": [
+                "move",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "main",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "draw_line",
+                "exit",
+                "rand",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 19,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 24.0
+        },
+        "secure_partition": {
+            "TCB": 485.0,
+            "TCB%": 43.07282415630551,
+            "args_passed": 100000.0,
+            "context_switches": 2023.9880239520958,
+            "in_interface": [
+                "collide_object",
+                "setup_level",
+                "show_score",
+                "collision"
+            ],
+            "in_interface_size": 4,
+            "partition%": 24.0,
+            "partition_functions": [
+                "show_score",
+                "collision",
+                "setup_level",
+                "collide_self",
+                "collide_walls",
+                "collide_object"
+            ],
+            "partition_size": 6,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

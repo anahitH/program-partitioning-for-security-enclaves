@@ -1,0 +1,202 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_trylock_unlock"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "out_string"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "init_lru_crawler",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "itoa_u64",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_add_watcher",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoull",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "crawler_metadump_finalize"
+            },
+            {
+                "function": "item_unlock"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_link_q"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "memcached_thread_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "redispatch_conn"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    4
+                ],
+                "function": "append_ascii_stats"
+            },
+            {
+                "function": "item_trylock",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_insert",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_totals"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "_logger_log_item_get"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "ensure_iov_space",
+                "return": "True"
+            },
+            {
+                "function": "stop_assoc_maintenance_thread"
+            },
+            {
+                "function": "uriencode_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "cq_push"
+            },
+            {
+                "function": "logger_thread_poll_watchers",
+                "return": "True"
+            },
+            {
+                "function": "state_text",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "slab_automove_run"
+            },
+            {
+                "function": "prot_text",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    4
+                ],
+                "function": "append_stats"
+            },
+            {
+                "function": "slabs_preallocate"
+            },
+            {
+                "function": "logger_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_replace",
+                "return": "True"
+            },
+            {
+                "function": "start_slab_maintenance_thread",
+                "return": "True"
+            },
+            {
+                "function": "start_item_crawler_thread",
+                "return": "True"
+            },
+            {
+                "function": "mc_swap64",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "append_stat"
+            },
+            {
+                "function": "do_item_stats_add_crawl"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "setup_thread"
+            }
+        ]
+    }
+]

@@ -1,0 +1,10 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "exit_handler"
+            }
+        ]
+    }
+]

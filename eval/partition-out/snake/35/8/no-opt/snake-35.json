@@ -1,0 +1,31 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            },
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_self",
+                "return": "True"
+            }
+        ]
+    }
+]

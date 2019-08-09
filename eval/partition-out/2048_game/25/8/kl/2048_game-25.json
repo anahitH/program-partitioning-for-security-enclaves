@@ -1,0 +1,32 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "print_game"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "max_tile",
+                "return": "True"
+            }
+        ]
+    }
+]

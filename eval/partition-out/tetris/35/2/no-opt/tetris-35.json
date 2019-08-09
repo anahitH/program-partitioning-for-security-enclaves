@@ -1,0 +1,23 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "show_online_help"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            }
+        ]
+    }
+]

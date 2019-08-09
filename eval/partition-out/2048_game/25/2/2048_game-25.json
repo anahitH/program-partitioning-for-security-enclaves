@@ -1,0 +1,30 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_down"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "combine_left",
+                "return": "True"
+            },
+            {
+                "function": "print_tile"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            }
+        ]
+    }
+]

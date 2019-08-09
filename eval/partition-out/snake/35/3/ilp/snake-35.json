@@ -1,0 +1,29 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collision",
+                "return": "True"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "eat_gold",
+                "return": "True"
+            }
+        ]
+    }
+]

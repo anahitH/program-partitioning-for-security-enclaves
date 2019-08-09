@@ -1,0 +1,24 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "show_online_help"
+            }
+        ]
+    }
+]

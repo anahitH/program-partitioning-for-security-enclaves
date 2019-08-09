@@ -1,0 +1,31 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "show_score"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            }
+        ]
+    }
+]

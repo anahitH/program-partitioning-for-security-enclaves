@@ -1,0 +1,20 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "show_online_help"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

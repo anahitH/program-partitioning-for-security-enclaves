@@ -1,0 +1,700 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_is_flushed",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "crawler_expired_eval"
+            },
+            {
+                "function": "start_assoc_maintenance_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "add_chunked_item_iovs",
+                "return": "True"
+            },
+            {
+                "function": "slab_rebalance_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "sidethread_conn_close"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoll",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_poll",
+                "return": "True"
+            },
+            {
+                "function": "logger_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "remove_pidfile"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_stat"
+            },
+            {
+                "function": "do_slabs_newslab",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_get_or_touch"
+            },
+            {
+                "function": "lru_maintainer_bumps",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_alloc",
+                "return": "True"
+            },
+            {
+                "function": "slabs_prefill_global"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_totals"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_close_idle"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "new_socket",
+                "return": "True"
+            },
+            {
+                "function": "temp_lru_size",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "threadlocal_stats_aggregate"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "_ascii_get_suffix_buf",
+                "return": "True"
+            },
+            {
+                "function": "slabs_reassign_pick_any",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fill_slab_stats_automove"
+            },
+            {
+                "function": "logger_set_flags"
+            },
+            {
+                "function": "wait_for_thread_registration"
+            },
+            {
+                "function": "item_stats_reset"
+            },
+            {
+                "function": "lru_maintainer_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_crawler_set_client",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    3
+                ],
+                "function": "get_stats",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "write_bin_response"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "reset_cmd_handler"
+            },
+            {
+                "function": "STATS_LOCK"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_verbosity_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "save_pid"
+            },
+            {
+                "function": "lru_crawler_resume"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bin_read_key"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "crawler_expired_doneclass"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_update"
+            },
+            {
+                "function": "logger_create",
+                "return": "True"
+            },
+            {
+                "function": "do_accept_new_conns"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_update_command"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ise",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_insert",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_unlink"
+            },
+            {
+                "function": "slabs_rebalancer_resume"
+            },
+            {
+                "function": "usage_license"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "write_and_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_remove"
+            },
+            {
+                "function": "slabs_adjust_mem_requested"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_crawler_close_client"
+            },
+            {
+                "function": "start_conn_timeout_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "out_string"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ee",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "write_bin_error"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slab_automove_init",
+                "return": "True"
+            },
+            {
+                "function": "conn_init"
+            },
+            {
+                "function": "stop_lru_maintainer_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_alloc_chunk",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlinktail_q"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "complete_update_bin"
+            },
+            {
+                "arguments": [
+                    5
+                ],
+                "function": "conn_new",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlink_nolock"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "drive_machine"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "itoa_u32",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "dispatch_bin_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_find",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    4
+                ],
+                "function": "do_item_touch",
+                "return": "True"
+            },
+            {
+                "function": "do_slabs_reassign",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "cache_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "stats_prefix_dump",
+                "return": "True"
+            },
+            {
+                "function": "start_logger_thread",
+                "return": "True"
+            },
+            {
+                "function": "assoc_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "do_cache_free"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "bipbuf_peek_all",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slabs_free"
+            },
+            {
+                "function": "slabs_reassign",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_stats_conns"
+            },
+            {
+                "function": "do_slabs_adjust_mem_limit",
+                "return": "True"
+            },
+            {
+                "function": "slabs_rebalancer_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "lru_crawler_crawl",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_size",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlink"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "set_noreply_maybe",
+                "return": "True"
+            },
+            {
+                "function": "start_item_crawler_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_remove"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_link",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "global_page_pool_size",
+                "return": "True"
+            },
+            {
+                "function": "assoc_expand"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_delete"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "grow_stats_buf",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_slabs_automove_command"
+            },
+            {
+                "function": "slabs_preallocate"
+            },
+            {
+                "function": "slab_rebalance_start",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "init_lru_crawler",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "clock_handler"
+            },
+            {
+                "function": "do_item_stats_add_crawl"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_parse_slab_sizes",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "maxconns_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "crawler_metadump_eval"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "add_msghdr",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_close"
+            },
+            {
+                "function": "lru_crawler_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_stat"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "__check_for_switch_to_b"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "store_item",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "crawler_expired_init",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_bump_async",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    3
+                ],
+                "function": "slabs_init"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "memcached_thread_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "read_into_chunked_item",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "thread_libevent_process"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "do_slabs_stats"
+            },
+            {
+                "function": "uriencode_init"
+            },
+            {
+                "function": "logger_get_gid",
+                "return": "True"
+            },
+            {
+                "function": "stats_prefix_clear"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slab_rebalance_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "try_read_network",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "complete_nread"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_bump_buf_link_q"
+            }
+        ]
+    }
+]

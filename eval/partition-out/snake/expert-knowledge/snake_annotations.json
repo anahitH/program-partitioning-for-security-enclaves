@@ -1,0 +1,25 @@
+[
+{
+    "annotation" : "sensitive",
+        "functions" : [
+        {
+            "function" : "setup_level",
+            "arguments" : [0, 1]
+        },
+        {
+            "function" : "move",
+            "arguments" : [0]
+        },
+        {
+            "function" : "collision",
+            "arguments" : [0, 1],
+            "return" : "True"
+        },
+        {
+            "function" : "eat_gold",
+            "arguments" : [0, 1],
+            "return" : "True"
+        }
+        ]
+}
+]

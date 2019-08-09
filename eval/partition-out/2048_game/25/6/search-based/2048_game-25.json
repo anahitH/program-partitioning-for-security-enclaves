@@ -1,0 +1,26 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "rotate_clockwise"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "function": "init_curses"
+            }
+        ]
+    }
+]

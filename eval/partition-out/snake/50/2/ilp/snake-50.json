@@ -1,0 +1,41 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_self",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            },
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "move"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            }
+        ]
+    }
+]

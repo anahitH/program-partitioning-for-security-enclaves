@@ -1,0 +1,34 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lose_game",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "rotate_clockwise"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "fopen_or_die",
+                "return": "True"
+            }
+        ]
+    }
+]

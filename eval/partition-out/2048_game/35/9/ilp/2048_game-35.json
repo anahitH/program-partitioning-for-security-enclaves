@@ -1,0 +1,33 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_right"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place_tile",
+                "return": "True"
+            },
+            {
+                "function": "init_curses"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            }
+        ]
+    }
+]

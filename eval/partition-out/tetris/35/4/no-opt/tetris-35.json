@@ -1,0 +1,26 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "show_online_help"
+            },
+            {
+                "function": "exit_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,28 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            }
+        ]
+    }
+]

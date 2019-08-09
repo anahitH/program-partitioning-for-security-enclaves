@@ -1,0 +1,53 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "fopen_or_die",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_down"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "function": "print_tile"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "max_tile",
+                "return": "True"
+            },
+            {
+                "function": "init_curses"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "deflate_left",
+                "return": "True"
+            }
+        ]
+    }
+]

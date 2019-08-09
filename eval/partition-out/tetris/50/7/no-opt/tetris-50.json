@@ -1,0 +1,33 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "show_online_help"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "sig_init",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            }
+        ]
+    }
+]

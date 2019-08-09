@@ -1,0 +1,14 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_self",
+                "return": "True"
+            }
+        ]
+    }
+]

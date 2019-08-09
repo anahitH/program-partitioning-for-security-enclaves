@@ -1,0 +1,15 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            }
+        ]
+    }
+]

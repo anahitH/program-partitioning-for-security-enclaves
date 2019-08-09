@@ -1,0 +1,18 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "sig_init",
+                "return": "True"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "freeze"
+            }
+        ]
+    }
+]

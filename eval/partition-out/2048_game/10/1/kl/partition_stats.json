@@ -1,0 +1,94 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 662.0,
+            "TCB%": 86.42297650130548,
+            "args_passed": 0.0,
+            "context_switches": 4000.0,
+            "in_interface": [
+                "move_left"
+            ],
+            "in_interface_size": 1,
+            "partition%": 90.0,
+            "partition_functions": [
+                "print_game",
+                "get_input",
+                "place_tile",
+                "print_tile",
+                "fopen_or_die",
+                "record",
+                "move_left",
+                "deflate_left",
+                "endwin",
+                "srandom",
+                "time",
+                "wgetch",
+                "usleep",
+                "free",
+                "wmove",
+                "fprintf",
+                "cbreak",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "getline",
+                "wrefresh",
+                "llvm.memset.p0i8.i64",
+                "wattr_off",
+                "random",
+                "printw",
+                "curs_set",
+                "max_tile",
+                "__assert_fail",
+                "wattr_on",
+                "atoi",
+                "keypad",
+                "strspn",
+                "getopt",
+                "noecho",
+                "init_curses",
+                "main",
+                "initscr",
+                "start_color",
+                "printf",
+                "wclear",
+                "use_default_colors",
+                "perror",
+                "init_pair",
+                "fopen",
+                "combine_left",
+                "exit"
+            ],
+            "partition_size": 45,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 2.0
+        },
+        "secure_partition": {
+            "TCB": 104.0,
+            "TCB%": 13.577023498694517,
+            "args_passed": 100000.0,
+            "context_switches": 8.0,
+            "in_interface": [
+                "lose_game",
+                "move_down",
+                "move_right",
+                "move_up"
+            ],
+            "in_interface_size": 4,
+            "partition%": 10.0,
+            "partition_functions": [
+                "move_right",
+                "move_up",
+                "rotate_clockwise",
+                "move_down",
+                "lose_game"
+            ],
+            "partition_size": 5,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

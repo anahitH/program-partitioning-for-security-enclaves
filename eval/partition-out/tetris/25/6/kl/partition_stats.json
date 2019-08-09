@@ -1,0 +1,74 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 588.0,
+            "TCB%": 88.42105263157895,
+            "args_passed": 100000.0,
+            "context_switches": 1002.010989010989,
+            "in_interface": [
+                "puts",
+                "printf"
+            ],
+            "in_interface_size": 2,
+            "partition%": 90.0,
+            "partition_functions": [
+                "next_shape",
+                "tty_exit",
+                "exit_handler",
+                "place",
+                "alarm_handler",
+                "sigaction",
+                "sig_init",
+                "sigprocmask",
+                "tty_init",
+                "exit",
+                "printf",
+                "update",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "puts",
+                "fileno",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "tcsetattr",
+                "freeze",
+                "sigaddset",
+                "getchar",
+                "time",
+                "fflush",
+                "sigemptyset"
+            ],
+            "partition_size": 27,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 6.666666666666667
+        },
+        "secure_partition": {
+            "TCB": 77.0,
+            "TCB%": 11.578947368421053,
+            "args_passed": 100000.0,
+            "context_switches": 13.998001998001998,
+            "in_interface": [
+                "show_online_help",
+                "fits_in",
+                "show_high_score"
+            ],
+            "in_interface_size": 3,
+            "partition%": 10.0,
+            "partition_functions": [
+                "fits_in",
+                "show_high_score",
+                "show_online_help"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

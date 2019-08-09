@@ -1,0 +1,68 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 1010.0,
+            "TCB%": 89.69804618117229,
+            "args_passed": 100000.0,
+            "context_switches": 1005.0089820359282,
+            "in_interface": [
+                "printf"
+            ],
+            "in_interface_size": 1,
+            "partition%": 88.0,
+            "partition_functions": [
+                "setup_level",
+                "move",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "collide_object",
+                "collision",
+                "collide_self",
+                "main",
+                "exit",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "rand"
+            ],
+            "partition_size": 22,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 4.0
+        },
+        "secure_partition": {
+            "TCB": 116.0,
+            "TCB%": 10.301953818827709,
+            "args_passed": 100000.0,
+            "context_switches": 1013.9980039920159,
+            "in_interface": [
+                "draw_line",
+                "show_score",
+                "collide_walls"
+            ],
+            "in_interface_size": 3,
+            "partition%": 12.0,
+            "partition_functions": [
+                "show_score",
+                "collide_walls",
+                "draw_line"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

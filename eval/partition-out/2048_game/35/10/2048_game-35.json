@@ -1,0 +1,38 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "max_tile",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "deflate_left",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place_tile",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "rotate_clockwise"
+            }
+        ]
+    }
+]

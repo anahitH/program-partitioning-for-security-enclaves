@@ -1,0 +1,17 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

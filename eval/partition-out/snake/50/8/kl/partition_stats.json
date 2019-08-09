@@ -1,0 +1,78 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 932.0,
+            "TCB%": 82.7708703374778,
+            "args_passed": 100000.0,
+            "context_switches": 8.998003992015969,
+            "in_interface": [
+                "setitimer",
+                "exit",
+                "system",
+                "puts",
+                "sigemptyset",
+                "sigaction",
+                "printf"
+            ],
+            "in_interface_size": 7,
+            "partition%": 76.0,
+            "partition_functions": [
+                "setup_level",
+                "move",
+                "show_score",
+                "eat_gold",
+                "collide_object",
+                "collision",
+                "getchar",
+                "main",
+                "system",
+                "exit",
+                "puts",
+                "time",
+                "sigaction",
+                "sigemptyset",
+                "printf",
+                "srand",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "rand"
+            ],
+            "partition_size": 19,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 28.0
+        },
+        "secure_partition": {
+            "TCB": 194.0,
+            "TCB%": 17.2291296625222,
+            "args_passed": 100000.0,
+            "context_switches": 1007.0029940119761,
+            "in_interface": [
+                "sigsetup",
+                "collide_self",
+                "draw_line",
+                "collide_walls",
+                "alarm_handler"
+            ],
+            "in_interface_size": 5,
+            "partition%": 24.0,
+            "partition_functions": [
+                "collide_walls",
+                "alarm_handler",
+                "draw_line",
+                "collide_self",
+                "sig_handler",
+                "sigsetup"
+            ],
+            "partition_size": 6,
+            "security_related%": 4.0,
+            "security_related_functions": [
+                "collide_object  2"
+            ],
+            "security_related_functions_size": 1
+        }
+    }
+}

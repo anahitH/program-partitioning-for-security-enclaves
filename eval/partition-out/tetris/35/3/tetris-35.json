@@ -1,0 +1,25 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "sig_init",
+                "return": "True"
+            },
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,21 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "update",
+                "return": "True"
+            },
+            {
+                "function": "tty_exit",
+                "return": "True"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "exit_handler"
+            }
+        ]
+    }
+]

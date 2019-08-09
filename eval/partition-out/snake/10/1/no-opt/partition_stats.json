@@ -1,0 +1,64 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 1056.0,
+            "TCB%": 93.78330373001776,
+            "args_passed": 0.0,
+            "context_switches": 1000.0,
+            "in_interface": [],
+            "in_interface_size": 0,
+            "partition%": 96.0,
+            "partition_functions": [
+                "main",
+                "collision",
+                "collide_self",
+                "collide_object",
+                "collide_walls",
+                "move",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "srand",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "system",
+                "alarm_handler",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "setitimer",
+                "exit",
+                "draw_line",
+                "setup_level",
+                "rand"
+            ],
+            "partition_size": 24,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 0.0
+        },
+        "secure_partition": {
+            "TCB": 70.0,
+            "TCB%": 6.216696269982238,
+            "args_passed": 100000.0,
+            "context_switches": 0.9970059880239521,
+            "in_interface": [
+                "eat_gold"
+            ],
+            "in_interface_size": 1,
+            "partition%": 4.0,
+            "partition_functions": [
+                "eat_gold"
+            ],
+            "partition_size": 1,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

@@ -1,0 +1,80 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 609.0,
+            "TCB%": 91.57894736842105,
+            "args_passed": 100000.0,
+            "context_switches": 1004.010989010989,
+            "in_interface": [
+                "sigaddset",
+                "puts",
+                "printf",
+                "tcsetattr",
+                "sigprocmask",
+                "fileno",
+                "sigemptyset"
+            ],
+            "in_interface_size": 7,
+            "partition%": 86.66666666666667,
+            "partition_functions": [
+                "next_shape",
+                "place",
+                "exit_handler",
+                "alarm_handler",
+                "sigaction",
+                "sig_init",
+                "sigprocmask",
+                "puts",
+                "printf",
+                "tty_init",
+                "exit",
+                "update",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "fileno",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "tcsetattr",
+                "time",
+                "fflush",
+                "sigemptyset",
+                "fits_in",
+                "getchar",
+                "sigaddset"
+            ],
+            "partition_size": 26,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 23.333333333333332
+        },
+        "secure_partition": {
+            "TCB": 56.0,
+            "TCB%": 8.421052631578947,
+            "args_passed": 100000.0,
+            "context_switches": 19.998001998001996,
+            "in_interface": [
+                "freeze",
+                "show_online_help",
+                "show_high_score",
+                "tty_exit"
+            ],
+            "in_interface_size": 4,
+            "partition%": 13.333333333333334,
+            "partition_functions": [
+                "show_high_score",
+                "tty_exit",
+                "show_online_help",
+                "freeze"
+            ],
+            "partition_size": 4,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

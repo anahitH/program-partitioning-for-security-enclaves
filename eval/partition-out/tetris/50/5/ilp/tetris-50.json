@@ -1,0 +1,28 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "update",
+                "return": "True"
+            },
+            {
+                "function": "sig_init",
+                "return": "True"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

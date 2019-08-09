@@ -1,0 +1,42 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "show_score"
+            },
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collision",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "move"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "eat_gold",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            }
+        ]
+    }
+]

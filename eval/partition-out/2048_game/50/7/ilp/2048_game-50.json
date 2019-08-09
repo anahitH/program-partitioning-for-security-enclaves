@@ -1,0 +1,61 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "print_game"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "deflate_left",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "fopen_or_die",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lose_game",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_down"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "combine_left",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "record"
+            }
+        ]
+    }
+]

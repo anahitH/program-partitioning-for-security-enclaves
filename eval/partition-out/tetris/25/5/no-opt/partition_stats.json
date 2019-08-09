@@ -1,0 +1,79 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 544.0,
+            "TCB%": 81.80451127819549,
+            "args_passed": 100000.0,
+            "context_switches": 2002.0,
+            "in_interface": [
+                "setitimer",
+                "sigaddset",
+                "sigemptyset",
+                "sigprocmask",
+                "getchar",
+                "printf",
+                "fflush"
+            ],
+            "in_interface_size": 7,
+            "partition%": 90.0,
+            "partition_functions": [
+                "sigaction",
+                "exit_handler",
+                "sig_init",
+                "sigprocmask",
+                "next_shape",
+                "exit",
+                "tty_init",
+                "place",
+                "puts",
+                "tty_exit",
+                "sigaddset",
+                "fits_in",
+                "getchar",
+                "printf",
+                "time",
+                "sigemptyset",
+                "fflush",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "show_high_score",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "show_online_help",
+                "fileno",
+                "tcsetattr"
+            ],
+            "partition_size": 27,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 23.333333333333332
+        },
+        "secure_partition": {
+            "TCB": 121.0,
+            "TCB%": 18.195488721804512,
+            "args_passed": 100000.0,
+            "context_switches": 1009.996003996004,
+            "in_interface": [
+                "alarm_handler",
+                "update",
+                "freeze"
+            ],
+            "in_interface_size": 3,
+            "partition%": 10.0,
+            "partition_functions": [
+                "update",
+                "freeze",
+                "alarm_handler"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

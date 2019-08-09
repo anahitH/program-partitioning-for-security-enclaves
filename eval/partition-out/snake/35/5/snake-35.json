@@ -1,0 +1,37 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collision",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_walls",
+                "return": "True"
+            }
+        ]
+    }
+]

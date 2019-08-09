@@ -1,0 +1,23 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "sig_init",
+                "return": "True"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

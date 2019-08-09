@@ -1,0 +1,18 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "tty_exit",
+                "return": "True"
+            },
+            {
+                "function": "exit_handler"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

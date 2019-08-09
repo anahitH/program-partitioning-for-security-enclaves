@@ -1,0 +1,34 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "sig_init",
+                "return": "True"
+            }
+        ]
+    }
+]

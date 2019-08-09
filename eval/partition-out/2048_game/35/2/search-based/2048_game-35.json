@@ -1,0 +1,37 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "deflate_left",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_right"
+            },
+            {
+                "function": "print_tile"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "record"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "combine_left",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,67 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 917.0,
+            "TCB%": 81.43872113676731,
+            "args_passed": 0.0,
+            "context_switches": 2003.0,
+            "in_interface": [],
+            "in_interface_size": 0,
+            "partition%": 84.0,
+            "partition_functions": [
+                "main",
+                "collision",
+                "move",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "srand",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "system",
+                "alarm_handler",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "setitimer",
+                "exit",
+                "draw_line",
+                "setup_level",
+                "rand"
+            ],
+            "partition_size": 21,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 0.0
+        },
+        "secure_partition": {
+            "TCB": 209.0,
+            "TCB%": 18.561278863232683,
+            "args_passed": 100000.0,
+            "context_switches": 1.9940119760479043,
+            "in_interface": [
+                "eat_gold",
+                "collide_object",
+                "collide_walls",
+                "collide_self"
+            ],
+            "in_interface_size": 4,
+            "partition%": 16.0,
+            "partition_functions": [
+                "collide_walls",
+                "collide_self",
+                "collide_object",
+                "eat_gold"
+            ],
+            "partition_size": 4,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

@@ -1,0 +1,69 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 664.0,
+            "TCB%": 99.84962406015038,
+            "args_passed": 0.0,
+            "context_switches": 1.0,
+            "in_interface": [],
+            "in_interface_size": 0,
+            "partition%": 96.66666666666667,
+            "partition_functions": [
+                "show_online_help",
+                "next_shape",
+                "tty_exit",
+                "exit_handler",
+                "place",
+                "alarm_handler",
+                "sigaction",
+                "sig_init",
+                "sigprocmask",
+                "puts",
+                "freeze",
+                "fits_in",
+                "sigaddset",
+                "getchar",
+                "time",
+                "sigemptyset",
+                "fflush",
+                "printf",
+                "tty_init",
+                "exit",
+                "update",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "fileno",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "tcsetattr"
+            ],
+            "partition_size": 29,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 0.0
+        },
+        "secure_partition": {
+            "TCB": 1.0,
+            "TCB%": 0.15037593984962405,
+            "args_passed": 0.0,
+            "context_switches": 0.0,
+            "in_interface": [
+                "show_high_score"
+            ],
+            "in_interface_size": 1,
+            "partition%": 3.3333333333333335,
+            "partition_functions": [
+                "show_high_score"
+            ],
+            "partition_size": 1,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

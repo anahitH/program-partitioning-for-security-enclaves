@@ -1,0 +1,77 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 607.0,
+            "TCB%": 91.2781954887218,
+            "args_passed": 0.0,
+            "context_switches": 1003.0,
+            "in_interface": [
+                "fileno",
+                "tcsetattr",
+                "setitimer",
+                "puts",
+                "rand"
+            ],
+            "in_interface_size": 5,
+            "partition%": 90.0,
+            "partition_functions": [
+                "show_online_help",
+                "place",
+                "exit_handler",
+                "show_high_score",
+                "sigaction",
+                "sig_init",
+                "sigprocmask",
+                "puts",
+                "time",
+                "sigemptyset",
+                "fflush",
+                "printf",
+                "update",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "tty_init",
+                "exit",
+                "fileno",
+                "tcsetattr",
+                "freeze",
+                "fits_in",
+                "sigaddset",
+                "getchar"
+            ],
+            "partition_size": 27,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 16.666666666666668
+        },
+        "secure_partition": {
+            "TCB": 58.0,
+            "TCB%": 8.721804511278195,
+            "args_passed": 0.0,
+            "context_switches": 5.998001998001998,
+            "in_interface": [
+                "tty_exit",
+                "alarm_handler",
+                "next_shape"
+            ],
+            "in_interface_size": 3,
+            "partition%": 10.0,
+            "partition_functions": [
+                "alarm_handler",
+                "next_shape",
+                "tty_exit"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

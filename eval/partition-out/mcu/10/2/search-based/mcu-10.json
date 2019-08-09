@@ -1,0 +1,455 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "ecc_rng_function",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    4
+                ],
+                "function": "hmac_sha512"
+            },
+            {
+                "function": "memory_write_memory_map_version"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ge_clear"
+            },
+            {
+                "function": "memory_active_key_get",
+                "return": "True"
+            },
+            {
+                "function": "sd_list",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_set_int"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_vli_add",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_array_close",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hid_write",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    3
+                ],
+                "function": "cipher_aes_b64_decrypt",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "u2f_device_ping"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "sha256_Raw"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "ecc_sig_to_der",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "wallet_sign",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_rfc6979_hmac_sha256_generate"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "update_SHA256"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "yajl_internal_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_aes_key",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hdnode_serialize_private"
+            },
+            {
+                "function": "commander_tfa_append_pin",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_is_even",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_reduce",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_get_bits_var",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_buf_truncate"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hid_send_feature_report",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "memory_active_key_set"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "ecc_get_public_key65"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "yajl_internal_realloc",
+                "return": "True"
+            },
+            {
+                "function": "wallet_is_paired",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "utils_zero",
+                "return": "True"
+            },
+            {
+                "function": "usb_remotewakeup_enable"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "ecc_get_public_key33"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_eckey_privkey_tweak_add",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ec_pubkey_parse",
+                "return": "True"
+            },
+            {
+                "function": "memory_setup"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_double",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ecmult_const"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "sha256_Update"
+            },
+            {
+                "function": "uECC_secp256r1",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ge_is_valid_var",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_lex_get_error",
+                "return": "True"
+            },
+            {
+                "function": "HardFault_Handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "function": "secp256k1_ecmult"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ecmult_gen_context_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "sd_delete_files",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_gej_add_ge"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_ecmult_gen_context_build"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_buf_data",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    4,
+                    5
+                ],
+                "function": "uECC_generate_k_rfc6979",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_fe_normalize"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "base58_encode_check",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "context_add_value",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ge_set_xy"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "u2f_keyhandle_gen"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ecmult_gen_context_clear"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_scalar_sqr"
+            },
+            {
+                "function": "tests_input"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_gej_double_nonzero"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_der_read_len",
+                "return": "True"
+            },
+            {
+                "function": "libsecp256k1_ecc_context_destroy"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "ecdh_generate_key",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "wallet_get_address"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "secp256k1_gej_add_ge_var"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "libsecp256k1_ecc_sign_digest",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_seed"
+            }
+        ]
+    }
+]

@@ -1,0 +1,23 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            }
+        ]
+    }
+]

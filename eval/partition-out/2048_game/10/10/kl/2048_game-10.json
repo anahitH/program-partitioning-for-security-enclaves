@@ -1,0 +1,11 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "get_input",
+                "return": "True"
+            }
+        ]
+    }
+]

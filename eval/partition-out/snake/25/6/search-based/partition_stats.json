@@ -1,0 +1,69 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 680.0,
+            "TCB%": 60.39076376554174,
+            "args_passed": 100000.0,
+            "context_switches": 1005.9930139720559,
+            "in_interface": [
+                "printf",
+                "puts"
+            ],
+            "in_interface_size": 2,
+            "partition%": 88.0,
+            "partition_functions": [
+                "main",
+                "eat_gold",
+                "collision",
+                "collide_self",
+                "collide_object",
+                "exit",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "srand",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "system",
+                "alarm_handler",
+                "setup_level",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "rand"
+            ],
+            "partition_size": 22,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 8.0
+        },
+        "secure_partition": {
+            "TCB": 446.0,
+            "TCB%": 39.60923623445826,
+            "args_passed": 100000.0,
+            "context_switches": 3002.9980039920156,
+            "in_interface": [
+                "draw_line",
+                "move",
+                "collide_walls"
+            ],
+            "in_interface_size": 3,
+            "partition%": 12.0,
+            "partition_functions": [
+                "move",
+                "collide_walls",
+                "draw_line"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

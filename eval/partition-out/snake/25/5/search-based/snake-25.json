@@ -1,0 +1,30 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "eat_gold",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collision",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            }
+        ]
+    }
+]

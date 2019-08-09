@@ -1,0 +1,75 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 272.0,
+            "TCB%": 24.156305506216697,
+            "args_passed": 100000.0,
+            "context_switches": 5004.003992015969,
+            "in_interface": [
+                "draw_line",
+                "printf",
+                "rand",
+                "srand",
+                "puts",
+                "time"
+            ],
+            "in_interface_size": 6,
+            "partition%": 72.0,
+            "partition_functions": [
+                "main",
+                "eat_gold",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "srand",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "system",
+                "alarm_handler",
+                "exit",
+                "draw_line",
+                "rand",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 18,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 24.0
+        },
+        "secure_partition": {
+            "TCB": 854.0,
+            "TCB%": 75.8436944937833,
+            "args_passed": 100000.0,
+            "context_switches": 4025.9850299401196,
+            "in_interface": [
+                "collide_object",
+                "setup_level",
+                "collision",
+                "show_score",
+                "move"
+            ],
+            "in_interface_size": 5,
+            "partition%": 28.0,
+            "partition_functions": [
+                "show_score",
+                "collide_walls",
+                "move",
+                "setup_level",
+                "collide_self",
+                "collide_object",
+                "collision"
+            ],
+            "partition_size": 7,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

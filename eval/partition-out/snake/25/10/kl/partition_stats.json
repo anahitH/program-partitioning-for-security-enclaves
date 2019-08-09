@@ -1,0 +1,68 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 1006.0,
+            "TCB%": 89.34280639431617,
+            "args_passed": 100000.0,
+            "context_switches": 1004.9980039920159,
+            "in_interface": [
+                "printf"
+            ],
+            "in_interface_size": 1,
+            "partition%": 88.0,
+            "partition_functions": [
+                "setup_level",
+                "move",
+                "show_score",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "collide_self",
+                "collision",
+                "main",
+                "exit",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "setitimer",
+                "rand"
+            ],
+            "partition_size": 22,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 4.0
+        },
+        "secure_partition": {
+            "TCB": 120.0,
+            "TCB%": 10.657193605683837,
+            "args_passed": 100000.0,
+            "context_switches": 1001.9980039920159,
+            "in_interface": [
+                "collide_object",
+                "draw_line",
+                "collide_walls"
+            ],
+            "in_interface_size": 3,
+            "partition%": 12.0,
+            "partition_functions": [
+                "draw_line",
+                "collide_walls",
+                "collide_object"
+            ],
+            "partition_size": 3,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

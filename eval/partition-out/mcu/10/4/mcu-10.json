@@ -1,0 +1,459 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_cond_negate",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "sha256_Raw"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "usb_reply"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "api_hid_read_frame",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ecmult_context_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hdnode_serialize_private"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_check_overflow",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "wallet_check_bip44_keypath_prefix",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    3,
+                    4
+                ],
+                "function": "uECC_sign",
+                "return": "True"
+            },
+            {
+                "function": "memory_reset_hww"
+            },
+            {
+                "function": "u2f_send_err_hid"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "commander_process",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "function": "secp256k1_ge_globalz_set_table_gej"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_ecmult_gen_context_is_built",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "secp256k1_ec_pubkey_serialize",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "utf8_to_wchar_t",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "memory_write_aeskey",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "ecc_ecdh",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "memory_master_hww",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_hmac_sha256_initialize"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    3,
+                    4
+                ],
+                "function": "ecc_sign",
+                "return": "True"
+            },
+            {
+                "function": "api_hid_init",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "api_decrypt_report"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    4
+                ],
+                "function": "ecc_recover_public_key",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scratch_space_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_hidden_password"
+            },
+            {
+                "function": "wallet_set_hidden"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "utils_varint_to_uint64",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "wallet_generate_key",
+                "return": "True"
+            },
+            {
+                "function": "led_toggle"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "sha512_Update"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_decompress"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "sha512_Last"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ec_pubkey_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "flash_wrapper_read_unique_id",
+                "return": "True"
+            },
+            {
+                "function": "hid_exit",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_buf_alloc",
+                "return": "True"
+            },
+            {
+                "function": "tests_pairing"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    3
+                ],
+                "function": "cipher_aes_b64_encrypt",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_scalar_negate"
+            },
+            {
+                "function": "ecc_context_destroy"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_fe_normalize_weak"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hid_get_product_string",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "hid_get_manufacturer_string",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "ecc_isValid",
+                "return": "True"
+            },
+            {
+                "function": "memory_report_erased",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_compress"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_is_one",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "function": "secp256k1_ecdsa_sign_recoverable",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_shr_int",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_decrypt",
+                "return": "True"
+            },
+            {
+                "function": "usb_remotewakeup_disable"
+            },
+            {
+                "function": "memory_read_unlocked",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "wallet_get_pubkeyhash"
+            },
+            {
+                "function": "tests_device"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scratch_space_destroy"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    3,
+                    4
+                ],
+                "function": "aes_cbc_decrypt",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_gej_double_nonzero"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "commander_process_backup_check",
+                "return": "True"
+            },
+            {
+                "function": "usb_sof_action"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "ecc_sig_to_der",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_ec_seckey_verify",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "memory_write_tfa_shared_secret",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "libsecp256k1_ecc_ecdh",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "uECC_vli_cmp",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "hdnode_private_ckd",
+                "return": "True"
+            }
+        ]
+    }
+]

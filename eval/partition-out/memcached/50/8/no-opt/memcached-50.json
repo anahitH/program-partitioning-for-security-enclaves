@@ -1,0 +1,1061 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "logger_thread_poll_watchers",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "append_stat"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_close"
+            },
+            {
+                "arguments": [
+                    1,
+                    2,
+                    3
+                ],
+                "function": "slabs_available_chunks",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fill_item_stats_automove"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "_logger_log_item_get"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlink_q"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "out1",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtol",
+                "return": "True"
+            },
+            {
+                "function": "pause_threads"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_complete_sasl_auth"
+            },
+            {
+                "arguments": [
+                    5
+                ],
+                "function": "conn_new",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "complete_nread_binary"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ise",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "stats_prefix_record_get"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_maintenance_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_touch_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_timeout_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoll",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "maxconns_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_bump_async",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "stats_prefix_find",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_crawler_release_client"
+            },
+            {
+                "function": "daemonize",
+                "return": "True"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "try_read_udp",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "create_worker"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "item_cachedump",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_close_idle"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "binary_get_key",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "try_read_network",
+                "return": "True"
+            },
+            {
+                "function": "slabs_rebalancer_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    4
+                ],
+                "function": "append_bin_stats"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "write_bin_response"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_totals"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "try_read_command",
+                "return": "True"
+            },
+            {
+                "function": "lru_total_bumps_dropped",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "add_msghdr",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_insert",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_push",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_crawl_q",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_alloc",
+                "return": "True"
+            },
+            {
+                "function": "stats_reset"
+            },
+            {
+                "function": "usage"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_maintainer_crawler_check"
+            },
+            {
+                "function": "bipbuf_sizeof",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_thread_close_watcher"
+            },
+            {
+                "function": "do_accept_new_conns"
+            },
+            {
+                "function": "dispatch_conn_new"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "window_sum"
+            },
+            {
+                "function": "new_socket_unix",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_store_item_copy_chunks",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_linktail_q"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_stat_settings"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "do_cache_free"
+            },
+            {
+                "function": "lru_maintainer_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_sizes_enable"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "cache_free"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "store_item",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_crawler_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_stats_conns"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "server_socket_unix",
+                "return": "True"
+            },
+            {
+                "function": "slab_rebalance_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "complete_update_bin"
+            },
+            {
+                "function": "do_item_stats_add_crawl"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoull",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "add_iov",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_crawler_set_client",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "new_socket",
+                "return": "True"
+            },
+            {
+                "function": "bipbuf_new",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "bipbuf_peek_all",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    3
+                ],
+                "function": "_logger_log_item_store"
+            },
+            {
+                "function": "temp_lru_size",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "cq_push"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    5,
+                    6
+                ],
+                "function": "do_add_delta",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "threadlocal_stats_aggregate"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "assoc_delete"
+            },
+            {
+                "function": "cqi_new",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slabs_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "crawler_metadump_finalize"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_link_q"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "logger_thread_parse_entry",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "make_ascii_get_suffix",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoul",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cache_destroy"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_free"
+            },
+            {
+                "function": "lru_crawler_class_done"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_is_empty",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_size",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_sizes"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_cache_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    4
+                ],
+                "function": "do_item_touch",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "crawler_metadump_eval"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_link_q"
+            },
+            {
+                "function": "get_page_from_global_pool",
+                "return": "True"
+            },
+            {
+                "function": "usage_license"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_delete_command"
+            },
+            {
+                "function": "get_cas_id",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cqi_free"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "slabs_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "itoa_u64",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slab_automove_free"
+            },
+            {
+                "function": "lru_crawler_resume"
+            },
+            {
+                "function": "grow_slab_list",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "tokenize_command",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_thread_sum_stats"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_get_or_touch"
+            },
+            {
+                "function": "start_item_crawler_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    3
+                ],
+                "function": "server_socket",
+                "return": "True"
+            },
+            {
+                "function": "init_lru_maintainer",
+                "return": "True"
+            },
+            {
+                "function": "enable_large_pages",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "redispatch_conn"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "init_lru_crawler",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fill_slab_stats_automove"
+            },
+            {
+                "function": "realtime",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "remove_pidfile"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "set_noreply_maybe",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_init"
+            },
+            {
+                "arguments": [
+                    3
+                ],
+                "function": "slabs_init"
+            },
+            {
+                "function": "lru_maintainer_bumps",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "add_chunked_item_iovs",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_crawler_client_getbuf",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_slabs_automove_command"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "server_stats"
+            },
+            {
+                "function": "logger_set_flags"
+            },
+            {
+                "function": "start_conn_timeout_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_is_flushed",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_alloc_chunk",
+                "return": "True"
+            },
+            {
+                "function": "STATS_UNLOCK"
+            },
+            {
+                "function": "stats_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "lru_crawler_crawl",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "_hashitem_before",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cq_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_link_q"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "clock_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlink"
+            },
+            {
+                "function": "stats_prefix_clear"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "slabs_stats"
+            },
+            {
+                "function": "stop_slab_maintenance_thread"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "slab_automove_run"
+            },
+            {
+                "function": "prot_text",
+                "return": "True"
+            },
+            {
+                "function": "settings_init"
+            },
+            {
+                "function": "assoc_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "logger_log",
+                "return": "True"
+            },
+            {
+                "function": "item_lru_bump_buf_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    5,
+                    6
+                ],
+                "function": "add_delta",
+                "return": "True"
+            },
+            {
+                "function": "register_thread_initialized"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "add_bin_header"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_update_command"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "do_store_item",
+                "return": "True"
+            },
+            {
+                "function": "item_trylock",
+                "return": "True"
+            },
+            {
+                "function": "wait_for_thread_registration"
+            },
+            {
+                "function": "item_lock"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "itoa_32",
+                "return": "True"
+            },
+            {
+                "function": "start_slab_maintenance_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "stats_prefix_record_delete"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_watch_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "transmit",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "item_get",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_slabs_free_chunked"
+            },
+            {
+                "function": "logger_get_gid",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlink_nolock"
+            },
+            {
+                "function": "slabs_mlock"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_sasl_auth"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cq_pop",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_slabs_free"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "crawler_expired_init",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ee",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_get_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_append_prepend"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "split_slab_page_into_freelist"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cache_alloc",
+                "return": "True"
+            }
+        ]
+    }
+]

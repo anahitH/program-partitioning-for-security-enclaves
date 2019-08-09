@@ -1,0 +1,77 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 470.0,
+            "TCB%": 70.67669172932331,
+            "args_passed": 100000.0,
+            "context_switches": 4001.0,
+            "in_interface": [
+                "rand",
+                "fflush",
+                "getchar",
+                "printf"
+            ],
+            "in_interface_size": 4,
+            "partition%": 86.66666666666667,
+            "partition_functions": [
+                "exit_handler",
+                "sigaction",
+                "alarm_handler",
+                "sig_init",
+                "sigprocmask",
+                "show_online_help",
+                "show_high_score",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "printf",
+                "puts",
+                "tty_exit",
+                "exit",
+                "tty_init",
+                "fileno",
+                "tcsetattr",
+                "sigaddset",
+                "getchar",
+                "freeze",
+                "time",
+                "fflush",
+                "sigemptyset"
+            ],
+            "partition_size": 26,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 13.333333333333334
+        },
+        "secure_partition": {
+            "TCB": 195.0,
+            "TCB%": 29.32330827067669,
+            "args_passed": 100000.0,
+            "context_switches": 1008.992007992008,
+            "in_interface": [
+                "next_shape",
+                "update",
+                "place",
+                "fits_in"
+            ],
+            "in_interface_size": 4,
+            "partition%": 13.333333333333334,
+            "partition_functions": [
+                "place",
+                "fits_in",
+                "update",
+                "next_shape"
+            ],
+            "partition_size": 4,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

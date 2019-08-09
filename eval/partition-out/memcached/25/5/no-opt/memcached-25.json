@@ -1,0 +1,553 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ee",
+                "return": "True"
+            },
+            {
+                "function": "slabs_clsid",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "set_noreply_maybe",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    4
+                ],
+                "function": "do_item_touch",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_size",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_logger_thread_parse_ige",
+                "return": "True"
+            },
+            {
+                "function": "stats_init"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "write_and_free"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_update_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_stats_sizes_add"
+            },
+            {
+                "function": "threadlocal_stats_reset"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "item_link",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_stat"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    5,
+                    6
+                ],
+                "function": "do_add_delta",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "try_read_network",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    3,
+                    4
+                ],
+                "function": "lru_crawler_start",
+                "return": "True"
+            },
+            {
+                "function": "STATS_UNLOCK"
+            },
+            {
+                "function": "stats_prefix_init"
+            },
+            {
+                "arguments": [
+                    2
+                ],
+                "function": "slabs_alloc",
+                "return": "True"
+            },
+            {
+                "function": "maximize_sndbuf"
+            },
+            {
+                "arguments": [
+                    3,
+                    4
+                ],
+                "function": "item_make_header",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_delete"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "complete_nread_ascii"
+            },
+            {
+                "function": "stats_prefix_clear"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "out2",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "init_lru_crawler",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    5,
+                    6
+                ],
+                "function": "add_delta",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "stats_prefix_dump",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "drive_machine"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_flush"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "vperror"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "slabs_free"
+            },
+            {
+                "function": "do_item_alloc_pull",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "server_socket_unix",
+                "return": "True"
+            },
+            {
+                "function": "slabs_adjust_mem_limit",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cache_alloc",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_crawler_close_client"
+            },
+            {
+                "function": "memory_allocate",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "slab_rebalance_cut_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "add_bin_header"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "reset_cmd_handler"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "logger_thread_parse_entry",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "bipbuf_offer",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_slabs_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "worker_libevent",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "setup_thread"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_poll",
+                "return": "True"
+            },
+            {
+                "function": "usage_license"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "transmit",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_lru_command"
+            },
+            {
+                "function": "slabs_rebalancer_pause"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "slabs_stats"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "logger_log",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "item_get",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "get_object",
+                "return": "True"
+            },
+            {
+                "function": "logger_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_free"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lru_bump_buf_link_q"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fill_slab_stats_automove"
+            },
+            {
+                "function": "stop_slab_maintenance_thread"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_replace",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "slab_stats_aggregate"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "lru_bump_async",
+                "return": "True"
+            },
+            {
+                "function": "item_stats_reset"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_init"
+            },
+            {
+                "function": "stats_reset"
+            },
+            {
+                "function": "lru_maintainer_resume"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "do_item_replace",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_set_state"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "make_ascii_get_suffix",
+                "return": "True"
+            },
+            {
+                "function": "slabs_prefill_global"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoll",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "cq_push"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "bipbuf_used",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "safe_strtoull",
+                "return": "True"
+            },
+            {
+                "function": "stop_item_crawler_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "do_item_unlinktail_q"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "item_stats_totals"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "process_bin_sasl_auth"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "process_slabs_automove_command"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "read_into_chunked_item",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "cq_pop",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "conn_timeout_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "_store_item_copy_chunks",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "logger_thread",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "_ascii_get_suffix_buf",
+                "return": "True"
+            }
+        ]
+    }
+]

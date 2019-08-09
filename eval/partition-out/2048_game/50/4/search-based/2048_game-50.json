@@ -1,0 +1,54 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "deflate_left",
+                "return": "True"
+            },
+            {
+                "function": "print_tile"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "rotate_clockwise"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_down"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lose_game",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "record"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_right"
+            }
+        ]
+    }
+]

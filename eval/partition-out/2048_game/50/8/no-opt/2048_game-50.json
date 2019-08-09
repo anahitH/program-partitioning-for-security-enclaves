@@ -1,0 +1,55 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "rotate_clockwise"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "lose_game",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "max_tile",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_down"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "print_game"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            }
+        ]
+    }
+]

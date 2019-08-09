@@ -1,0 +1,81 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 482.0,
+            "TCB%": 72.4812030075188,
+            "args_passed": 100000.0,
+            "context_switches": 3002.0059940059937,
+            "in_interface": [
+                "sigemptyset",
+                "fflush",
+                "alarm_handler",
+                "rand",
+                "sigaction",
+                "printf",
+                "getchar",
+                "sigaddset"
+            ],
+            "in_interface_size": 8,
+            "partition%": 86.66666666666667,
+            "partition_functions": [
+                "exit_handler",
+                "sigaction",
+                "alarm_handler",
+                "sigprocmask",
+                "show_high_score",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "puts",
+                "tty_exit",
+                "printf",
+                "show_online_help",
+                "exit",
+                "tty_init",
+                "fileno",
+                "tcsetattr",
+                "sigaddset",
+                "fits_in",
+                "getchar",
+                "freeze",
+                "time",
+                "fflush",
+                "sigemptyset"
+            ],
+            "partition_size": 26,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 26.666666666666668
+        },
+        "secure_partition": {
+            "TCB": 183.0,
+            "TCB%": 27.518796992481203,
+            "args_passed": 0.998001998001998,
+            "context_switches": 1017.994005994006,
+            "in_interface": [
+                "update",
+                "place",
+                "next_shape",
+                "sig_init"
+            ],
+            "in_interface_size": 4,
+            "partition%": 13.333333333333334,
+            "partition_functions": [
+                "next_shape",
+                "sig_init",
+                "place",
+                "update"
+            ],
+            "partition_size": 4,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

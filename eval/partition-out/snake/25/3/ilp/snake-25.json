@@ -1,0 +1,24 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_walls",
+                "return": "True"
+            }
+        ]
+    }
+]

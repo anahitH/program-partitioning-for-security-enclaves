@@ -1,0 +1,18 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

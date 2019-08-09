@@ -1,0 +1,20 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            }
+        ]
+    }
+]

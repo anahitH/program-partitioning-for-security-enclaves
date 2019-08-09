@@ -1,0 +1,25 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            }
+        ]
+    }
+]

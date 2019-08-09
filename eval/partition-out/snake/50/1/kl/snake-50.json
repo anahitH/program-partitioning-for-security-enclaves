@@ -1,0 +1,37 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "show_score"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "collide_object",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "sig_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_self",
+                "return": "True"
+            }
+        ]
+    }
+]

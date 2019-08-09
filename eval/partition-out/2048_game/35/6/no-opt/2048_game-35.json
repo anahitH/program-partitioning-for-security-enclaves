@@ -1,0 +1,33 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "record"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place_tile",
+                "return": "True"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "function": "init_curses"
+            }
+        ]
+    }
+]

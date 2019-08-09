@@ -1,0 +1,17 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "tty_exit",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,72 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 800.0,
+            "TCB%": 71.04795737122558,
+            "args_passed": 100000.0,
+            "context_switches": 2002.0089820359283,
+            "in_interface": [
+                "draw_line",
+                "printf",
+                "rand",
+                "srand",
+                "puts",
+                "time"
+            ],
+            "in_interface_size": 6,
+            "partition%": 92.0,
+            "partition_functions": [
+                "move",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "collide_object",
+                "collision",
+                "collide_self",
+                "collide_walls",
+                "main",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "setitimer",
+                "draw_line",
+                "exit",
+                "rand"
+            ],
+            "partition_size": 23,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 24.0
+        },
+        "secure_partition": {
+            "TCB": 326.0,
+            "TCB%": 28.95204262877442,
+            "args_passed": 100000.0,
+            "context_switches": 2021.9940119760479,
+            "in_interface": [
+                "setup_level",
+                "show_score"
+            ],
+            "in_interface_size": 2,
+            "partition%": 8.0,
+            "partition_functions": [
+                "show_score",
+                "setup_level"
+            ],
+            "partition_size": 2,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "tty_exit",
+                "return": "True"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,69 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 890.0,
+            "TCB%": 79.04085257548846,
+            "args_passed": 100000.0,
+            "context_switches": 3004.008982035928,
+            "in_interface": [
+                "printf"
+            ],
+            "in_interface_size": 1,
+            "partition%": 76.0,
+            "partition_functions": [
+                "setup_level",
+                "move",
+                "sigsetup",
+                "alarm_handler",
+                "eat_gold",
+                "main",
+                "exit",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "srand",
+                "printf",
+                "sigemptyset",
+                "system",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "rand"
+            ],
+            "partition_size": 19,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 4.0
+        },
+        "secure_partition": {
+            "TCB": 236.0,
+            "TCB%": 20.959147424511546,
+            "args_passed": 100000.0,
+            "context_switches": 1015.9920159680638,
+            "in_interface": [
+                "collide_object",
+                "draw_line",
+                "show_score",
+                "collision"
+            ],
+            "in_interface_size": 4,
+            "partition%": 24.0,
+            "partition_functions": [
+                "show_score",
+                "collision",
+                "draw_line",
+                "collide_walls",
+                "collide_self",
+                "collide_object"
+            ],
+            "partition_size": 6,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

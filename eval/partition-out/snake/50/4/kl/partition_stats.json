@@ -1,0 +1,75 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 592.0,
+            "TCB%": 52.57548845470693,
+            "args_passed": 100000.0,
+            "context_switches": 3009.005988023952,
+            "in_interface": [
+                "printf",
+                "sigemptyset",
+                "puts",
+                "setitimer",
+                "sigaction"
+            ],
+            "in_interface_size": 5,
+            "partition%": 76.0,
+            "partition_functions": [
+                "setup_level",
+                "eat_gold",
+                "collide_self",
+                "collision",
+                "main",
+                "system",
+                "puts",
+                "sig_handler",
+                "getchar",
+                "time",
+                "sigaction",
+                "sigemptyset",
+                "printf",
+                "srand",
+                "draw_line",
+                "exit",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "rand"
+            ],
+            "partition_size": 19,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 20.0
+        },
+        "secure_partition": {
+            "TCB": 534.0,
+            "TCB%": 47.42451154529307,
+            "args_passed": 100000.0,
+            "context_switches": 2018.9930139720557,
+            "in_interface": [
+                "move",
+                "collide_walls",
+                "alarm_handler",
+                "collide_object",
+                "sigsetup",
+                "show_score"
+            ],
+            "in_interface_size": 6,
+            "partition%": 24.0,
+            "partition_functions": [
+                "sigsetup",
+                "show_score",
+                "collide_object",
+                "alarm_handler",
+                "collide_walls",
+                "move"
+            ],
+            "partition_size": 6,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

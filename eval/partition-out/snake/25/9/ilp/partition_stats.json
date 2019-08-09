@@ -1,0 +1,74 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 432.0,
+            "TCB%": 38.36589698046181,
+            "args_passed": 100000.0,
+            "context_switches": 2004.99001996008,
+            "in_interface": [
+                "show_score",
+                "printf",
+                "rand",
+                "srand",
+                "puts",
+                "time"
+            ],
+            "in_interface_size": 6,
+            "partition%": 88.0,
+            "partition_functions": [
+                "main",
+                "eat_gold",
+                "collision",
+                "collide_self",
+                "collide_object",
+                "exit",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "srand",
+                "collide_walls",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "system",
+                "alarm_handler",
+                "rand",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 22,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 24.0
+        },
+        "secure_partition": {
+            "TCB": 694.0,
+            "TCB%": 61.63410301953819,
+            "args_passed": 1.9940119760479043,
+            "context_switches": 5010.994011976048,
+            "in_interface": [
+                "setup_level",
+                "move"
+            ],
+            "in_interface_size": 2,
+            "partition%": 12.0,
+            "partition_functions": [
+                "move",
+                "draw_line",
+                "setup_level"
+            ],
+            "partition_size": 3,
+            "security_related%": 4.0,
+            "security_related_functions": [
+                "show_score  1"
+            ],
+            "security_related_functions_size": 1
+        }
+    }
+}

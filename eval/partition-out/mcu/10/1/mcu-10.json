@@ -1,0 +1,464 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "yajl_tree_parse",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_context_clone",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "function": "secp256k1_ecmult"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "sha256_Update"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_gej_set_infinity"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_buf_len",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "mix_sub_columns"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_get_bits",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "usb_hww_report"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "wallet_check_bip44_keypath_prefix",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "libsecp256k1_ecc_get_public_key33"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "uECC_valid_point",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_make_key",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_ge_to_storage"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_xpub"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_cadd_bit"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ec_pubkey_combine",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_seed"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_hidden_password"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "u2f_device_cmd_cont"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "utils_zero",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_fe_inv"
+            },
+            {
+                "arguments": [
+                    0,
+                    2,
+                    3
+                ],
+                "function": "cipher_aes_b64_hmac_encrypt",
+                "return": "True"
+            },
+            {
+                "function": "memory_report_erased",
+                "return": "True"
+            },
+            {
+                "function": "flag_msg",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_integer",
+                "return": "True"
+            },
+            {
+                "function": "memory_report_setup",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "uECC_generate_private_key"
+            },
+            {
+                "function": "memory_clear"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    4,
+                    5,
+                    6
+                ],
+                "function": "secp256k1_ecmult_strauss_wnaf"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_double",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "function": "nonce_function_rfc6979",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_map_close",
+                "return": "True"
+            },
+            {
+                "function": "random_uint32",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_tfa_check_pin",
+                "return": "True"
+            },
+            {
+                "function": "led_code"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "uECC_vli_isZero",
+                "return": "True"
+            },
+            {
+                "function": "memory_write_memory_map_version"
+            },
+            {
+                "function": "commander_access_err"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_process_random"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "mod_sqrt_default"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_do_finish",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_ecdsa_signature_parse_der",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "api_hid_read_frame",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "secp256k1_ec_privkey_negate",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "commander_decrypt",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scratch_space_create",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_gej_is_infinity",
+                "return": "True"
+            },
+            {
+                "function": "ataes_eeprom_simulation_report",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_decompress"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "secp256k1_ecdsa_recoverable_signature_serialize_compact",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "buffer_append"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "hid_free_enumeration"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "memory_master_u2f",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "xor_block"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "function": "secp256k1_ecdsa_signature_serialize_der",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "secp256k1_scalar_reduce",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "yajl_gen_map_open",
+                "return": "True"
+            },
+            {
+                "function": "touch_init"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "sd_delete_files",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "uECC_vli_sub",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "yajl_render_error_string",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "copy_and_key"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "commander_check_change_keypath",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1,
+                    2
+                ],
+                "function": "secp256k1_scalar_set_b32"
+            },
+            {
+                "arguments": [
+                    0,
+                    2
+                ],
+                "function": "secp256k1_ecmult_wnaf",
+                "return": "True"
+            }
+        ]
+    }
+]

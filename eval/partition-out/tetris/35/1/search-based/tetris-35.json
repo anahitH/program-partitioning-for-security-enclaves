@@ -1,0 +1,24 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

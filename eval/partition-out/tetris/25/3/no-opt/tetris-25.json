@@ -1,0 +1,20 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "tty_exit",
+                "return": "True"
+            },
+            {
+                "function": "show_high_score"
+            }
+        ]
+    }
+]

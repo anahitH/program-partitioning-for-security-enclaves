@@ -1,0 +1,21 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "exit_handler"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            }
+        ]
+    }
+]

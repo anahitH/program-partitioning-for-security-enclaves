@@ -1,0 +1,78 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 780.0,
+            "TCB%": 69.27175843694494,
+            "args_passed": 100000.0,
+            "context_switches": 2002.998003992016,
+            "in_interface": [
+                "rand",
+                "draw_line",
+                "exit",
+                "puts",
+                "time",
+                "system",
+                "srand",
+                "printf",
+                "show_score"
+            ],
+            "in_interface_size": 9,
+            "partition%": 88.0,
+            "partition_functions": [
+                "getchar",
+                "main",
+                "eat_gold",
+                "collision",
+                "collide_self",
+                "collide_walls",
+                "system",
+                "puts",
+                "time",
+                "sigaction",
+                "srand",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "alarm_handler",
+                "exit",
+                "draw_line",
+                "rand",
+                "move",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 22,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 36.0
+        },
+        "secure_partition": {
+            "TCB": 346.0,
+            "TCB%": 30.72824156305506,
+            "args_passed": 1.9940119760479043,
+            "context_switches": 2013.9940119760479,
+            "in_interface": [
+                "collide_object",
+                "setup_level"
+            ],
+            "in_interface_size": 2,
+            "partition%": 12.0,
+            "partition_functions": [
+                "setup_level",
+                "sig_handler",
+                "collide_object"
+            ],
+            "partition_size": 3,
+            "security_related%": 8.0,
+            "security_related_functions": [
+                "show_score  1",
+                "collide_walls  2"
+            ],
+            "security_related_functions_size": 2
+        }
+    }
+}

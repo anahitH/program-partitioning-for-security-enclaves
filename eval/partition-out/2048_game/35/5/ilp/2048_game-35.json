@@ -1,0 +1,32 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "print_tile"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "record"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,34 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "update",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            },
+            {
+                "function": "exit_handler"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "fits_in",
+                "return": "True"
+            },
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "tty_exit",
+                "return": "True"
+            }
+        ]
+    }
+]

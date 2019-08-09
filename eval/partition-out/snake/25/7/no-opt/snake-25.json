@@ -1,0 +1,20 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "draw_line"
+            },
+            {
+                "arguments": [
+                    1
+                ],
+                "function": "sigsetup",
+                "return": "True"
+            },
+            {
+                "function": "sig_handler"
+            }
+        ]
+    }
+]

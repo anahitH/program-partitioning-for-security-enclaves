@@ -1,0 +1,24 @@
+[
+{
+    "annotation" : "sensitive",
+        "functions" : [
+        {
+            "function" : "fits_in",
+            "arguments" : [0],
+            "return" : "True"
+        },
+        {
+            "function" : "place",
+            "arguments" : [0]
+        },
+        {
+            "function" : "next_shape",
+            "return" : "True"
+        },
+        {
+            "function" : "update",
+            "return" : "True"
+        }
+        ]
+}
+]

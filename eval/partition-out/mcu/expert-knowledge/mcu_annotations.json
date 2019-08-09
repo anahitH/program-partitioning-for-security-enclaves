@@ -1,0 +1,31 @@
+[
+{
+    "annotation" : "sensitive",
+        "functions" : [
+        {
+            "function" : "wallet_sign",
+            "arguments" : [0, 1],
+            "return" : "True"
+        },
+        {
+            "function" : "ecc_sign_digest",
+            "arguments" : [2, 3],
+            "return" : "True"
+        },
+        {
+            "function" : "wallet_seeded",
+            "return" : "True"
+        },
+        {
+            "function" : "wallet_generate_key",
+            "arguments" : [0, 1, 2],
+            "return" : "True"
+        },
+        {
+            "function" : "random_bytes",
+            "arguments" : [0],
+            "return" : "True"
+        }
+        ]
+}
+]

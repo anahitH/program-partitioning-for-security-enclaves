@@ -1,0 +1,53 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_left"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_right"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "move_up"
+            },
+            {
+                "function": "init_curses"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "print_game"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place_tile",
+                "return": "True"
+            },
+            {
+                "function": "get_input",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "combine_left",
+                "return": "True"
+            }
+        ]
+    }
+]

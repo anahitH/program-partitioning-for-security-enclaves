@@ -1,0 +1,87 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 441.0,
+            "TCB%": 66.3157894736842,
+            "args_passed": 100000.0,
+            "context_switches": 4003.000999000999,
+            "in_interface": [
+                "sigemptyset",
+                "fflush",
+                "tcsetattr",
+                "fileno",
+                "puts",
+                "sigaddset",
+                "tcgetattr",
+                "rand",
+                "setitimer",
+                "printf",
+                "getchar",
+                "sigprocmask"
+            ],
+            "in_interface_size": 12,
+            "partition%": 80.0,
+            "partition_functions": [
+                "sigaction",
+                "exit",
+                "exit_handler",
+                "srand",
+                "rand",
+                "tcgetattr",
+                "show_high_score",
+                "main",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64",
+                "place",
+                "sig_init",
+                "sigprocmask",
+                "printf",
+                "show_online_help",
+                "getchar",
+                "sigaddset",
+                "puts",
+                "tty_exit",
+                "fileno",
+                "tcsetattr",
+                "time",
+                "fflush",
+                "sigemptyset"
+            ],
+            "partition_size": 24,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 40.0
+        },
+        "secure_partition": {
+            "TCB": 224.0,
+            "TCB%": 33.68421052631579,
+            "args_passed": 100000.0,
+            "context_switches": 1017.992007992008,
+            "in_interface": [
+                "update",
+                "tty_init",
+                "alarm_handler",
+                "fits_in",
+                "next_shape",
+                "freeze"
+            ],
+            "in_interface_size": 6,
+            "partition%": 20.0,
+            "partition_functions": [
+                "fits_in",
+                "freeze",
+                "alarm_handler",
+                "tty_init",
+                "next_shape",
+                "update"
+            ],
+            "partition_size": 6,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

@@ -1,0 +1,79 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 173.0,
+            "TCB%": 15.36412078152753,
+            "args_passed": 100000.0,
+            "context_switches": 6008.003992015969,
+            "in_interface": [
+                "rand",
+                "draw_line",
+                "time",
+                "puts",
+                "sigemptyset",
+                "srand",
+                "sigaction",
+                "printf"
+            ],
+            "in_interface_size": 8,
+            "partition%": 64.0,
+            "partition_functions": [
+                "main",
+                "system",
+                "puts",
+                "getchar",
+                "sig_handler",
+                "time",
+                "sigaction",
+                "sigemptyset",
+                "printf",
+                "srand",
+                "alarm_handler",
+                "exit",
+                "draw_line",
+                "rand",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 16,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 32.0
+        },
+        "secure_partition": {
+            "TCB": 953.0,
+            "TCB%": 84.63587921847247,
+            "args_passed": 100000.0,
+            "context_switches": 4028.9840319361274,
+            "in_interface": [
+                "setup_level",
+                "collide_object",
+                "move",
+                "eat_gold",
+                "show_score",
+                "sigsetup",
+                "collision"
+            ],
+            "in_interface_size": 7,
+            "partition%": 36.0,
+            "partition_functions": [
+                "collide_walls",
+                "collide_object",
+                "collide_self",
+                "setup_level",
+                "move",
+                "eat_gold",
+                "collision",
+                "sigsetup",
+                "show_score"
+            ],
+            "partition_size": 9,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        }
+    }
+}

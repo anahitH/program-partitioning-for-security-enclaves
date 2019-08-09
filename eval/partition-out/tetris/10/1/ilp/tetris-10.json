@@ -1,0 +1,11 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "next_shape",
+                "return": "True"
+            }
+        ]
+    }
+]

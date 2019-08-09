@@ -1,0 +1,18 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "show_high_score"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "function": "update",
+                "return": "True"
+            }
+        ]
+    }
+]

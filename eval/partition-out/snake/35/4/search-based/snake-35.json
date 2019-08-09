@@ -1,0 +1,34 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "show_score"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "move"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "collide_self",
+                "return": "True"
+            },
+            {
+                "arguments": [
+                    0,
+                    1
+                ],
+                "function": "setup_level"
+            }
+        ]
+    }
+]

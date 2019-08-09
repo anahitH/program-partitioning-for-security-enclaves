@@ -1,0 +1,80 @@
+{
+    "partition": {
+        "insecure_partition": {
+            "TCB": 738.0,
+            "TCB%": 65.54174067495559,
+            "args_passed": 100000.0,
+            "context_switches": 2002.998003992016,
+            "in_interface": [
+                "setitimer",
+                "rand",
+                "draw_line",
+                "exit",
+                "puts",
+                "time",
+                "system",
+                "show_score",
+                "sigsetup",
+                "srand",
+                "printf"
+            ],
+            "in_interface_size": 11,
+            "partition%": 84.0,
+            "partition_functions": [
+                "getchar",
+                "main",
+                "collision",
+                "collide_self",
+                "collide_object",
+                "system",
+                "puts",
+                "time",
+                "sigaction",
+                "srand",
+                "collide_walls",
+                "sigsetup",
+                "printf",
+                "sigemptyset",
+                "show_score",
+                "exit",
+                "draw_line",
+                "rand",
+                "move",
+                "setitimer",
+                "llvm.memcpy.p0i8.p0i8.i64"
+            ],
+            "partition_size": 21,
+            "security_related%": 0.0,
+            "security_related_functions": [],
+            "security_related_functions_size": 0
+        },
+        "m_partitionName": {
+            "in_interface%": 44.0
+        },
+        "secure_partition": {
+            "TCB": 388.0,
+            "TCB%": 34.4582593250444,
+            "args_passed": 100000.0,
+            "context_switches": 2015.9940119760479,
+            "in_interface": [
+                "eat_gold",
+                "setup_level",
+                "alarm_handler"
+            ],
+            "in_interface_size": 3,
+            "partition%": 16.0,
+            "partition_functions": [
+                "setup_level",
+                "alarm_handler",
+                "sig_handler",
+                "eat_gold"
+            ],
+            "partition_size": 4,
+            "security_related%": 4.0,
+            "security_related_functions": [
+                "show_score  1"
+            ],
+            "security_related_functions_size": 1
+        }
+    }
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "tty_init",
+                "return": "True"
+            }
+        ]
+    }
+]

@@ -1,0 +1,30 @@
+[
+    {
+        "annotation": "sensitive",
+        "functions": [
+            {
+                "function": "alarm_handler"
+            },
+            {
+                "function": "show_online_help"
+            },
+            {
+                "function": "tty_init",
+                "return": "True"
+            },
+            {
+                "function": "next_shape",
+                "return": "True"
+            },
+            {
+                "function": "freeze"
+            },
+            {
+                "arguments": [
+                    0
+                ],
+                "function": "place"
+            }
+        ]
+    }
+]
