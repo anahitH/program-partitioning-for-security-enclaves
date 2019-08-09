@@ -603,6 +603,7 @@ void CallGraphPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
     AU.addPreserved<llvm::CallGraphWrapperPass>();
     AU.addRequired<llvm::LoopInfoWrapperPass>();
     AU.addRequired<ProgramPartitionAnalysis>();
+    AU.addPreserved<ProgramPartitionAnalysis>();
 }
 
 bool CallGraphPass::runOnModule(llvm::Module& M)

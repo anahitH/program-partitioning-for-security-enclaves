@@ -139,6 +139,7 @@ add_library(eval-program_partitioning MODULE
         lib/Eval/AnnotationCreatorPass.cpp
         lib/Eval/ShadowCallStackGeneratorPass.cpp
         lib/Eval/ModuleInformation.cpp
+        lib/Eval/StaticNumberOfContextSwitches.cpp
         lib/Utils/Utils.cpp
 )
 
