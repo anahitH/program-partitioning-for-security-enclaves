@@ -41,8 +41,8 @@ bool ShadowCallStackGeneratorPass::runOnModule(llvm::Module& M)
 {
     llvm::LLVMContext& Ctx = M.getContext();
     llvm::FunctionType* addCallerCalleeFTy = llvm::FunctionType::get(llvm::Type::getVoidTy(Ctx), {llvm::Type::getInt8PtrTy(Ctx)});
-    m_addCallerF = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction("addCaller", addCallerCalleeFTy));
-    m_addCalleeF = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction("addCallee", addCallerCalleeFTy));
+    m_addCallerF = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction("addCaller", addCallerCalleeFTy).getCallee());
+    m_addCalleeF = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction("addCallee", addCallerCalleeFTy).getCallee());
 
     for (auto& F : M) {
         //llvm::dbgs() << "Function: " << F.getName() << "\n";
