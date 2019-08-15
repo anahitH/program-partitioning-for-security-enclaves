@@ -9,6 +9,8 @@
 #include "PDG/PDG/PDGEdge.h"
 #include "PDG/PDG/FunctionPDG.h"
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
@@ -39,9 +41,9 @@ CallbacksHelper::CallbacksHelper(llvm::Module* module,
 void CallbacksHelper::adjustCallbacksInPartitions()
 {
     const auto& functions_with_callback_arg = findFunctionsWithCallbackArgs();
-    addCallbackHandlerFunctions(functions_with_callback_arg);
     for (const auto& [function, callbackArgs] : functions_with_callback_arg) {
-        createCallbacksHanlders(function, callbackArgs);
+        createCallbacksHandlers(function, callbackArgs);
+        modifyFunctionsWithCallbackArgument(function);
         /* modify function to receive long instead of callback.
             - modify signature
                 - most probably by cloning the function to new one and then deleting the original.
@@ -56,7 +58,7 @@ void CallbacksHelper::adjustCallbacksInPartitions()
     }
 }
 
-void CallbacksHelper::createCallbacksHanlders(llvm::Function* F,
+void CallbacksHelper::createCallbacksHandlers(llvm::Function* F,
         const std::vector<llvm::Argument*>& functionCallbackArgs)
 {
     /*
@@ -73,7 +75,9 @@ void CallbacksHelper::createCallbacksHanlders(llvm::Function* F,
     */
     int i = 0;
     for (const auto& arg : functionCallbackArgs) {
-        const auto& callbackHandlers = createCallbackHandlers(llvm::dyn_cast<llvm::FunctionType>(arg->getType()), i);
+        llvm::FunctionType* signatureTy = llvm::dyn_cast<llvm::FunctionType>(arg->getType());
+        const auto& callbackHandlers = createCallbackHandlers(signatureTy, i);
+        m_signatureHandlers.insert(std::make_pair(signatureTy, callbackHandlers));
         ++i;
     }
 }
@@ -92,7 +96,7 @@ CallbacksHelper::createCallbackHandlers(llvm::FunctionType* callbackType, int ca
     llvm::FunctionType* callbackHanlderType = llvm::FunctionType::get(callbackType->getReturnType(),
                                                                       callbackHandlerParams, false);
     llvm::Function* secureCallbackHandler = llvm::dyn_cast<llvm::Function>(
-                                                    m_module->getOrInsertFunction(secure_handler_name, callbackHanlderType));
+                                                    m_module->getOrInsertFunction(secure_handler_name, callbackHanlderType).getCallee());
     // Add the body
     llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(Ctx, "entry", secureCallbackHandler);
     llvm::IRBuilder<> builder(entryBlock);
@@ -225,6 +229,60 @@ CallbacksHelper::findFunctionsWithCallbackArgs()
         }
     }
     return functionsWithCallbackArg;
+}
+
+void CallbacksHelper::modifyFunctionsWithCallbackArgument(llvm::Function* F)
+{
+    std::vector<llvm::Type*> callbackArguments(F->getFunctionType()->getNumParams());
+    int i = 0;
+    std::vector<int> callbackArgIdx;
+    callbackArgIdx.reserve(callbackArguments.size());
+    for (auto arg_it = F->arg_begin(); arg_it != F->arg_end(); ++arg_it) {
+        auto* arg_type = arg_it->getType();
+        if (arg_type->isFunctionTy()) {
+            callbackArgIdx.push_back(i);
+            callbackArguments[i++] = llvm::Type::getInt128Ty(m_module->getContext());
+        } else {
+            callbackArguments[i++] = arg_it->getType();
+        }
+    }
+    llvm::ArrayRef<llvm::Type*> callbackArgumentsArray(callbackArguments);
+    llvm::FunctionType* modifiedFunctionType = llvm::FunctionType::get(F->getReturnType(), callbackArgumentsArray, F->isVarArg());
+    llvm::Function* modifiedF = llvm::dyn_cast<llvm::Function>(
+                                                    m_module->getOrInsertFunction(F->getName(), modifiedFunctionType).getCallee());
+    llvm::ValueToValueMapTy value_to_value_map;
+    // map callback args to their address args
+    for (const auto& idx : callbackArgIdx) {
+        llvm::Argument* callbackArg = F->getArg(idx);
+        value_to_value_map[callbackArg] = modifiedF->getArg(idx);
+        for (auto user_it = callbackArg->user_begin(); user_it != callbackArg->user_end(); ++user_it) {
+            if (llvm::isa<llvm::CallInst>(*user_it)
+                    || llvm::isa<llvm::InvokeInst>(*user_it)) {
+                //TODO: try to modify in the clone, if doesn't work change in the original function and adjust using value mapper
+                //llvm::CallInst* handlerCall = createCallToCallbackHandlerForArg(F, callbackArg);
+            }
+        }
+    }
+
+    llvm::SmallVector<llvm::ReturnInst*, 2> returns;
+    llvm::CloneFunctionInto(modifiedF, F, value_to_value_map, false, returns);
+
+    // iterate function instructions, replace callback invokation with corresponding callback handler invokation
+}
+
+llvm::CallInst* CallbacksHelper::createCallToCallbackHandlerForArg(llvm::Function* F, llvm::Argument* callbackArg)
+{
+    llvm::Function* callbackHandler = nullptr;
+    llvm::FunctionType* argType = llvm::dyn_cast<llvm::FunctionType>(callbackArg->getType());
+    if (m_securePartition.contains(F)) {
+        callbackHandler = m_signatureHandlers[argType].first;
+    } else {
+        callbackHandler = m_signatureHandlers[argType].second;
+    }
+
+
+    // TODO: implement;
+    return nullptr;
 }
 
 } // namespace vazgen

@@ -11,6 +11,7 @@ class Argument;
 class Function;
 class FunctionType;
 class Module;
+class CallInst;
 } // namespace llvm
 
 namespace pdg {
@@ -45,13 +46,14 @@ public:
 
 private:
     FunctionCallbackArgsMap findFunctionsWithCallbackArgs();
-    void addCallbackHandlerFunctions(const FunctionCallbackArgsMap& functionsWithCallbackArgs);
-    void createCallbacksHanlders(llvm::Function* F,
+    void createCallbacksHandlers(llvm::Function* F,
                                  const std::vector<llvm::Argument*>& functionWithCallbackArgs);
     std::pair<llvm::Function*, llvm::Function*> createCallbackHandlers(llvm::FunctionType* callbackType, int callbackIdx);
     llvm::Function* createInsecureCloneOfCallbackHandler(llvm::Function* secureCallbackHandler,
                                                          llvm::ValueToValueMapTy& valueToValueMap,
                                                          int callbackIdx);
+    void modifyFunctionsWithCallbackArgument(llvm::Function* F);
+    llvm::CallInst* createCallToCallbackHandlerForArg(llvm::Function* F, llvm::Argument* callbackArg);
 
 private:
     llvm::Module* m_module;

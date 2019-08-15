@@ -16,7 +16,7 @@ void Utils::saveModule(llvm::Module* M, const std::string& name)
 {
     std::error_code EC;
     llvm::raw_fd_ostream OS(name, EC, llvm::sys::fs::OpenFlags::F_None);
-    llvm::WriteBitcodeToFile(M, OS);
+    llvm::WriteBitcodeToFile(*M, OS);
     OS.flush();
 }
 

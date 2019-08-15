@@ -171,8 +171,8 @@ void GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVaria
     fName += m_prefix;
     fName += "_";
     fName += global->getName().str();
-    llvm::Function* setter = llvm::dyn_cast<llvm::Function>(
-            m_module->getOrInsertFunction(fName, fType));
+    llvm::FunctionCallee functionCallee = m_module->getOrInsertFunction(fName, fType);
+    llvm::Function* setter = llvm::dyn_cast<llvm::Function>(functionCallee.getCallee());
     m_globalSetter.insert(std::make_pair(global, setter));
 
     auto* entryBlock = llvm::BasicBlock::Create(Ctx, "entry", setter);
@@ -238,7 +238,8 @@ llvm::Function* PartitionExtractor::createFunctionDeclaration(llvm::Function* or
     auto* functionType = originalF->getFunctionType();
     const std::string function_name = originalF->getName();
     const std::string clone_name = function_name + "_clone";
-    return llvm::dyn_cast<llvm::Function>(m_module->getOrInsertFunction(clone_name, functionType));
+    llvm::FunctionCallee functionCallee = m_module->getOrInsertFunction(clone_name, functionType);
+    return llvm::dyn_cast<llvm::Function>(functionCallee.getCallee());
 }
 
 bool PartitionExtractor::changeFunctionUses(llvm::Function* originalF, llvm::Function* cloneF)
@@ -262,7 +263,7 @@ void PartitionExtractor::createModule(const std::unordered_set<std::string>& fun
     //for (const auto& f : function_names) {
     //    llvm::dbgs() << f << "\n";
     //}
-    m_slicedModule =  llvm::CloneModule(m_module, value_to_value_map,
+    m_slicedModule =  llvm::CloneModule(*m_module, value_to_value_map,
                 [&function_names] (const llvm::GlobalValue* glob) {
                     return function_names.find(glob->getName()) != function_names.end();
                 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(program_partitioning VERSION 0.1.0 LANGUAGES CXX)
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
-find_package(LLVM 6.0 REQUIRED CONFIG)
+find_package(LLVM REQUIRED CONFIG)
 find_package (Threads)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_package(svf REQUIRED COMPONENTS Svf)
@@ -12,10 +12,12 @@ find_package(Boost COMPONENTS thread REQUIRED)
 #TODO: both svf_INCLUDE_DIRS and pdg_INCLUDE_DIRS are empty
 
 # Ideally would use find_package
-set (DG_INCLUDE_DIR "/usr/local/include/dg")
-set (CPLEX_CONCERT_INCLUDE "/home/anahitik/ibm/concert/include")
-set (CPLEX_INCLUDE "/home/anahitik/ibm/cplex/include")
-set (CP_INCLUDE "/home/anahitik/ibm/opl/include")
+
+set (CPLEX_PATH "/opt/ibm/ILOG/CPLEX_Studio_Community129")
+#set (DG_INCLUDE_DIR "/usr/local/include/dg")
+set (CPLEX_CONCERT_INCLUDE "${CPLEX_PATH}/concert/include")
+set (CPLEX_INCLUDE "${CPLEX_PATH}/cplex/include")
+set (CP_INCLUDE "${CPLEX_PATH}/opl/include")
 set (CPLEX_CONCERT_LIB "libconcert.a")
 set (ILOCPLEX_LIB "libilocplex.a")
 set (CPLEX_LIB "libcplex.a")
@@ -125,11 +127,12 @@ add_library(debug-program_partitioning MODULE
         lib/Debug/AnnotationsTest.cpp
         lib/Debug/ModuleAnnotationsTest.cpp
         lib/Debug/JsonAnnotationsTest.cpp
-        lib/Debug/DgPDGCompare.cpp
-        #lib/Debug/SVFGTraversal.cpp
-        lib/Debug/FunctionExtractor.cpp
+	#lib/Debug/DgPDGCompare.cpp
+	#lib/Debug/SVFGTraversal.cpp
+	#lib/Debug/FunctionExtractor.cpp
         lib/Debug/OptimizationFactorsTable.cpp
         lib/Debug/ILPOptimizationData.cpp
+        lib/Debug/FunctionCloneIntoTest.cpp
         lib/Eval/AnnotationCreatorPass.cpp
 )
 
@@ -156,7 +159,6 @@ target_include_directories(debug-program_partitioning PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
-        ${DG_INCLUDE_DIR}
         ${pdg_INCLUDE_DIR}
         ${CPLEX_CONCERT_INCLUDE}
         ${CPLEX_INCLUDE}

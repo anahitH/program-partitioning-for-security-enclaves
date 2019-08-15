@@ -365,6 +365,7 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
 {
     m_logger.info("Compute security sensitivity relation weights for nodes");
     WeightFactor factor(WeightFactor::SENSITIVE_RELATED);
+    factor.setCoef(LOOP_COST);
     for (const auto& [function, level] : m_securePartition.getRelatedFunctions()) {
         if (level == 0) {
             factor.setValue(1/LOOP_COST);
@@ -602,6 +603,7 @@ void CallGraphPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
     AU.addPreserved<llvm::CallGraphWrapperPass>();
     AU.addRequired<llvm::LoopInfoWrapperPass>();
     AU.addRequired<ProgramPartitionAnalysis>();
+    AU.addPreserved<ProgramPartitionAnalysis>();
 }
 
 bool CallGraphPass::runOnModule(llvm::Module& M)
