@@ -68,7 +68,7 @@ public:
             return false;
         }
         llvm::ValueToValueMapTy value_to_value_map;
-        auto new_M = llvm::CloneModule(&M, value_to_value_map,
+        auto new_M = llvm::CloneModule(M, value_to_value_map,
                 [&function_name] (const llvm::GlobalValue* glob) {
                     return glob->getName() == function_name;
                 }
@@ -88,7 +88,7 @@ public:
 
         std::error_code EC;
         llvm::raw_fd_ostream OS("lib.bc", EC, llvm::sys::fs::OpenFlags::F_None);
-        llvm::WriteBitcodeToFile(new_M.get(), OS);
+        llvm::WriteBitcodeToFile(*new_M.get(), OS);
         OS.flush();
 
         return modified;

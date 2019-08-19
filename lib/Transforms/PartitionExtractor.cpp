@@ -262,7 +262,7 @@ void PartitionExtractor::createModule(const std::unordered_set<std::string>& fun
     //for (const auto& f : function_names) {
     //    llvm::dbgs() << f << "\n";
     //}
-    m_slicedModule =  llvm::CloneModule(m_module, value_to_value_map,
+    m_slicedModule =  llvm::CloneModule(*m_module, value_to_value_map,
                 [&function_names] (const llvm::GlobalValue* glob) {
                     return function_names.find(glob->getName()) != function_names.end();
                 }
