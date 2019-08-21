@@ -1,9 +1,8 @@
 #! /bin/bash
 
 PDG_PATH="/usr/local/lib/libpdg.so"
-DG_PATH="/usr/local/lib/libLLVMdg.so"
 SVFG_PATH="/usr/local/lib/Svf.so"
-SELF_PATH="/home/anahitik/TUM/Thesis/program-partitioning-for-security-enclaves/build/libprogram_partitioning.so"
+SELF_PATH="$PWD/../../build/libprogram_partitioning.so"
 
 DIRS=('snake' 'tetris' '2048_game')
 
@@ -14,8 +13,8 @@ run_partition() {
     outfile="partition.txt"
     annots="$dir"
     annots+="_annotations.json"
-    echo "opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -json-annotations=$annots -outfile=$outfile"
-    opt -load $SVFG_PATH -load $DG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -json-annotations=$annots -outfile=$outfile
+    echo "opt -load $SVFG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -json-annotations=$annots -outfile=$outfile"
+    opt -load $SVFG_PATH -load $PDG_PATH -load $SELF_PATH $bc -partition-analysis -json-annotations=$annots -optimize='ilp' -partition-stats
 
     sort -o $outfile $outfile
     sort -o "expected_partition.txt" "expected_partition.txt"
