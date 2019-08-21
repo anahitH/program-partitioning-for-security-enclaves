@@ -92,10 +92,12 @@ private:
         // map callback args to their address args
         for (const auto& idx : callbackArgIdx) {
             llvm::Argument* callbackArg = F->getArg(idx);
+            llvm::dbgs() << *callbackArg << "\n";
             value_to_value_map[callbackArg] = modifiedF->getArg(idx);
             for (auto user_it = callbackArg->user_begin(); user_it != callbackArg->user_end(); ++user_it) {
                 if (llvm::isa<llvm::CallInst>(*user_it)
                         || llvm::isa<llvm::InvokeInst>(*user_it)) {
+                    llvm::dbgs() << *user_it << "\n";
                     callbackInvokations[llvm::dyn_cast<llvm::Instruction>(*user_it)] = callbackArg;
                     //TODO: try to modify in the clone, if doesn't work change in the original function and adjust using value mapper
                     //llvm::CallInst* handlerCall = createCallToCallbackHandlerForArg(F, callbackArg);
@@ -107,6 +109,7 @@ private:
         llvm::CloneFunctionInto(modifiedF, F, value_to_value_map, false, returns);
 
         for (const auto& [callInst, arg] : callbackInvokations) {
+            llvm::dbgs() << *callInst << "\n";
             llvm::IRBuilder<> builder(modifiedF->getContext());
             llvm::CallBase* callBase = llvm::dyn_cast<llvm::CallBase>(&*value_to_value_map[callInst]);
             builder.SetInsertPoint(callBase);
