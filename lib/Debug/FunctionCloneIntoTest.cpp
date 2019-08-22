@@ -34,6 +34,9 @@ public:
         m_module = &M;
         llvm::Function* handlerF = createCallbackHandler();
         for (auto& F : M) {
+            if (F.isDeclaration()) {
+                continue;
+            }
             const auto& callbackArgs = getCallbackArguments(&F);
             if (!callbackArgs.empty()) {
                 cloneInto(&F, handlerF);
@@ -45,6 +48,20 @@ private:
     llvm::Module* m_module;
 
 private:
+    bool isCallbackArgument(llvm::Type* arg_type)
+    {
+        if (arg_type->isFunctionTy()) {
+            return true;
+        }
+        if (auto* ptr_ty = llvm::dyn_cast<llvm::PointerType>(arg_type)) {
+            if (ptr_ty->getElementType()->isFunctionTy()) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
     llvm::Function* createCallbackHandler()
     {
         llvm::LLVMContext& Ctx = m_module->getContext();
@@ -62,11 +79,12 @@ private:
         std::vector<llvm::Argument*> callbackArguments;
         for (auto arg_it = F->arg_begin(); arg_it != F->arg_end(); ++arg_it) {
             auto* arg_type = arg_it->getType();
-            if (arg_type->isFunctionTy()) {
+            llvm::dbgs() << *arg_type << "\n";
+            if (isCallbackArgument(arg_type)) {
                 callbackArguments.push_back(&*arg_it);
             }
         }
-            return callbackArguments;
+        return callbackArguments;
     }
 
     void cloneInto(llvm::Function* F, llvm::Function* callbackHandler)
@@ -76,7 +94,7 @@ private:
         std::vector<int> callbackArgIdx;
         for (auto arg_it = F->arg_begin(); arg_it != F->arg_end(); ++arg_it) {
             auto* arg_type = arg_it->getType();
-            if (arg_type->isFunctionTy()) {
+            if (isCallbackArgument(arg_type)) {
                 callbackArgIdx.push_back(i);
                 callbackArguments[i++] = llvm::Type::getInt128Ty(m_module->getContext());
             } else {
@@ -85,8 +103,10 @@ private:
         }
         llvm::ArrayRef<llvm::Type*> callbackArgumentsArray(callbackArguments);
         llvm::FunctionType* modifiedFunctionType = llvm::FunctionType::get(F->getReturnType(), callbackArgumentsArray, F->isVarArg());
-        llvm::Function* modifiedF = llvm::dyn_cast<llvm::Function>(
-                m_module->getOrInsertFunction(F->getName(), modifiedFunctionType).getCallee());
+        // use new_<name> copy and adjust everything there. then remove the old one and rename the new one back
+        llvm::Value* calleeValue = m_module->getOrInsertFunction("new_F", modifiedFunctionType).getCallee();
+        llvm::dbgs() << *calleeValue << "\n";
+        llvm::Function* modifiedF = llvm::dyn_cast<llvm::Function>(calleeValue);
         llvm::ValueToValueMapTy value_to_value_map;
         std::unordered_map<llvm::Instruction*, llvm::Argument*> callbackInvokations;
         // map callback args to their address args
@@ -95,6 +115,9 @@ private:
             llvm::dbgs() << *callbackArg << "\n";
             value_to_value_map[callbackArg] = modifiedF->getArg(idx);
             for (auto user_it = callbackArg->user_begin(); user_it != callbackArg->user_end(); ++user_it) {
+                llvm::dbgs() << **user_it << "\n";
+                // The call is not a use of the argument but the use of the local variable
+                // find the uses by traversing the PDG
                 if (llvm::isa<llvm::CallInst>(*user_it)
                         || llvm::isa<llvm::InvokeInst>(*user_it)) {
                     llvm::dbgs() << *user_it << "\n";
