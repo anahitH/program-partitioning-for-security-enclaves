@@ -16,6 +16,14 @@
 #include "llvm/Transforms/Utils/ValueMapper.h"
 
 #include "llvm/Bitcode/BitcodeWriter.h"
+
+#include "PDG/Passes/PDGBuildPasses.h"
+#include "PDG/PDG/PDG.h"
+#include "PDG/PDG/PDGNode.h"
+#include "PDG/PDG/PDGEdge.h"
+#include "PDG/PDG/FunctionPDG.h"
+
+#include <memory>
 #include <vector>
 
 namespace debug {
@@ -29,9 +37,15 @@ public:
     {
     }
 
+    void getAnalysisUsage(llvm::AnalysisUsage& AU) const
+    {
+        AU.addRequired<pdg::SVFGPDGBuilder>();
+    }
+
     bool runOnModule(llvm::Module& M) override
     {
         m_module = &M;
+        m_pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
         llvm::Function* handlerF = createCallbackHandler();
         for (auto& F : M) {
             if (F.isDeclaration()) {
@@ -46,6 +60,7 @@ public:
 
 private:
     llvm::Module* m_module;
+    std::shared_ptr<pdg::PDG> m_pdg;
 
 private:
     bool isCallbackArgument(llvm::Type* arg_type)
@@ -110,20 +125,37 @@ private:
         llvm::ValueToValueMapTy value_to_value_map;
         std::unordered_map<llvm::Instruction*, llvm::Argument*> callbackInvokations;
         // map callback args to their address args
+        auto Fpdg = m_pdg->getFunctionPDG(F);
         for (const auto& idx : callbackArgIdx) {
             llvm::Argument* callbackArg = F->getArg(idx);
             llvm::dbgs() << *callbackArg << "\n";
             value_to_value_map[callbackArg] = modifiedF->getArg(idx);
-            for (auto user_it = callbackArg->user_begin(); user_it != callbackArg->user_end(); ++user_it) {
-                llvm::dbgs() << **user_it << "\n";
-                // The call is not a use of the argument but the use of the local variable
-                // find the uses by traversing the PDG
-                if (llvm::isa<llvm::CallInst>(*user_it)
-                        || llvm::isa<llvm::InvokeInst>(*user_it)) {
-                    llvm::dbgs() << *user_it << "\n";
-                    callbackInvokations[llvm::dyn_cast<llvm::Instruction>(*user_it)] = callbackArg;
-                    //TODO: try to modify in the clone, if doesn't work change in the original function and adjust using value mapper
-                    //llvm::CallInst* handlerCall = createCallToCallbackHandlerForArg(F, callbackArg);
+            if (!Fpdg->hasFormalArgNode(F->getArg(idx))) {
+                continue;
+            }
+            auto formalArgNode = Fpdg->getFormalArgNode(F->getArg(idx));
+            std::unordered_set<llvm::Value*> processedNodes;
+            std::list<pdg::FunctionPDG::PDGNodeTy> workingList;
+            workingList.push_back(formalArgNode);
+            while (!workingList.empty()) {
+                auto currentNode = workingList.back().get();
+                workingList.pop_back();
+                auto* llvmNode = llvm::dyn_cast<pdg::PDGLLVMNode>(currentNode);
+                if (!llvmNode) {
+                    continue;
+                }
+                auto* nodeValue = llvmNode->getNodeValue();
+                if (!nodeValue) {
+                    continue;
+                }
+                if (llvm::isa<pdg::PDGLLVMInstructionNode>(llvmNode)) {
+                    if (!processedNodes.insert(nodeValue).second) {
+                        continue;
+                    }
+                }
+                if (llvm::isa<llvm::CallInst>(nodeValue) || llvm::isa<llvm::InvokeInst>(nodeValue)) {
+                    llvm::dbgs() << *nodeValue << "\n";
+                    callbackInvokations[llvm::dyn_cast<llvm::Instruction>(nodeValue)] = callbackArg;
                 }
             }
         }
