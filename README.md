@@ -18,7 +18,24 @@ cd build
 cmake ../
 make
 
-Minimum required cmake version is 3.12
+### Dependencies
+The thesis project is located in github repository - [https://github.com/anahitH/program-partitioning-for-security-enclaves]. The required branch to use is - ```asylo-docker```.
+Following are internal projects, third party projects, libraries and tools, the thesis project depends on.
+
+* Internal projects
+    * SVF [https://github.com/anahitH/SVF], branch ```master```
+    * program-dependence-graph [https://github.com/anahitH/program-dependence-graph], branch ```docker```.
+
+* Third party projects
+    * nlohman json [https://github.com/nlohmann/json.git]
+    * spdlog [https://github.com/gabime/spdlog.git]
+    * Asylo framework [https://github.com/google/asylo.git]
+
+* Libraries/tools
+    * LLVM/Clang, version 7
+    * Cmake, minimum required version 3.12.1
+    * IBM Cplex solver
+
 
 ### Run
 
