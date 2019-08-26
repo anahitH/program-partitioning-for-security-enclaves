@@ -61,3 +61,8 @@ The generated files will be:
 
 Bazel build template file is in ```templates/BUILD_template```.
 
+#### Building docker image
+To start the docker image build make sure to download IBM CPLEX studio installer and copy it to the ```docker_setup``` directory.
+To build a docker image with Asylo installed in it run:
+``` cd docker_setup
+    ./setup_docker.sh ```
