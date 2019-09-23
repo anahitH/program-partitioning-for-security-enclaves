@@ -10,6 +10,10 @@ class Function;
 class Module;
 }
 
+namespace pdg {
+class PDG;
+}
+
 namespace vazgen {
 
 class Logger;
