@@ -4,6 +4,9 @@
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
 #include "PDG/PDG/PDG.h"
+#include "PDG/PDG/PDGEdge.h"
+#include "PDG/PDG/PDGNode.h"
+#include "PDG/PDG/PDGLLVMNode.h"
 #include "PDG/PDG/FunctionPDG.h"
 #include "PDG/Passes/PDGBuildPasses.h"
 
@@ -531,12 +534,37 @@ void WeightAssigningHelper::normalizeWeights(const std::vector<Double*>& weights
                   });
 }
 
+//bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const
+//{
+//    if (!m_pdg->hasFunctionNode(ofF)) {
+//        // think - either log a warning or assert/throw an exception. This shouldn't happen
+//        return false;
+//    }
+//    auto ofFNode = m_pdg->getFunctionNode(ofF);
+//    for (auto in_it = ofFNode->inEdgesBegin(); in_it != ofFNode->inEdgesEnd(); ++in_it) {
+//        if ((*in_it)->isControlEdge()) {
+//            continue;
+//        }
+//        auto sourceNode = (*in_it)->getSource();
+//        auto* sourceLLVMNode = llvm::dyn_cast<pdg::PDGLLVMNode>(sourceNode.get());
+//        assert(sourceLLVMNode != nullptr);
+//        auto* sourceInstr = llvm::dyn_cast<llvm::Instruction>(sourceLLVMNode->getNodeValue());
+//        if (!sourceInstr) {
+//            continue;
+//        }
+//        if (!llvm::dyn_cast<llvm::CallBase>(sourceInstr)) {
+//            return true;
+//        }
+//    }
+//    return false;
+//}
+
 /**********************************************************/
 
-CallGraph::CallGraph(const llvm::CallGraph& graph, Logger& logger)
+CallGraph::CallGraph(pdg::PDG* pdg, Logger& logger)
     : m_logger(logger)
 {
-    create(graph);
+    create(pdg);
 }
 
 bool CallGraph::hasFunctionNode(llvm::Function* F) const
@@ -560,16 +588,16 @@ void CallGraph::assignWeights(const Partition& securePartition,
     helper.assignWeights();
 }
 
-void CallGraph::create(const llvm::CallGraph& graph)
+void CallGraph::create(pdg::PDG* graph)
 {
     m_logger.info("Creating Augmented Call Graph");
-    for (auto it = graph.begin(); it != graph.end(); ++it) {
-        if (!it->first) {
+    for (auto& [F, F_pdg] : graph->getFunctionPDGs()) {
+        if (!F || !F_pdg) {
             continue;
         }
-        Node* node = getOrAddNode(const_cast<llvm::Function*>(it->first));
-        for (auto conn_it = it->second->begin(); conn_it != it->second->end(); ++conn_it) {
-            addNodeConnections(conn_it->second, node);
+        Node* node = getOrAddNode(const_cast<llvm::Function*>(F));
+        for (auto caller_it = F_pdg->callSitesBegin(); caller_it != F_pdg->callSitesEnd(); ++caller_it) {
+            addNodeConnections(caller_it->getCaller(), node);
         }
     }
 }
@@ -582,12 +610,9 @@ Node* CallGraph::getOrAddNode(llvm::Function* F)
     return getFunctionNode(F);
 }
 
-void CallGraph::addNodeConnections(llvm::CallGraphNode* llvmNode, Node* sourceNode)
+void CallGraph::addNodeConnections(llvm::Function* caller, Node* sinkNode)
 {
-    if (!llvmNode->getFunction()) {
-        return;
-    }
-    Node* sinkNode = getOrAddNode(llvmNode->getFunction());
+    Node* sourceNode = getOrAddNode(caller);
     Edge edge(sourceNode, sinkNode);
     if (sourceNode->addOutEdge(edge)) {
         sinkNode->addInEdge(edge);
@@ -611,10 +636,10 @@ bool CallGraphPass::runOnModule(llvm::Module& M)
     Logger logger("Augmented CG");
     logger.setLevel(vazgen::Logger::INFO);
 
-    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
-    m_callgraph.reset(new CallGraph(CG, logger));
-    auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
+    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
+    m_callgraph.reset(new CallGraph(pdg.get(), logger));
+    auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
     m_callgraph->assignWeights(partition->getSecurePartition(), partition->getInsecurePartition(),

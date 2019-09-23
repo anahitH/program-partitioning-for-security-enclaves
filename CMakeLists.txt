@@ -116,7 +116,7 @@ add_library(program_partitioning MODULE
         lib/Optimization/KLOptimizationPass.cpp
         lib/Optimization/ILPOptimization.cpp
         lib/Transforms/PartitionExtractor.cpp
-        lib/Transforms/CallbacksHelper.cpp
+        #lib/Transforms/CallbacksHelper.cpp
         lib/CodeGen/FileWriter.cpp
         lib/CodeGen/ProtoFileWriter.cpp
         lib/CodeGen/ProtoFileGenerator.cpp

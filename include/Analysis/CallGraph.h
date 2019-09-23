@@ -330,7 +330,7 @@ public:
     using const_iterator = FunctionNodes::const_iterator;
 
 public:
-    explicit CallGraph(const llvm::CallGraph& graph, Logger& logger);
+    explicit CallGraph(pdg::PDG* graph, Logger& logger);
 
     CallGraph(const CallGraph&) = delete;
     CallGraph(CallGraph&&) = delete;
@@ -368,10 +368,10 @@ public:
     }
 
 private:    
-    void create(const llvm::CallGraph& graph);
+    void create(pdg::PDG* graph);
     Node* getOrAddNode(llvm::Function* F);
-    void addNodeConnections(llvm::CallGraphNode* llvmNode,
-                            Node* sourceNode);
+    void addNodeConnections(llvm::Function* caller,
+                            Node* sinkNode);
 
 private:
     FunctionNodes m_functionNodes;
