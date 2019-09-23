@@ -36,6 +36,7 @@ public:
         ARG_NUM,
         ARG_COMPLEXITY,
         RET_COMPLEXITY,
+        NONCALL_USE,
         UNKNOWN
     };
 public:
@@ -59,6 +60,9 @@ public:
 
     void setValue(double value)
     {
+        if (m_factor == NONCALL_USE) {
+            assert(value == 0 || value == 1);
+        }
         m_value = value;
     }
 

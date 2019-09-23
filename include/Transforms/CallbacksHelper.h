@@ -22,13 +22,12 @@ namespace vazgen {
 
 class Partition;
 
-// TODO: rename the class
 class CallbacksHelper
 {
 public:
     using PDGType = std::shared_ptr<pdg::PDG>;
-    using FunctionCallbackArgsMap = std::unordered_map<llvm::Function*, std::vector<llvm::Argument*>>;
     using CallbackHandlers = std::unordered_map<llvm::FunctionType*, std::pair<llvm::Function*, llvm::Function*>>;
+    using FunctionCallbackArguments = std::unordered_map<llvm::Function*, std::vector<llvm::Argument*>>;
 
 public:
     CallbacksHelper(llvm::Module* module,
@@ -45,21 +44,23 @@ public:
     void adjustCallbacksInPartitions();
 
 private:
-    FunctionCallbackArgsMap findFunctionsWithCallbackArgs();
-    void createCallbacksHandlers(llvm::Function* F,
-                                 const std::vector<llvm::Argument*>& functionWithCallbackArgs);
-    std::pair<llvm::Function*, llvm::Function*> createCallbackHandlers(llvm::FunctionType* callbackType, int callbackIdx);
-    llvm::Function* createInsecureCloneOfCallbackHandler(llvm::Function* secureCallbackHandler,
-                                                         llvm::ValueToValueMapTy& valueToValueMap,
-                                                         int callbackIdx);
-    void modifyFunctionsWithCallbackArgument(llvm::Function* F);
-    llvm::CallInst* createCallToCallbackHandlerForArg(llvm::Function* F, llvm::Argument* callbackArg);
+    void processFunction(llvm::Function& F);
+    llvm::FunctionType* callbackArgumentType(llvm::Argument* argument) const;
+    void addCallbackHandlerForFunctionType(llvm::FunctionType* callbackType, llvm::Type* callbackPtrType);
+    llvm::Function* createInsecureCallbackHandlerDefinition(llvm::Function* secureCallbackHandler,
+                                                            const std::string& uniqueIdStr);
+    void modifyFunctionWithCallbackArguments(llvm::Function& F);
+    void modifyFunctionWithCallbackArgument(llvm::Function* F, llvm::Argument* arg);
+    void replaceIndirectCallWithCallbackArgumentHandler(llvm::Function* F, llvm::Argument* arg, llvm::CallBase* argInvokation);
+    void changeFunctionSignature(llvm::Function* F);
 
 private:
     llvm::Module* m_module;
     PDGType m_pdg;
     Partition& m_securePartition;
     Partition& m_insecurePartition;
+
+    FunctionCallbackArguments m_functionCallbackArguments;
     CallbackHandlers m_signatureHandlers;
 }; // class CallbacksHelper
 
