@@ -118,6 +118,16 @@ int Partition::getFunctionRelationLevel(llvm::Function* F) const
     return pos->second;
 }
 
+void Partition::removeFromInInterface(llvm::Function* F)
+{
+    m_inInterface.erase(F);
+}
+
+void Partition::removeFromOutInterface(llvm::Function* F)
+{
+    m_outInterface.erase(F);
+}
+
 bool Partition::contains(llvm::Function* F) const
 {
     return m_partition.find(F) != m_partition.end();

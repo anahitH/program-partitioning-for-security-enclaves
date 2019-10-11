@@ -20,7 +20,6 @@ class PartitionOptimization;
 class Logger;
 class CallGraph;
 
-// TODO: think about different strategies for optimization, e.g. smaller TCB, fewer function calls across partitions, etc
 class PartitionOptimizer
 {
 public:
@@ -32,6 +31,7 @@ public:
         KERNIGHAN_LIN,
         STATIC_ANALYSIS,
         ILP,
+        ADJUST_CALLBACKS, // a better name?
         OPT_NUM
     };
 

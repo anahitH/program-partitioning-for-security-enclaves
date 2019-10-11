@@ -308,9 +308,11 @@ private:
     void assignCallNumWeights();
     void assignArgWeights();
     void assignRetValueWeights();
+    void assignNonCallUseWeights();
     CallSiteData collectFunctionCallSiteData();
     void normalizeWeights();
     void normalizeWeights(const std::vector<Double*>& weights);
+    bool nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const;
 
 private:
     CallGraph& m_callGraph;
@@ -400,9 +402,12 @@ void WeightAssigningHelper::assignNodeSizeWeights()
 void WeightAssigningHelper::assignEdgeWeights()
 {
     // TODO: for each make sure to assign both to in edges and out edges
+    // This is very in-effective implementation, as the Call Graph is traversed three times.
+    // Change the implementation to traverse the call graph one time and assign all weights during that iteration
     assignCallNumWeights();
     assignArgWeights();
     assignRetValueWeights();
+    assignNonCallUseWeights();
 }
 
 void WeightAssigningHelper::assignCallNumWeights()
@@ -489,6 +494,27 @@ void WeightAssigningHelper::assignRetValueWeights()
     }
 }
 
+void WeightAssigningHelper::assignNonCallUseWeights()
+{
+    m_logger.info("Compute Non-call use property for edges");
+    WeightFactor factor(WeightFactor::NONCALL_USE);
+    // F1
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        llvm::Function* F1 = it->first;
+        // F2
+        for (auto edge_it = it->second->inEdgesBegin();
+                edge_it != it->second->inEdgesEnd();
+                ++edge_it) {
+            llvm::Function* F2 = edge_it->getSink()->getFunction();
+            if (nonCallUseExists(F1, F2)) {
+                factor.setValue(1);
+                Weight& edgeWeight = edge_it->getWeight();
+                edgeWeight.addFactor(factor);
+            }
+        }
+    }
+}
+    
 WeightAssigningHelper::CallSiteData
 WeightAssigningHelper::collectFunctionCallSiteData()
 {

@@ -4,6 +4,7 @@
 #include "Optimization/GlobalsMoveToPartitionOptimization.h"
 #include "Optimization/DuplicateFunctionsOptimization.h"
 #include "Optimization/KLOptimizer.h"
+#include "Optimization/CallbacksOptimization.h"
 #include "Optimization/StaticAnalysisOptimization.h"
 #include "Optimization/ILPOptimization.h"
 #include "Utils/PartitionUtils.h"
@@ -47,6 +48,7 @@ void PartitionOptimizer::run(const Optimizations& opts)
             m_optimizations.back()->run();
         }
     }
+    CallbacksOptimization(m_callgraph, m_securePartition, m_insecurePartition, m_logger).run();
     apply();
 }
 

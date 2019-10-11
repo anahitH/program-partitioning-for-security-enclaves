@@ -44,8 +44,6 @@ public:
     }
 
 private:
-    llvm::Function* createFunctionDeclaration(llvm::Function* originalF);
-    bool changeFunctionUses(llvm::Function* originalF, llvm::Function* cloneF);
     void createModule(const std::unordered_set<std::string>& functions);
 
 private:
@@ -60,6 +58,7 @@ class PartitionExtractorPass : public llvm::ModulePass
 {
 public:
     using FunctionSet = std::unordered_set<llvm::Function*>;
+    using PDGType = std::shared_ptr<pdg::PDG>;
 
 public:
     static char ID;
@@ -79,6 +78,7 @@ private:
     void renameInsecureCalls(const std::string& prefix, llvm::Module* M, const Partition& insecurePartition);
 
 private:
+    PDGType m_pdg;
     std::unique_ptr<PartitionExtractor> m_extractor;
 }; // class PartitionExtractorPass
 
