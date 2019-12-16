@@ -23,6 +23,7 @@
 #include <sstream>
 
 namespace llvm {
+// Right now the in and out edges have set of mutually exclusive properties. And only one set of those poperties can be portrayed in the CallGraph output
 
 template <> struct GraphTraits<vazgen::Node*>
 {
@@ -33,15 +34,18 @@ template <> struct GraphTraits<vazgen::Node*>
   static NodeRef getEntryNode(vazgen::Node *CGN) { return CGN; }
 
   static ChildIteratorType child_begin(NodeRef N) {
-    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    //return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
-    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
 
   static NodeRef edgeDereference(vazgen::Edge edge) {
-      return edge.getSink();
+      //return edge.getSink();
+      return edge.getSource();
   }
 
 };
@@ -55,14 +59,17 @@ template <> struct GraphTraits<const vazgen::Node*>
   static NodeRef getEntryNode(const vazgen::Node *CGN) { return CGN; }
 
   static ChildIteratorType child_begin(NodeRef N) {
-    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
+    //return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
-    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
   static NodeRef edgeDereference(const vazgen::Edge edge) {
-      return edge.getSink();
+      return edge.getSource();
+      //return edge.getSink();
   }
 
 };
@@ -169,6 +176,9 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
         } else {
             label << std::to_string((int)value);
         }
+    }
+    if (edgeWeight.hasFactor(vazgen::WeightFactor::NONCALL_USE)) {
+        label << " non-call use";
     }
     return label.str();
   }
@@ -425,11 +435,15 @@ void WeightAssigningHelper::assignCallNumWeights()
              edge_it != it->second->inEdgesEnd();
              ++edge_it) {
              llvm::Function* caller = edge_it->getSource()->getFunction();
-             int calls = functionCallDataPos->second.find(caller)->second;
-             Weight& edgeWeight = edge_it->getWeight();
-             callNumFactor.setValue(calls);
-             edgeWeight.addFactor(callNumFactor);
-             m_factorWeights[WeightFactor::CALL_NUM].push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
+             auto callerData = functionCallDataPos->second.find(caller);
+             if (callerData != functionCallDataPos->second.end()) {
+                 int calls = callerData->second;
+                 //functionCallDataPos->second.find(caller)->second;
+                 Weight& edgeWeight = edge_it->getWeight();
+                 callNumFactor.setValue(calls);
+                 edgeWeight.addFactor(callNumFactor);
+                 m_factorWeights[WeightFactor::CALL_NUM].push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
+             }
         }
     }
 
@@ -505,8 +519,8 @@ void WeightAssigningHelper::assignNonCallUseWeights()
         for (auto edge_it = it->second->inEdgesBegin();
                 edge_it != it->second->inEdgesEnd();
                 ++edge_it) {
-            llvm::Function* F2 = edge_it->getSink()->getFunction();
-            if (nonCallUseExists(F1, F2)) {
+            llvm::Function* F2 = edge_it->getSource()->getFunction();
+            if (nonCallUseExists(F2, F1)) {
                 factor.setValue(1);
                 Weight& edgeWeight = edge_it->getWeight();
                 edgeWeight.addFactor(factor);
@@ -560,30 +574,31 @@ void WeightAssigningHelper::normalizeWeights(const std::vector<Double*>& weights
                   });
 }
 
-//bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const
-//{
-//    if (!m_pdg->hasFunctionNode(ofF)) {
-//        // think - either log a warning or assert/throw an exception. This shouldn't happen
-//        return false;
-//    }
-//    auto ofFNode = m_pdg->getFunctionNode(ofF);
-//    for (auto in_it = ofFNode->inEdgesBegin(); in_it != ofFNode->inEdgesEnd(); ++in_it) {
-//        if ((*in_it)->isControlEdge()) {
-//            continue;
-//        }
-//        auto sourceNode = (*in_it)->getSource();
-//        auto* sourceLLVMNode = llvm::dyn_cast<pdg::PDGLLVMNode>(sourceNode.get());
-//        assert(sourceLLVMNode != nullptr);
-//        auto* sourceInstr = llvm::dyn_cast<llvm::Instruction>(sourceLLVMNode->getNodeValue());
-//        if (!sourceInstr) {
-//            continue;
-//        }
-//        if (!llvm::dyn_cast<llvm::CallBase>(sourceInstr)) {
-//            return true;
-//        }
-//    }
-//    return false;
-//}
+bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const
+{
+    if (!m_pdg->hasFunctionNode(ofF)) {
+        // think - either log a warning or assert/throw an exception. This shouldn't happen
+        return false;
+    }
+    auto ofFNode = m_pdg->getFunctionNode(ofF);
+    // out edges in case of store inst. may also need in edges in case of..???
+    for (auto out_it = ofFNode->outEdgesBegin(); out_it != ofFNode->outEdgesEnd(); ++out_it) {
+        if ((*out_it)->isControlEdge()) {
+            continue;
+        }
+        auto sinkNode = (*out_it)->getDestination();
+        auto* sinkLLVMNode = llvm::dyn_cast<pdg::PDGLLVMNode>(sinkNode.get());
+        assert(sinkLLVMNode != nullptr);
+        auto* sinkInstr = llvm::dyn_cast<llvm::Instruction>(sinkLLVMNode->getNodeValue());
+        if (!sinkInstr) {
+            continue;
+        }
+        if (!llvm::dyn_cast<llvm::CallBase>(sinkInstr)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**********************************************************/
 
@@ -624,6 +639,15 @@ void CallGraph::create(pdg::PDG* graph)
         Node* node = getOrAddNode(const_cast<llvm::Function*>(F));
         for (auto caller_it = F_pdg->callSitesBegin(); caller_it != F_pdg->callSitesEnd(); ++caller_it) {
             addNodeConnections(caller_it->getCaller(), node);
+        }
+    }
+    // Add non-call edges: TODO: this seems to be redundant
+    for (auto& functionNode : graph->getFunctionNodes()) {
+        Node* node = getOrAddNode(const_cast<llvm::Function*>(functionNode.first));
+        for (auto out_it = functionNode.second->outEdgesBegin(); out_it != functionNode.second->outEdgesEnd(); ++ out_it) {
+            if ((*out_it)->getDestination()->hasParent()) {
+                addNodeConnections((*out_it)->getDestination()->getParent(), node);
+            }
         }
     }
 }
