@@ -46,6 +46,7 @@ private:
     const Partition& m_insecurePartition;
     const CallGraph& m_callgraph;
     llvm::Module& m_module;
+    unsigned m_moduleSize;
 }; // class PartitionStatistics
 
 

@@ -11,15 +11,16 @@ ANNOTATIONS=$PWD/annotations/
 OUTPUT=$PWD/partition-out
 
 annotation_coverage="10 25 35 50"
+#annotation_coverage="50"
 optimization=$1
-#optimizations=('no-opt' 'kl' 'ilp' 'local')
-optimizations=('no-opt' 'kl' 'local' 'static-analysis' 'ilp')
+optimizations=('no-opt' 'ilp' 'kl' 'search-based')
+#optimizations=('kl')
 
 set_manual_annotation() {
     echo 'Setup manual annotations directory for ' $1
     bitcode=$1
     filename=$2
-    manual_annot_dir=$3/'manual'
+    manual_annot_dir=$3/'expert-knowledge'
     mkdir -p $manual_annot_dir
     cp $ANNOTATIONS/$filename'_annotations.json' $manual_annot_dir
     echo 'DONE Setup manual annotations directory for ' $1
@@ -36,11 +37,17 @@ generate_annotations_for_program() {
     do
         echo '  percentage: ' $cov
         annot_name=$filename-$cov'.json'
-        echo 'opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-annotation -percent=$cov -annotation-file=$annot_name'
-        opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-annotation -percent=$cov -annotation-file=$annot_name
-        cov_dir=$3/$cov
-        mkdir -p $cov_dir
-        cp $annot_output_dir/$annot_name $cov_dir
+        for repeat in 1 2 3 4 5 6 7 8 9 10 #11 12 13 14 15 16 17 18 19 20
+        do
+            echo "opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-annotation -percent=$cov -annotation-file=$annot_name"
+            opt -load $PROGRAM_PARTITIONING_EVAL_PATH $bc -gen-annotation -percent=$cov -annotation-file=$annot_name"_$repeat"
+            cov_dir=$3/$cov/$repeat
+            mkdir -p $cov_dir
+            echo "mv $annot_output_dir/$annot_name"_$repeat" $cov_dir/$annot_name"
+            cp $annot_output_dir/$annot_name'_'$repeat $cov_dir/$annot_name
+            #mv $annot_output_dir/$annot_name $cov_dir
+            rm $annot_output_dir/$annot_name
+        done
     done
     cd -
     rm -rf $annot_output_dir
@@ -53,7 +60,7 @@ run_partitioning_for_optimization() {
     bitcode=$2
     annot=$3
     opt_output_dir=$4/$opt
-    #echo "ARGS: " $1 $2 $3 $4
+    echo "ARGS: " $1 $2 $3 $4
     mkdir -p $opt_output_dir
     cp $annot $opt_output_dir
     cd $opt_output_dir
@@ -71,15 +78,15 @@ run_partitioning_for_coverage() {
     echo 'Run partitioning for coverage ' $1
     bitcode=$2
     annot_name=$3
-    #echo "ARGS: " $1 $2 $3 $4
+    echo "ARGS: " $1 $2 $3 $4
     if [ "$optimization" == "all" ]; then
         for opt in "${optimizations[@]}"
         do
             #echo "HERE OPT is " $opt 'and annot ' $annot_name
-            run_partitioning_for_optimization $opt $bitcode $annot_name $4/$1
+            run_partitioning_for_optimization $opt $bitcode $annot_name $4/$1/$5
         done
     else
-        run_partitioning_for_optimization $optimization $bitcode $annot_name $4/$1
+        run_partitioning_for_optimization $optimization $bitcode $annot_name $4/$1/$5
     fi
     echo 'DONE: Run partitioning for coverage ' $1
 }
@@ -90,19 +97,22 @@ run_partitioning() {
     filename=$2
     dir=$3/
     current_dir=$PWD
-    #echo "ARGS: " $1 $2 $3
+    echo "ARGS: " $1 $2 $3
     for cov in $annotation_coverage
     do
-        annot_dir=$dir/$cov
-        mkdir -p $annot_dir
-        cd $annot_dir
-        annot_name=$filename-$cov'.json'
+        for repeat in 1 2 3 4 5 6 7 8 9 10 #11 12 13 14 15 16 17 18 19 20
+        do
+            annot_dir=$dir/$cov/$repeat
+            mkdir -p $annot_dir
+            cd $annot_dir
+            annot_name=$filename-$cov'.json'
+            run_partitioning_for_coverage $cov $bitcode $annot_name $dir $repeat
+            cd $current_dir
+        done
         #echo "run_partitionig annot_name is " $annot_name
-        run_partitioning_for_coverage $cov $bitcode $annot_name $dir
-        cd $current_dir
     done
-    cd $dir/'manual'
-    run_partitioning_for_coverage 'manual' $bitcode $filename'_annotations.json' $dir
+    cd $dir/'expert-knowledge'
+    run_partitioning_for_coverage 'expert-knowledge' $bitcode $filename'_annotations.json' $dir
     cd $current_dir
     echo 'DONE: Run partitioning for ' $1
 }

@@ -19,6 +19,9 @@
 #include <iterator>
 #include <cstdlib>
 #include <vector>
+#include <random>
+#include <algorithm>
+#include <iterator>
 
 namespace vazgen {
 
@@ -62,6 +65,10 @@ Functions pickFunctions(llvm::Module& M, int percentage)
             allFunctions.push_back(&F);
         }
     }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(allFunctions.begin(), allFunctions.end(), g);
+
     int num = allFunctions.size() * percentage/100;
     functionsToAnnotate.reserve(num);
 
@@ -69,6 +76,8 @@ Functions pickFunctions(llvm::Module& M, int percentage)
     srand(time(NULL));
     for (int i = 0; i < num; ++i) {
         int idx = rand() % (numOfAllFunctions);
+        //llvm::dbgs() << "Randomly chosen index " << idx << "\n";
+        //llvm::dbgs() << "Randomly chosen function " << allFunctions[idx]->getName() << "\n";
         functionsToAnnotate.push_back(allFunctions[idx]);
         //llvm::dbgs() << "idx " << idx << " function: " << allFunctions[idx]->getName() << "\n";
         std::swap(allFunctions[idx], allFunctions[numOfAllFunctions - 1]);

@@ -5,6 +5,11 @@
         {
             "function" : "process_command",
             "arguments" : [0, 1]
+        },
+        {
+            "function" : "add_iov",
+            "arguments" : [0, 1],
+            "return":  "True"
         }
         ]
 }

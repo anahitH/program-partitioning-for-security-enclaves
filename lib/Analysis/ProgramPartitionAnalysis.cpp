@@ -34,7 +34,7 @@ namespace {
 auto getOptimizations(const std::string& optName, Logger& logger)
 {
     PartitionOptimizer::Optimizations opts;
-    if (optName == "static-analysis") {
+    if (optName == "search-based") {
         opts.push_back(PartitionOptimizer::STATIC_ANALYSIS);
     } else if (optName == "local") {
         opts.push_back(PartitionOptimizer::FUNCTIONS_MOVE_TO);

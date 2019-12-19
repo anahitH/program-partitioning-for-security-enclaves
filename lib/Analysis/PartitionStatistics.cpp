@@ -22,7 +22,13 @@ PartitionStatistics::PartitionStatistics(std::ofstream& strm,
     , m_insecurePartition(insecurePartition)
     , m_callgraph(callgraph)
     , m_module(M)
+    , m_moduleSize(0)
 {
+    for (auto& F : m_module) {
+        if (!F.isDeclaration()) {
+            m_moduleSize += Utils::getFunctionSize(&F);
+        }
+    }
 }
 
 void PartitionStatistics::report()
@@ -124,7 +130,9 @@ void PartitionStatistics::reportSizeOfTCB(const Partition& partition)
         }
         tcbSize += Utils::getFunctionSize(F);
     }
+    double tcb_portion = (tcbSize * 100.0) / m_moduleSize;
     write_entry({"partition", m_partitionName, "TCB"}, (double) tcbSize);
+    write_entry({"partition", m_partitionName, "TCB%"}, (double) tcb_portion);
 }
 
 void PartitionStatistics::repotArgsPassedAccrossPartition(const Partition& partition)
