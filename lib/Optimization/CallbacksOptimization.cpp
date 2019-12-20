@@ -4,12 +4,30 @@
 #include "Analysis/Partition.h"
 #include "Utils/PartitionUtils.h"
 #include "Utils/Logger.h"
+// need to use llvm::dbgs()
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "PDG/PDG/PDG.h"
 
 #include "llvm/IR/Function.h"
 
 namespace vazgen {
+
+namespace {
+std::vector<llvm::Function*> getSourcesForAllInEdgesWithNonCallUse(Node* sinkNode)
+{
+    std::vector<llvm::Function*> allSources;
+    for (auto in_edge_it = sinkNode->inEdgesBegin(); in_edge_it != sinkNode->inEdgesEnd(); ++in_edge_it) {
+        const auto& edge = *in_edge_it;
+        if (edge.getWeight().hasFactor(WeightFactor::NONCALL_USE)) {
+            allSources.push_back(edge.getSource()->getFunction());
+        }
+    }
+
+    return allSources;
+}
+}
 
 CallbacksOptimization::CallbacksOptimization(const CallGraph& callgraph,
                                              Partition& securePartition,
@@ -22,31 +40,34 @@ CallbacksOptimization::CallbacksOptimization(const CallGraph& callgraph,
 {
 }
 
-
 void CallbacksOptimization::run()
 {
     for (auto f_it = m_callGraph.begin(); f_it != m_callGraph.end(); ++f_it) {
         llvm::Function* F1 = f_it->first;
+        //llvm::dbgs() << F1->getName() << "\n";
         Partition& F1_partition = m_securePartition.contains(F1) ? m_securePartition : m_insecurePartition;
-        // iterate over the edges 
-        for (auto out_edge_it = f_it->second->outEdgesBegin(); out_edge_it != f_it->second->outEdgesEnd(); ++out_edge_it) {
-            const auto& edge = *out_edge_it;
-            llvm::Function* F2 = edge.getSink()->getFunction();
-            if (edge.getWeight().hasFactor(WeightFactor::NONCALL_USE)) {
-                // TODO: refactor
-                if ((m_securePartition.contains(F1) && m_securePartition.contains(F2))
-                        || (m_insecurePartition.contains(F1) && m_insecurePartition.contains(F2))) {
-                    continue;
-                }
-                Partition& F2_partition = m_securePartition.contains(F2) ? m_securePartition : m_insecurePartition;
-                // add F2 to F1_partition
-                F1_partition.addToPartition(F2);
-                // remove F2 from F2_partition in_interface
-                F2_partition.removeFromInInterface(F2);
-                // remove F2 from F1_partition out_interface
-                F1_partition.removeFromOutInterface(F2);
-            }
+        auto inEdgeSources = getSourcesForAllInEdgesWithNonCallUse(f_it->second.get());
+        if (m_securePartition.contains(F1)) {
+            moveFunctionsToSecurePartition(inEdgeSources);
+        } else if (std::any_of(inEdgeSources.begin(), inEdgeSources.end(), [this] (llvm::Function* F) { return this->m_securePartition.contains(F);})) {
+            inEdgeSources.push_back(F1);
+            moveFunctionsToSecurePartition(inEdgeSources);
         }
+    }
+}
+
+void CallbacksOptimization::moveFunctionsToSecurePartition(const std::vector<llvm::Function*>& functions)
+{
+    for (const auto& F2 : functions) {
+        if (m_securePartition.contains(F2)) {
+            continue;
+        }
+        // add F2 to secure partition
+        m_securePartition.addToPartition(F2);
+        // remove F2 from F2_partition in_interface
+        m_insecurePartition.removeFromInInterface(F2);
+        // remove F2 from F1_partition out_interface
+        m_securePartition.removeFromOutInterface(F2);
     }
 }
 

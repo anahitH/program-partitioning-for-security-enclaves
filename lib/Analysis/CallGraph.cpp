@@ -34,18 +34,18 @@ template <> struct GraphTraits<vazgen::Node*>
   static NodeRef getEntryNode(vazgen::Node *CGN) { return CGN; }
 
   static ChildIteratorType child_begin(NodeRef N) {
-    //return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
-    return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
+    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
-    //return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
-    return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
+    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
 
   static NodeRef edgeDereference(vazgen::Edge edge) {
-      //return edge.getSink();
-      return edge.getSource();
+      return edge.getSink();
+      //return edge.getSource();
   }
 
 };
@@ -59,17 +59,17 @@ template <> struct GraphTraits<const vazgen::Node*>
   static NodeRef getEntryNode(const vazgen::Node *CGN) { return CGN; }
 
   static ChildIteratorType child_begin(NodeRef N) {
-    return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
-    //return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
+    return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
-    //return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
-    return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
+    return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
   static NodeRef edgeDereference(const vazgen::Edge edge) {
-      return edge.getSource();
-      //return edge.getSink();
+      //return edge.getSource();
+      return edge.getSink();
   }
 
 };

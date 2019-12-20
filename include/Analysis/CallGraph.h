@@ -133,6 +133,9 @@ public:
     {
         Double weight = 0.0;
         for (const auto& factor : m_factors) {
+            if (factor.getFactor() == WeightFactor::NONCALL_USE) {
+                continue;
+            }
             if (factor.isDefined()) {
                 weight += factor.getWeight();
             }

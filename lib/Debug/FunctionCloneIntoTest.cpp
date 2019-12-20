@@ -84,7 +84,7 @@ private:
         llvm::FunctionType* fType = llvm::FunctionType::get(llvm::Type::getVoidTy(Ctx),
                 params, false);
         std::string fName = "callbackHandler";
-        llvm::FunctionCallee functionCallee = m_module->getOrInsertFunction(fName, fType);
+        llvm::FunctionCallee functionCallee = llvm::dyn_cast<llvm::Function>(m_module->getOrInsertFunction(fName, fType).getCallee());
         llvm::Function* callbackHandler = llvm::dyn_cast<llvm::Function>(functionCallee.getCallee());
         return callbackHandler;
     }

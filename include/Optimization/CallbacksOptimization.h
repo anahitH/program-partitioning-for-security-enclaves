@@ -33,6 +33,9 @@ public:
     }
 
 private:
+    void moveFunctionsToSecurePartition(const std::vector<llvm::Function*>& functions);
+
+private:
     Partition& m_securePartition;
     Partition& m_insecurePartition;
     const CallGraph& m_callGraph;

@@ -57,7 +57,7 @@ public:
         auto* functionType = F->getFunctionType();
         const std::string function_name = F->getName();
         const std::string clone_name = function_name + "_clone";
-        auto* F_decl = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction(clone_name, functionType));
+        auto* F_decl = llvm::dyn_cast<llvm::Function>(M.getOrInsertFunction(clone_name, functionType).getCallee());
 
         bool modified = false;
         for (auto it = F->user_begin(); it != F->user_end(); ++it) {
