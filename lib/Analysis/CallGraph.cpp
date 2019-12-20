@@ -580,6 +580,7 @@ bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function
         // think - either log a warning or assert/throw an exception. This shouldn't happen
         return false;
     }
+    //llvm::dbgs() << "Find non call usage in function " << inF->getName() << " of function " << ofF->getName() << "\n";
     auto ofFNode = m_pdg->getFunctionNode(ofF);
     // out edges in case of store inst. may also need in edges in case of..???
     for (auto out_it = ofFNode->outEdgesBegin(); out_it != ofFNode->outEdgesEnd(); ++out_it) {
@@ -587,6 +588,9 @@ bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function
             continue;
         }
         auto sinkNode = (*out_it)->getDestination();
+        if (sinkNode->getParent() != inF) {
+            continue;
+        }
         auto* sinkLLVMNode = llvm::dyn_cast<pdg::PDGLLVMNode>(sinkNode.get());
         assert(sinkLLVMNode != nullptr);
         auto* sinkInstr = llvm::dyn_cast<llvm::Instruction>(sinkLLVMNode->getNodeValue());
