@@ -1,5 +1,6 @@
 #include "Transforms/PartitionExtractor.h"
 
+#include "Transforms/CallbacksHelper.h"
 #include "Analysis/Partitioner.h"
 #include "Analysis/ProgramPartitionAnalysis.h"
 #include "Utils/Utils.h"
@@ -171,8 +172,8 @@ void GlobalVariableExtractorHelper::createGlobalSetterFunction(llvm::GlobalVaria
     fName += m_prefix;
     fName += "_";
     fName += global->getName().str();
-    llvm::Function* setter = llvm::dyn_cast<llvm::Function>(
-            m_module->getOrInsertFunction(fName, fType));
+    llvm::FunctionCallee functionCallee = m_module->getOrInsertFunction(fName, fType);
+    llvm::Function* setter = llvm::dyn_cast<llvm::Function>(functionCallee.getCallee());
     m_globalSetter.insert(std::make_pair(global, setter));
 
     auto* entryBlock = llvm::BasicBlock::Create(Ctx, "entry", setter);
@@ -233,28 +234,6 @@ bool PartitionExtractor::extract()
     return modified;
 }
 
-llvm::Function* PartitionExtractor::createFunctionDeclaration(llvm::Function* originalF)
-{
-    auto* functionType = originalF->getFunctionType();
-    const std::string function_name = originalF->getName();
-    const std::string clone_name = function_name + "_clone";
-    return llvm::dyn_cast<llvm::Function>(m_module->getOrInsertFunction(clone_name, functionType));
-}
-
-bool PartitionExtractor::changeFunctionUses(llvm::Function* originalF, llvm::Function* cloneF)
-{
-    for (auto it = originalF->user_begin(); it != originalF->user_end(); ++it) {
-        if (auto* callInst = llvm::dyn_cast<llvm::CallInst>(*it)) {
-            callInst->setCalledFunction(cloneF);
-        } else if (auto* invokeInst = llvm::dyn_cast<llvm::InvokeInst>(*it)) {
-            invokeInst->setCalledFunction(cloneF);
-        } else {
-            (*it)->replaceUsesOfWith(originalF, cloneF);
-        }
-    }
-    return true;
-}
-
 void PartitionExtractor::createModule(const std::unordered_set<std::string>& function_names)
 {
     llvm::ValueToValueMapTy value_to_value_map;
@@ -262,7 +241,7 @@ void PartitionExtractor::createModule(const std::unordered_set<std::string>& fun
     //for (const auto& f : function_names) {
     //    llvm::dbgs() << f << "\n";
     //}
-    m_slicedModule =  llvm::CloneModule(m_module, value_to_value_map,
+    m_slicedModule =  llvm::CloneModule(*m_module, value_to_value_map,
                 [&function_names] (const llvm::GlobalValue* glob) {
                     return function_names.find(glob->getName()) != function_names.end();
                 }
@@ -299,9 +278,18 @@ bool PartitionExtractorPass::runOnModule(llvm::Module& M)
 {
     Logger logger("program-partitioning");
     logger.setLevel(vazgen::Logger::INFO);
+    m_pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
+    
 
     const auto& enclaveGloabalSetters = getGlobalSetters(M, logger, true);
     const auto& appGloabalSetters = getGlobalSetters(M, logger, false);
+
+    // TODO: uncomment
+    //CallbacksHelper callbackHelper(&M, m_pdg,
+    //                               getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition(),
+    //                               getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition());
+    //callbackHelper.adjustCallbacksInPartitions();
+
     bool modified = extractPartition(logger, M, enclaveGloabalSetters, true);
     modified |= extractPartition(logger, M, appGloabalSetters, false);
     return modified;
@@ -312,7 +300,6 @@ PartitionExtractorPass::getGlobalSetters(llvm::Module& M, Logger& logger, bool i
 {
     Partition partition;
     std::string prefixName;
-    auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     if (isEnclave) {
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
         prefixName = "enclave";
@@ -320,7 +307,7 @@ PartitionExtractorPass::getGlobalSetters(llvm::Module& M, Logger& logger, bool i
         partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
         prefixName = "app";
     }
-    GlobalVariableExtractorHelper globalsExtractionHelper(&M, *pdg, partition,
+    GlobalVariableExtractorHelper globalsExtractionHelper(&M, *m_pdg, partition,
                                                           prefixName, logger);
 
     globalsExtractionHelper.instrumentForGlobals();
@@ -333,7 +320,6 @@ bool PartitionExtractorPass::extractPartition(Logger& logger, llvm::Module& M,
 {
     Partition* partition;
     std::string sliceName;
-    auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
     ProgramPartition& programPartition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition();
     if (enclave) {
         partition = &programPartition.getSecurePartition();

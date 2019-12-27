@@ -4,6 +4,9 @@
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
 #include "PDG/PDG/PDG.h"
+#include "PDG/PDG/PDGEdge.h"
+#include "PDG/PDG/PDGNode.h"
+#include "PDG/PDG/PDGLLVMNode.h"
 #include "PDG/PDG/FunctionPDG.h"
 #include "PDG/Passes/PDGBuildPasses.h"
 
@@ -20,6 +23,7 @@
 #include <sstream>
 
 namespace llvm {
+// Right now the in and out edges have set of mutually exclusive properties. And only one set of those poperties can be portrayed in the CallGraph output
 
 template <> struct GraphTraits<vazgen::Node*>
 {
@@ -31,14 +35,17 @@ template <> struct GraphTraits<vazgen::Node*>
 
   static ChildIteratorType child_begin(NodeRef N) {
     return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
     return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
 
   static NodeRef edgeDereference(vazgen::Edge edge) {
       return edge.getSink();
+      //return edge.getSource();
   }
 
 };
@@ -52,13 +59,16 @@ template <> struct GraphTraits<const vazgen::Node*>
   static NodeRef getEntryNode(const vazgen::Node *CGN) { return CGN; }
 
   static ChildIteratorType child_begin(NodeRef N) {
+    //return map_iterator(N->inEdgesBegin(), DerefEdge(edgeDereference));
     return map_iterator(N->outEdgesBegin(), DerefEdge(edgeDereference));
   }
 
   static ChildIteratorType child_end(NodeRef N) {
     return map_iterator(N->outEdgesEnd(), DerefEdge(edgeDereference));
+    //return map_iterator(N->inEdgesEnd(), DerefEdge(edgeDereference));
   }
   static NodeRef edgeDereference(const vazgen::Edge edge) {
+      //return edge.getSource();
       return edge.getSink();
   }
 
@@ -166,6 +176,9 @@ template <> struct DOTGraphTraits<vazgen::CallGraph *> : public DefaultDOTGraphT
         } else {
             label << std::to_string((int)value);
         }
+    }
+    if (edgeWeight.hasFactor(vazgen::WeightFactor::NONCALL_USE)) {
+        label << " non-call use";
     }
     return label.str();
   }
@@ -305,9 +318,11 @@ private:
     void assignCallNumWeights();
     void assignArgWeights();
     void assignRetValueWeights();
+    void assignNonCallUseWeights();
     CallSiteData collectFunctionCallSiteData();
     void normalizeWeights();
     void normalizeWeights(const std::vector<Double*>& weights);
+    bool nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const;
 
 private:
     CallGraph& m_callGraph;
@@ -397,9 +412,12 @@ void WeightAssigningHelper::assignNodeSizeWeights()
 void WeightAssigningHelper::assignEdgeWeights()
 {
     // TODO: for each make sure to assign both to in edges and out edges
+    // This is very in-effective implementation, as the Call Graph is traversed three times.
+    // Change the implementation to traverse the call graph one time and assign all weights during that iteration
     assignCallNumWeights();
     assignArgWeights();
     assignRetValueWeights();
+    assignNonCallUseWeights();
 }
 
 void WeightAssigningHelper::assignCallNumWeights()
@@ -417,11 +435,15 @@ void WeightAssigningHelper::assignCallNumWeights()
              edge_it != it->second->inEdgesEnd();
              ++edge_it) {
              llvm::Function* caller = edge_it->getSource()->getFunction();
-             int calls = functionCallDataPos->second.find(caller)->second;
-             Weight& edgeWeight = edge_it->getWeight();
-             callNumFactor.setValue(calls);
-             edgeWeight.addFactor(callNumFactor);
-             m_factorWeights[WeightFactor::CALL_NUM].push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
+             auto callerData = functionCallDataPos->second.find(caller);
+             if (callerData != functionCallDataPos->second.end()) {
+                 int calls = callerData->second;
+                 //functionCallDataPos->second.find(caller)->second;
+                 Weight& edgeWeight = edge_it->getWeight();
+                 callNumFactor.setValue(calls);
+                 edgeWeight.addFactor(callNumFactor);
+                 m_factorWeights[WeightFactor::CALL_NUM].push_back(&edgeWeight.getFactor(WeightFactor::CALL_NUM).getValue());
+             }
         }
     }
 
@@ -486,6 +508,27 @@ void WeightAssigningHelper::assignRetValueWeights()
     }
 }
 
+void WeightAssigningHelper::assignNonCallUseWeights()
+{
+    m_logger.info("Compute Non-call use property for edges");
+    WeightFactor factor(WeightFactor::NONCALL_USE);
+    // F1
+    for (auto it = m_callGraph.begin(); it != m_callGraph.end(); ++it) {
+        llvm::Function* F1 = it->first;
+        // F2
+        for (auto edge_it = it->second->inEdgesBegin();
+                edge_it != it->second->inEdgesEnd();
+                ++edge_it) {
+            llvm::Function* F2 = edge_it->getSource()->getFunction();
+            if (nonCallUseExists(F2, F1)) {
+                factor.setValue(1);
+                Weight& edgeWeight = edge_it->getWeight();
+                edgeWeight.addFactor(factor);
+            }
+        }
+    }
+}
+    
 WeightAssigningHelper::CallSiteData
 WeightAssigningHelper::collectFunctionCallSiteData()
 {
@@ -531,12 +574,42 @@ void WeightAssigningHelper::normalizeWeights(const std::vector<Double*>& weights
                   });
 }
 
+bool WeightAssigningHelper::nonCallUseExists(llvm::Function* inF, llvm::Function* ofF) const
+{
+    if (!m_pdg->hasFunctionNode(ofF)) {
+        // think - either log a warning or assert/throw an exception. This shouldn't happen
+        return false;
+    }
+    //llvm::dbgs() << "Find non call usage in function " << inF->getName() << " of function " << ofF->getName() << "\n";
+    auto ofFNode = m_pdg->getFunctionNode(ofF);
+    // out edges in case of store inst. may also need in edges in case of..???
+    for (auto out_it = ofFNode->outEdgesBegin(); out_it != ofFNode->outEdgesEnd(); ++out_it) {
+        if ((*out_it)->isControlEdge()) {
+            continue;
+        }
+        auto sinkNode = (*out_it)->getDestination();
+        if (sinkNode->getParent() != inF) {
+            continue;
+        }
+        auto* sinkLLVMNode = llvm::dyn_cast<pdg::PDGLLVMNode>(sinkNode.get());
+        assert(sinkLLVMNode != nullptr);
+        auto* sinkInstr = llvm::dyn_cast<llvm::Instruction>(sinkLLVMNode->getNodeValue());
+        if (!sinkInstr) {
+            continue;
+        }
+        if (!llvm::dyn_cast<llvm::CallBase>(sinkInstr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /**********************************************************/
 
-CallGraph::CallGraph(const llvm::CallGraph& graph, Logger& logger)
+CallGraph::CallGraph(pdg::PDG* pdg, Logger& logger)
     : m_logger(logger)
 {
-    create(graph);
+    create(pdg);
 }
 
 bool CallGraph::hasFunctionNode(llvm::Function* F) const
@@ -560,16 +633,25 @@ void CallGraph::assignWeights(const Partition& securePartition,
     helper.assignWeights();
 }
 
-void CallGraph::create(const llvm::CallGraph& graph)
+void CallGraph::create(pdg::PDG* graph)
 {
     m_logger.info("Creating Augmented Call Graph");
-    for (auto it = graph.begin(); it != graph.end(); ++it) {
-        if (!it->first) {
+    for (auto& [F, F_pdg] : graph->getFunctionPDGs()) {
+        if (!F || !F_pdg) {
             continue;
         }
-        Node* node = getOrAddNode(const_cast<llvm::Function*>(it->first));
-        for (auto conn_it = it->second->begin(); conn_it != it->second->end(); ++conn_it) {
-            addNodeConnections(conn_it->second, node);
+        Node* node = getOrAddNode(const_cast<llvm::Function*>(F));
+        for (auto caller_it = F_pdg->callSitesBegin(); caller_it != F_pdg->callSitesEnd(); ++caller_it) {
+            addNodeConnections(caller_it->getCaller(), node);
+        }
+    }
+    // Add non-call edges: TODO: this seems to be redundant
+    for (auto& functionNode : graph->getFunctionNodes()) {
+        Node* node = getOrAddNode(const_cast<llvm::Function*>(functionNode.first));
+        for (auto out_it = functionNode.second->outEdgesBegin(); out_it != functionNode.second->outEdgesEnd(); ++ out_it) {
+            if ((*out_it)->getDestination()->hasParent()) {
+                addNodeConnections((*out_it)->getDestination()->getParent(), node);
+            }
         }
     }
 }
@@ -582,12 +664,9 @@ Node* CallGraph::getOrAddNode(llvm::Function* F)
     return getFunctionNode(F);
 }
 
-void CallGraph::addNodeConnections(llvm::CallGraphNode* llvmNode, Node* sourceNode)
+void CallGraph::addNodeConnections(llvm::Function* caller, Node* sinkNode)
 {
-    if (!llvmNode->getFunction()) {
-        return;
-    }
-    Node* sinkNode = getOrAddNode(llvmNode->getFunction());
+    Node* sourceNode = getOrAddNode(caller);
     Edge edge(sourceNode, sinkNode);
     if (sourceNode->addOutEdge(edge)) {
         sinkNode->addInEdge(edge);
@@ -611,10 +690,10 @@ bool CallGraphPass::runOnModule(llvm::Module& M)
     Logger logger("Augmented CG");
     logger.setLevel(vazgen::Logger::INFO);
 
-    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
-    m_callgraph.reset(new CallGraph(CG, logger));
-    auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
     auto pdg = getAnalysis<pdg::SVFGPDGBuilder>().getPDG();
+    llvm::CallGraph& CG = getAnalysis<llvm::CallGraphWrapperPass>().getCallGraph();
+    m_callgraph.reset(new CallGraph(pdg.get(), logger));
+    auto* partition = &getAnalysis<vazgen::ProgramPartitionAnalysis>().getProgramPartition();
     const auto& loopGetter = [this] (llvm::Function* F)
         {   return &this->getAnalysis<llvm::LoopInfoWrapperPass>(*F).getLoopInfo(); };
     m_callgraph->assignWeights(partition->getSecurePartition(), partition->getInsecurePartition(),

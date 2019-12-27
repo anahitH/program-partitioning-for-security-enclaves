@@ -48,6 +48,9 @@ public:
     const std::unordered_map<llvm::Function*, int> getRelatedFunctions() const;
     int getFunctionRelationLevel(llvm::Function* F) const;
 
+    void removeFromInInterface(llvm::Function* F);
+    void removeFromOutInterface(llvm::Function* F);
+
     bool contains(llvm::Function* F) const;
     // this is expensive function
     bool containsFunctionWithName(const std::string& Fname) const;

@@ -51,7 +51,7 @@ bool ProgramPartitionStatisticsPass::runOnModule(llvm::Module& M)
     Logger logger("Program partition statistics");
     logger.setLevel(vazgen::Logger::INFO);
 
-    CallGraph callGraph(CG, logger);
+    CallGraph callGraph(pdg.get(), logger);
     callGraph.assignWeights(securePartition, insecurePartition, pdg.get(), loopGetter);
     std::ofstream strm;
     if (StatsFile.empty()) {

@@ -4,6 +4,7 @@
 #include "Optimization/GlobalsMoveToPartitionOptimization.h"
 #include "Optimization/DuplicateFunctionsOptimization.h"
 #include "Optimization/KLOptimizer.h"
+#include "Optimization/CallbacksOptimization.h"
 #include "Optimization/StaticAnalysisOptimization.h"
 #include "Optimization/ILPOptimization.h"
 #include "Utils/PartitionUtils.h"
@@ -47,7 +48,14 @@ void PartitionOptimizer::run(const Optimizations& opts)
             m_optimizations.back()->run();
         }
     }
+    llvm::dbgs() << "Secure partition before applying the Callback optimization pass\n";
+    for (auto F : m_securePartition.getPartition()) {
+        llvm::dbgs() << F->getName() << "\n";
+    }
     apply();
+    if (std::find(opts.begin(), opts.end(), ILP) == opts.end()) {
+        CallbacksOptimization(m_callgraph, m_securePartition, m_insecurePartition, m_logger).run();
+    }
 }
 
 PartitionOptimizer::OptimizationTy

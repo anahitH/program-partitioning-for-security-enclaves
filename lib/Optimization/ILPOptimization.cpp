@@ -117,7 +117,7 @@ void ILPOptimization::Impl::createEdgeVariables()
 
 void ILPOptimization::Impl::createEdgeVariables(Node* node)
 {
-    for (auto it = node->outEdgesBegin(); it != node->outEdgesEnd(); ++it) {
+    for (auto it = node->inEdgesBegin(); it != node->inEdgesEnd(); ++it) {
         Edge* edge = &*it;
         auto [itr, inserted] = m_edgeVariables.insert(
                 std::make_pair(edge, IloNumVar(m_ilpEnv, 0.0, 1.0)));
@@ -145,6 +145,10 @@ void ILPOptimization::Impl::createConstraints()
         const auto& sink_var = m_nodeVariables.find(edge->getSink())->second;
         m_ilpModel.add(var - source_var + sink_var <= 1);
         m_ilpModel.add(var + source_var - sink_var <= 1);
+        if (edge->getWeight().hasFactor(WeightFactor::NONCALL_USE)) {
+            m_ilpModel.add(sink_var - source_var <= 0);
+            m_ilpModel.add(sink_var - source_var >= 0);
+        }
     }
 }
 

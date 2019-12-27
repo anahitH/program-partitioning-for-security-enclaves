@@ -36,6 +36,7 @@ public:
         ARG_NUM,
         ARG_COMPLEXITY,
         RET_COMPLEXITY,
+        NONCALL_USE,
         UNKNOWN
     };
 public:
@@ -59,6 +60,9 @@ public:
 
     void setValue(double value)
     {
+        if (m_factor == NONCALL_USE) {
+            assert(value == 0 || value == 1);
+        }
         m_value = value;
     }
 
@@ -129,6 +133,9 @@ public:
     {
         Double weight = 0.0;
         for (const auto& factor : m_factors) {
+            if (factor.getFactor() == WeightFactor::NONCALL_USE) {
+                continue;
+            }
             if (factor.isDefined()) {
                 weight += factor.getWeight();
             }
@@ -326,7 +333,7 @@ public:
     using const_iterator = FunctionNodes::const_iterator;
 
 public:
-    explicit CallGraph(const llvm::CallGraph& graph, Logger& logger);
+    explicit CallGraph(pdg::PDG* graph, Logger& logger);
 
     CallGraph(const CallGraph&) = delete;
     CallGraph(CallGraph&&) = delete;
@@ -364,10 +371,10 @@ public:
     }
 
 private:    
-    void create(const llvm::CallGraph& graph);
+    void create(pdg::PDG* graph);
     Node* getOrAddNode(llvm::Function* F);
-    void addNodeConnections(llvm::CallGraphNode* llvmNode,
-                            Node* sourceNode);
+    void addNodeConnections(llvm::Function* caller,
+                            Node* sinkNode);
 
 private:
     FunctionNodes m_functionNodes;
