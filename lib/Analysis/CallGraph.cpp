@@ -370,6 +370,9 @@ void WeightAssigningHelper::assignSensitiveNodeWeights()
     factor.setValue(Double::POS_INFINITY);
     for (llvm::Function* F : m_securePartition.getPartition()) {
         auto* Fnode = m_callGraph.getFunctionNode(F);
+        if (!Fnode) {
+            continue;
+        }
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
         m_factorWeights[WeightFactor::SENSITIVE].push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE).getValue());
@@ -388,6 +391,9 @@ void WeightAssigningHelper::assignSensitiveRelatedNodeWeights()
             factor.setValue(1/level);
         }
         auto* Fnode = m_callGraph.getFunctionNode(function);
+        if (!Fnode) {
+            continue;
+        }
         Weight& nodeWeight = Fnode->getWeight();
         nodeWeight.addFactor(factor);
         m_factorWeights[WeightFactor::SENSITIVE_RELATED].push_back(&nodeWeight.getFactor(WeightFactor::SENSITIVE_RELATED).getValue());
@@ -619,7 +625,9 @@ bool CallGraph::hasFunctionNode(llvm::Function* F) const
 
 Node* CallGraph::getFunctionNode(llvm::Function* F) const
 {
-    assert(hasFunctionNode(F));
+    if (!hasFunctionNode(F)) {
+        return nullptr;
+    }
     return m_functionNodes.find(F)->second.get();
 }
 
@@ -641,6 +649,9 @@ void CallGraph::create(pdg::PDG* graph)
             continue;
         }
         Node* node = getOrAddNode(const_cast<llvm::Function*>(F));
+        if (!node) {
+            continue;
+        }
         for (auto caller_it = F_pdg->callSitesBegin(); caller_it != F_pdg->callSitesEnd(); ++caller_it) {
             addNodeConnections(caller_it->getCaller(), node);
         }
@@ -648,6 +659,9 @@ void CallGraph::create(pdg::PDG* graph)
     // Add non-call edges: TODO: this seems to be redundant
     for (auto& functionNode : graph->getFunctionNodes()) {
         Node* node = getOrAddNode(const_cast<llvm::Function*>(functionNode.first));
+        if (!node) {
+            continue;
+        }
         for (auto out_it = functionNode.second->outEdgesBegin(); out_it != functionNode.second->outEdgesEnd(); ++ out_it) {
             if ((*out_it)->getDestination()->hasParent()) {
                 addNodeConnections((*out_it)->getDestination()->getParent(), node);
@@ -667,6 +681,9 @@ Node* CallGraph::getOrAddNode(llvm::Function* F)
 void CallGraph::addNodeConnections(llvm::Function* caller, Node* sinkNode)
 {
     Node* sourceNode = getOrAddNode(caller);
+    if (!sourceNode) {
+        return;
+    }
     Edge edge(sourceNode, sinkNode);
     if (sourceNode->addOutEdge(edge)) {
         sinkNode->addInEdge(edge);
