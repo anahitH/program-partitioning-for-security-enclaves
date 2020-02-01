@@ -1,5 +1,6 @@
 #include "Analysis/Partitioner.h"
 
+#include "Analysis/GlobalsUsageInFunctions.h"
 #include "Utils/PartitionUtils.h"
 #include "Utils/Annotation.h"
 #include "Utils/Logger.h"
@@ -164,38 +165,6 @@ private:
     virtual bool canPartition() const final;
     virtual void traverse() final;
 }; // class PartitionForArguments
-
-class PartitionGlobals
-{
-public:
-    using PDGType = std::shared_ptr<pdg::PDG>;
-
-    PartitionGlobals(llvm::Module& module,
-                     PDGType pdg,
-                     const Partition& partition,
-                     Logger& logger)
-        : m_module(module)
-        , m_pdg(pdg)
-        , m_partition(partition)
-        , m_logger(logger)
-    {
-    }
-
-public:
-    void partition();
-
-    const Partition::GlobalsSet& getReferencedGlobals() const
-    {
-        return m_referencedGlobals;
-    }
-
-private:
-    llvm::Module& m_module;
-    PDGType m_pdg;
-    const Partition& m_partition;
-    Logger& m_logger;
-    Partition::GlobalsSet m_referencedGlobals;
-}; // class PartitionGlobals
 
 Partition PartitionForAnnotation::partition()
 {
@@ -501,33 +470,6 @@ void PartitionForReturnValue::traverse()
     }
 }
 
-void PartitionGlobals::partition()
-{
-    m_logger.info("Analyzing for globals");
-    for (auto glob_it = m_module.global_begin();
-         glob_it != m_module.global_end();
-         ++glob_it) {
-         assert(m_pdg->hasGlobalVariableNode(&*glob_it));
-         const auto& globalNode = m_pdg->getGlobalVariableNode(&*glob_it);
-         for (auto in_it = globalNode->inEdgesBegin();
-              in_it != globalNode->inEdgesEnd();
-              ++in_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*in_it)->getSource().get()))) {
-                 continue;
-             }
-             m_referencedGlobals.insert(&*glob_it);
-         }
-         for (auto out_it = globalNode->outEdgesBegin();
-              out_it != globalNode->outEdgesEnd();
-              ++out_it) {
-             if (!m_partition.contains(Utils::getNodeParent((*out_it)->getDestination().get()))) {
-                 continue;
-             }
-             m_referencedGlobals.insert(&*glob_it);
-         }
-    }
-}
-
 void Partitioner::computeInsecurePartition()
 {
     for (auto& F : m_module) {
@@ -535,12 +477,22 @@ void Partitioner::computeInsecurePartition()
             m_insecurePartition.addToPartition(&F);
         }
     }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_insecurePartition, m_logger);
-    globals_partitioner.partition();
-    m_insecurePartition.setGlobals(globals_partitioner.getReferencedGlobals());
-
+    assignPartitionGlobals(m_insecurePartition);
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
+}
+
+void Partitioner::assignPartitionGlobals(Partition& partition)
+{
+    const GlobalsUsageInFunctions& globalsInfo = GlobalsUsageInFunctions::getGlobalsUsageInFunctions();
+    Partition::GlobalsSet partitionGlobals;
+    for (auto* F : partition.getPartition()) {
+        if (partition.contains(F)) {
+            const auto& globalsUsedInF = globalsInfo.getGlobalVariablesUsedInFunction(F);
+            partitionGlobals.insert(globalsUsedInF.begin(), globalsUsedInF.end());
+        }
+    }
+    partition.setGlobals(std::move(partitionGlobals));
 }
 
 void Partitioner::partition(const Annotations& annotations)
@@ -559,12 +511,12 @@ void Partitioner::partition(const Annotations& annotations)
         const auto& ret_partition = ret_partitioner.partition();
         m_securePartition.addToPartition(ret_partition);
     }
-    PartitionGlobals globals_partitioner(m_module, m_pdg, m_securePartition, m_logger);
-    globals_partitioner.partition();
-    m_securePartition.setGlobals(globals_partitioner.getReferencedGlobals());
-
+    llvm::dbgs() << "Compute globals for for each function\n";
+    GlobalsUsageInFunctions::computeGlobalsUsageInFunctions(m_module, m_pdg, m_logger);
+    assignPartitionGlobals(m_securePartition);
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
+
     computeInsecurePartition();
 }
 

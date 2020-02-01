@@ -226,7 +226,7 @@ void OpenEnclaveCodeGenerator::writeGeneratedFiles()
 
 void OpenEnclaveCodeGenerator::generateEnclaveDefinitionFile()
 {
-    m_edlFile.setName("sgx.edl");
+    m_edlFile.setName(m_prefix + ".edl");
     m_edlFile.setHeader(true);
 
     SourceScope::ScopeType enclaceScope(new SourceScope("enclave", false));
@@ -251,7 +251,8 @@ void OpenEnclaveCodeGenerator::generateEnclaveFile()
     m_enclaveFile.setName(m_prefix + "_enclave.c");
     m_enclaveFile.setHeader(false);
     m_enclaveFile.addInclude("<openenclave/enclave.h>");
-    m_enclaveFile.addInclude("\"sgx_t.h\"");
+    const std::string trusted_edl_name = "\"" + m_prefix + "_t.h\"";
+    m_enclaveFile.addInclude(trusted_edl_name);
     m_enclaveFile.addInclude("<stdio.h>");
 
     for (const auto& appF : m_appFunctions) {
@@ -271,7 +272,8 @@ void OpenEnclaveCodeGenerator::generateAppDriverFile()
 {
     m_appDriverFile.setName(m_prefix + "_app.c");
     m_appDriverFile.setHeader(false);
-    m_appDriverFile.addInclude("\"sgx_u.h\"");
+    const std::string untrusted_edl_name = "\"" + m_prefix + "_u.h\"";
+    m_appDriverFile.addInclude(untrusted_edl_name);
     // app_util.h has enclave creation and termination code
     m_appDriverFile.addInclude("\"app_utils.h\"");
     m_appDriverFile.addInclude("<stdio.h>");

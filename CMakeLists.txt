@@ -108,6 +108,7 @@ add_library(program_partitioning MODULE
         lib/Analysis/ProgramPartitionStatistics.cpp
         lib/Analysis/Partitioner.cpp
         lib/Analysis/Partition.cpp
+        lib/Analysis/GlobalsUsageInFunctions.cpp
         lib/Analysis/CallGraph.cpp
         lib/Optimization/PartitionOptimizer.cpp
         lib/Optimization/PartitionOptimization.cpp

@@ -51,6 +51,7 @@ public:
 
 private:
     void computeInsecurePartition();
+    void assignPartitionGlobals(Partition& partition);
 
 protected:
     llvm::Module& m_module;
