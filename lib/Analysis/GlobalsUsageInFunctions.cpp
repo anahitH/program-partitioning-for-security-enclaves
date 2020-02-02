@@ -16,13 +16,16 @@
 
 namespace vazgen {
 
+bool GlobalsUsageInFunctions::functionIsUsingGlobals(llvm::Function* F) const
+{
+    return m_globalsUsedInFunctions.find(F) != m_globalsUsedInFunctions.end();
+}
+
 const GlobalsUsageInFunctions::GlobalVariables& GlobalsUsageInFunctions::getGlobalVariablesUsedInFunction(llvm::Function* F) const
 {
+    assert(functionIsUsingGlobals(F));
     auto it = m_globalsUsedInFunctions.find(F);
-    if (it != m_globalsUsedInFunctions.end()) {
-        return it->second;
-    }
-    return GlobalVariables();
+    return it->second;
 }
 
 void GlobalsUsageInFunctions::setGlobalsUsedInFunctions(const GlobalsInFunctions& globalsInFunctions)
@@ -48,27 +51,25 @@ void GlobalsUsageInFunctions::computeGlobalsUsageInFunctions(llvm::Module& modul
                                                              Logger& logger)
 {
     GlobalsUsageInFunctions& globalsUsage = GlobalsUsageInFunctions::getGlobalsUsageInFunctions();
-    logger.info("Analyzing for globals");
+    logger.info("Computing globals usage in functions");
     for (auto glob_it = module.global_begin();
          glob_it != module.global_end();
          ++glob_it) {
          assert(pdg->hasGlobalVariableNode(&*glob_it));
-         llvm::dbgs() << "analyzing global " << *glob_it << "\n";
+         //llvm::dbgs() << "analyzing global " << *glob_it << "\n";
          const auto& globalNode = pdg->getGlobalVariableNode(&*glob_it);
          for (auto in_it = globalNode->inEdgesBegin();
               in_it != globalNode->inEdgesEnd();
               ++in_it) {
              llvm::Function* globalUseFunction = Utils::getNodeParent((*in_it)->getSource().get());
-             llvm::dbgs() << "in: Global is used in function " << globalUseFunction->getName() << "\n";
+             //llvm::dbgs() << "in: Global is used in function " << globalUseFunction->getName() << "\n";
 
-             llvm::dbgs() << "adding to partition\n";
              globalsUsage.addGlobalUsedInFunction(globalUseFunction, &*glob_it);
          }
          for (auto out_it = globalNode->outEdgesBegin();
               out_it != globalNode->outEdgesEnd();
               ++out_it) {
              llvm::Function* globalUseFunction = Utils::getNodeParent((*out_it)->getDestination().get());
-             llvm::dbgs() << "adding to partition\n";
              globalsUsage.addGlobalUsedInFunction(globalUseFunction, &*glob_it);
          }
     }

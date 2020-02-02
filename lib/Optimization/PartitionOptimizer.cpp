@@ -108,8 +108,21 @@ void PartitionOptimizer::apply()
     }
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
+    m_securePartition.setGlobals(PartitionUtils::computeGlobalsUsedInFunctions(m_securePartition.getPartition()));
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
+    m_insecurePartition.setGlobals(PartitionUtils::computeGlobalsUsedInFunctions(m_insecurePartition.getPartition()));
+
+    //    uncomment when debugging
+//    llvm::dbgs() << "Globals in each partition after optimization\n";
+//    llvm::dbgs() << "Globals in secure partition\n";
+//    for (auto* global : m_securePartition.getGlobals()) {
+//        llvm::dbgs() << *global << "\n";
+//    }
+//    llvm::dbgs() << "Globals in insecure partition\n";
+//    for (auto* global : m_insecurePartition.getGlobals()) {
+//        llvm::dbgs() << *global << "\n";
+//    }
 }
 
 } // namespace vazgen

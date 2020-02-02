@@ -1,5 +1,7 @@
 #include "Utils/PartitionUtils.h"
 
+#include "Analysis/GlobalsUsageInFunctions.h"
+
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
 #include "PDG/PDG/PDGEdge.h"
@@ -7,6 +9,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/CallSite.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -76,6 +79,20 @@ PartitionUtils::computeOutInterface(const FunctionSet& functions,
         }
     }
     return outInterface;
+}
+PartitionUtils::GlobalsSet
+PartitionUtils::computeGlobalsUsedInFunctions(const FunctionSet& functions)
+{
+    GlobalsSet globalsUsedInFunctions;
+    const auto& globalsUsageInFunctions = GlobalsUsageInFunctions::getGlobalsUsageInFunctions();
+    for (auto* F : functions) {
+        if (!globalsUsageInFunctions.functionIsUsingGlobals(F)) {
+            continue;
+        }
+        const auto& globalsUsedInF = globalsUsageInFunctions.getGlobalVariablesUsedInFunction(F);
+        globalsUsedInFunctions.insert(globalsUsedInF.begin(), globalsUsedInF.end());
+    }
+    return globalsUsedInFunctions;
 }
 
 } // namespace vazgen

@@ -5,6 +5,7 @@
 #include "Utils/Annotation.h"
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
+#include "Utils/PartitionUtils.h"
 
 #include "PDG/PDG/PDG.h"
 #include "PDG/PDG/PDGNode.h"
@@ -477,22 +478,9 @@ void Partitioner::computeInsecurePartition()
             m_insecurePartition.addToPartition(&F);
         }
     }
-    assignPartitionGlobals(m_insecurePartition);
     m_insecurePartition.setInInterface(PartitionUtils::computeInInterface(m_insecurePartition.getPartition(), *m_pdg));
     m_insecurePartition.setOutInterface(PartitionUtils::computeOutInterface(m_insecurePartition.getPartition(), *m_pdg));
-}
-
-void Partitioner::assignPartitionGlobals(Partition& partition)
-{
-    const GlobalsUsageInFunctions& globalsInfo = GlobalsUsageInFunctions::getGlobalsUsageInFunctions();
-    Partition::GlobalsSet partitionGlobals;
-    for (auto* F : partition.getPartition()) {
-        if (partition.contains(F)) {
-            const auto& globalsUsedInF = globalsInfo.getGlobalVariablesUsedInFunction(F);
-            partitionGlobals.insert(globalsUsedInF.begin(), globalsUsedInF.end());
-        }
-    }
-    partition.setGlobals(std::move(partitionGlobals));
+    m_insecurePartition.setGlobals(PartitionUtils::computeGlobalsUsedInFunctions(m_insecurePartition.getPartition()));
 }
 
 void Partitioner::partition(const Annotations& annotations)
@@ -513,9 +501,9 @@ void Partitioner::partition(const Annotations& annotations)
     }
     llvm::dbgs() << "Compute globals for for each function\n";
     GlobalsUsageInFunctions::computeGlobalsUsageInFunctions(m_module, m_pdg, m_logger);
-    assignPartitionGlobals(m_securePartition);
     m_securePartition.setInInterface(PartitionUtils::computeInInterface(m_securePartition.getPartition(), *m_pdg));
     m_securePartition.setOutInterface(PartitionUtils::computeOutInterface(m_securePartition.getPartition(), *m_pdg));
+    m_securePartition.setGlobals(PartitionUtils::computeGlobalsUsedInFunctions(m_securePartition.getPartition()));
 
     computeInsecurePartition();
 }

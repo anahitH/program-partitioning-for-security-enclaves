@@ -36,6 +36,7 @@ public:
                                                Logger& logger);
 
 public:
+    bool functionIsUsingGlobals(llvm::Function* F) const;
     const GlobalVariables& getGlobalVariablesUsedInFunction(llvm::Function* F) const;
 
     void setGlobalsUsedInFunctions(const GlobalsInFunctions& globalsInFunctions);
