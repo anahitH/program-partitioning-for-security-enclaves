@@ -55,7 +55,8 @@ class GlobalVariableExtractorHelper
 public:
     GlobalVariableExtractorHelper(llvm::Module* M,
                                   const pdg::PDG& pdg,
-                                  const Partition& partition,
+                                  const Partition& partitionAssigningToGlobals,
+                                  const Partition& partitionUsingAssignedGlobals,
                                   const std::string& prefix,
                                   Logger& logger);
 
@@ -84,7 +85,8 @@ private:
 private:
     llvm::Module* m_module;
     const pdg::PDG& m_pdg;
-    const Partition& m_partition;
+    const Partition& m_partitionAssigningToGlobals;
+    const Partition& m_partitionUsingAssignedGlobals;
     std::unordered_map<llvm::GlobalVariable*, llvm::Function*> m_globalSetter;
     const std::string& m_prefix;
     Logger& m_logger;
@@ -92,12 +94,14 @@ private:
 
 GlobalVariableExtractorHelper::GlobalVariableExtractorHelper(llvm::Module* M,
                                                              const pdg::PDG& pdg,
-                                                             const Partition& partition,
+                                                             const Partition& partitionAssigningToGlobals,
+                                                             const Partition& partitionUsingAssignedGlobals,
                                                              const std::string& prefix,
                                                              Logger& logger)
     : m_module(M)
     , m_pdg(pdg)
-    , m_partition(partition)
+    , m_partitionAssigningToGlobals(partitionAssigningToGlobals)
+    , m_partitionUsingAssignedGlobals(partitionUsingAssignedGlobals)
     , m_prefix(prefix)
     , m_logger(logger)
 {
@@ -105,7 +109,7 @@ GlobalVariableExtractorHelper::GlobalVariableExtractorHelper(llvm::Module* M,
 
 void GlobalVariableExtractorHelper::instrumentForGlobals()
 {
-    for (auto* global : m_partition.getGlobals()) {
+    for (auto* global : m_partitionAssigningToGlobals.getGlobals()) {
         addGlobalSetter(global);
     }
 }
@@ -131,7 +135,8 @@ void GlobalVariableExtractorHelper::addGlobalSetter(llvm::GlobalVariable* global
         assert(nodeValue);
         if (auto* storeInst = llvm::dyn_cast<llvm::StoreInst>(nodeValue)) {
             if (storeInst->getPointerOperand() == global
-                    && m_partition.contains(storeInst->getFunction())) {
+                    && m_partitionAssigningToGlobals.contains(storeInst->getFunction())
+                    && m_partitionUsingAssignedGlobals.contains(global)) {
                 addGlobalSetterAfter(storeInst, global);
             }
         }
@@ -298,16 +303,20 @@ bool PartitionExtractorPass::runOnModule(llvm::Module& M)
 PartitionExtractorPass::FunctionSet
 PartitionExtractorPass::getGlobalSetters(llvm::Module& M, Logger& logger, bool isEnclave)
 {
-    Partition partition;
+    Partition partitionAssigningToGlobals;
+    Partition partitionUsingAssignedGlobals;
     std::string prefixName;
     if (isEnclave) {
-        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
+        partitionAssigningToGlobals = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
+        partitionUsingAssignedGlobals = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
         prefixName = "enclave";
     } else {
-        partition = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+        partitionAssigningToGlobals = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getSecurePartition();
+        partitionUsingAssignedGlobals = getAnalysis<ProgramPartitionAnalysis>().getProgramPartition().getInsecurePartition();
         prefixName = "app";
     }
-    GlobalVariableExtractorHelper globalsExtractionHelper(&M, *m_pdg, partition,
+    GlobalVariableExtractorHelper globalsExtractionHelper(&M, *m_pdg, partitionAssigningToGlobals,
+                                                          partitionUsingAssignedGlobals,
                                                           prefixName, logger);
 
     globalsExtractionHelper.instrumentForGlobals();
